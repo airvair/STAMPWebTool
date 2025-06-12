@@ -19,8 +19,6 @@ jobs:
           node-version: "20"
           cache: "npm"
           # no subfolder → repo-root lockfile
-          cache-dependency-path: "package-lock.json"
-
       - name: Install dependencies
         run: npm ci
 
