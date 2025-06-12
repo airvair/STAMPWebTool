@@ -24,13 +24,16 @@ const Stepper: React.FC<{ steps: StepDefinition[]; currentPath: string; headerHe
         {steps.map((step, stepIdx) => {
           const isCurrent = currentPath === step.path || (currentPath.startsWith(step.path) && step.path !== '/'); // Handle nested routes better
           const isCompleted = steps.findIndex(s => s.path === currentPath) > stepIdx;
+          const isStart = step.path === '/start';
 
           return (
             <li key={step.shortTitle} className="flex-shrink-0">
               <button
-                onClick={() => navigate(step.path)}
-                className={`group flex flex-col items-center py-2 px-1 md:px-3 border-b-4 hover:border-sky-300 focus:outline-none 
-                  ${isCurrent ? 'border-sky-500 text-sky-600' : isCompleted ? 'border-green-500 text-green-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                onClick={() => !isStart && navigate(step.path)}
+                disabled={isStart}
+                className={`group flex flex-col items-center py-2 px-1 md:px-3 border-b-4 focus:outline-none
+                  ${isCurrent ? 'border-sky-500 text-sky-600' : isCompleted ? 'border-green-500 text-green-600' : 'border-transparent text-slate-500'}
+                  ${isStart ? 'cursor-default' : 'hover:border-sky-300 hover:text-slate-700'}`}
               >
                 <span className={`text-xs md:text-sm font-medium ${isCurrent ? 'font-bold' : ''}`}>{step.shortTitle}</span>
               </button>

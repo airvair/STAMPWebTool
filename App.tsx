@@ -18,9 +18,9 @@ const App: React.FC = () => {
 
   return (
     <>
-      {(!analysisSession || !analysisSession.analysisType) && <StartupModal />}
       <Routes>
-        <Route path="/" element={analysisSession?.analysisType ? <Navigate to={analysisSession.currentStep || (analysisSession.analysisType === 'CAST' ? '/cast/step2' : '/stpa/step2')} /> : <div className="p-8 text-center">Please select an analysis type to begin.</div>} />
+        <Route path="/" element={<Navigate to="/start" replace />} />
+        <Route path="/start" element={<StartupModal />} />
         <Route element={<MainLayout />}>
           <Route path="/cast/step2" element={<CastStep2 />} />
           <Route path="/stpa/step2" element={<StpaStep2 />} />
