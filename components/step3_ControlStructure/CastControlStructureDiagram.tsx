@@ -1,7 +1,13 @@
 import React from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { ControllerType } from '../../types';
-import { CONTROLLER_TYPE_COLORS, CONTROL_LINE_COLOR, FEEDBACK_LINE_COLOR, MISSING_LINE_COLOR, CONTROLLER_TYPE_FILL_COLORS } from '../../constants';
+import {
+  CONTROLLER_TYPE_COLORS,
+  CONTROL_LINE_COLOR,
+  FEEDBACK_LINE_COLOR,
+  MISSING_LINE_COLOR,
+  CONTROLLER_TYPE_FILL_COLORS,
+} from '../../constants';
 
 interface Position { x: number; y: number; }
 interface DiagramProps { svgRef?: React.Ref<SVGSVGElement>; }
@@ -10,6 +16,9 @@ const NODE_WIDTH = 140;
 const NODE_HEIGHT = 50;
 const LEVEL_HEIGHT = 120;
 const SVG_WIDTH = 1000;
+const SIDE_MARGIN = 16;
+const ACT_BOX_W = 44;
+const ACT_BOX_H = 16;
 
 const CastControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
   const { systemComponents, controllers, controlPaths, feedbackPaths } = useAnalysis();
@@ -54,11 +63,142 @@ const CastControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
   const positions: Record<string, Position> = {};
   levels.forEach((lvl, idx) => {
     const items = levelNodes[lvl];
-    const spacing = SVG_WIDTH / (items.length + 1);
+    const spacing = (SVG_WIDTH - 2 * SIDE_MARGIN) / (items.length + 1);
     items.forEach((n, i) => {
-      positions[n.id] = { x: spacing * (i + 1), y: LEVEL_HEIGHT * idx + 40 };
+      positions[n.id] = {
+        x: SIDE_MARGIN + spacing * (i + 1),
+        y: LEVEL_HEIGHT * lvl + 40,
+      };
     });
   });
+
+  const drawControlArrow = (cp: typeof controlPaths[number]) => {
+    const src = positions[cp.sourceControllerId];
+    const tgt = positions[cp.targetId];
+    if (!src || !tgt) return null;
+    const startX = src.x - NODE_WIDTH / 2;
+    const startY = src.y;
+    const endX = tgt.x - NODE_WIDTH / 2;
+    const endY = tgt.y;
+    const bendY = (startY + endY) / 2;
+    const midX = (startX + endX) / 2;
+    const verticalMid = bendY + (endY - bendY) / 2;
+    return (
+      <g key={cp.id}>
+        <polyline
+          fill="none"
+          stroke={CONTROL_LINE_COLOR}
+          markerEnd="url(#arrow-control)"
+          points={`${startX},${startY} ${startX},${bendY} ${endX},${bendY} ${endX},${endY}`}
+        />
+        <rect
+          x={endX - ACT_BOX_W / 2}
+          y={verticalMid - ACT_BOX_H / 2}
+          width={ACT_BOX_W}
+          height={ACT_BOX_H}
+          fill="white"
+          stroke={CONTROL_LINE_COLOR}
+        />
+        <text
+          x={endX}
+          y={verticalMid}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="8"
+        >
+          actuator
+        </text>
+        <text x={midX} y={bendY - 4} textAnchor="middle" fontSize="10">
+          {cp.controls}
+        </text>
+      </g>
+    );
+  };
+
+  const drawFeedbackArrow = (fp: typeof feedbackPaths[number]) => {
+    const src = positions[fp.sourceId];
+    const tgt = positions[fp.targetControllerId];
+    if (!src || !tgt) return null;
+    const startX = src.x + NODE_WIDTH / 2;
+    const startY = src.y;
+    const endX = tgt.x + NODE_WIDTH / 2;
+    const endY = tgt.y;
+    const bendY = (startY + endY) / 2;
+    const midX = (startX + endX) / 2;
+    const verticalMid = startY + (bendY - startY) / 2;
+    const stroke = fp.isMissing ? MISSING_LINE_COLOR : FEEDBACK_LINE_COLOR;
+    const dash = fp.isMissing ? '4 2' : '5 5';
+    const marker = fp.isMissing ? 'url(#arrow-missing)' : 'url(#arrow-feedback)';
+    return (
+      <g key={fp.id}>
+        <polyline
+          fill="none"
+          stroke={stroke}
+          strokeDasharray={dash}
+          markerEnd={marker}
+          points={`${startX},${startY} ${startX},${bendY} ${endX},${bendY} ${endX},${endY}`}
+        />
+        <rect
+          x={startX - ACT_BOX_W / 2}
+          y={verticalMid - ACT_BOX_H / 2}
+          width={ACT_BOX_W}
+          height={ACT_BOX_H}
+          fill="white"
+          stroke={stroke}
+        />
+        <text
+          x={startX}
+          y={verticalMid}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="8"
+        >
+          sensor
+        </text>
+        <text x={midX} y={bendY - 4} textAnchor="middle" fontSize="10">
+          {fp.feedback} {fp.indirect ? '(indirect)' : ''} {fp.isMissing ? 'MISSING' : ''}
+        </text>
+      </g>
+    );
+  };
+
+  const drawNode = (
+    id: string,
+    name: string,
+    type: 'controller' | 'component',
+    ctrlType?: ControllerType,
+  ) => {
+    const pos = positions[id];
+    if (!pos) return null;
+    const fill =
+      type === 'controller' && ctrlType
+        ? CONTROLLER_TYPE_FILL_COLORS[ctrlType]
+        : 'white';
+    const classes =
+      type === 'controller' && ctrlType ? CONTROLLER_TYPE_COLORS[ctrlType] : '';
+    return (
+      <g key={id}>
+        <rect
+          x={pos.x - NODE_WIDTH / 2}
+          y={pos.y - NODE_HEIGHT / 2}
+          width={NODE_WIDTH}
+          height={NODE_HEIGHT}
+          fill={fill}
+          stroke="black"
+          className={classes}
+        />
+        <text
+          x={pos.x}
+          y={pos.y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="12"
+        >
+          {name}
+        </text>
+      </g>
+    );
+  };
 
   return (
     <svg ref={svgRef} width="100%" height={(levels.length + 1) * LEVEL_HEIGHT} viewBox={`0 0 ${SVG_WIDTH} ${(levels.length + 1) * LEVEL_HEIGHT}`}>\
@@ -75,89 +215,15 @@ const CastControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
       </defs>
 
       {/* Draw lines for control paths */}
-      {controlPaths.map(cp => {
-        const src = positions[cp.sourceControllerId];
-        const tgt = positions[cp.targetId];
-        if (!src || !tgt) return null;
-        const startX = src.x;
-        const startY = src.y + NODE_HEIGHT / 2;
-        const endX = tgt.x;
-        const endY = tgt.y - NODE_HEIGHT / 2;
-        const midY = (startY + endY) / 2;
-        const pathData = `${startX},${startY} ${startX},${midY} ${endX},${midY} ${endX},${endY}`;
-        const midX = (startX + endX) / 2;
-        return (
-          <g key={cp.id}>
-            <polyline
-              fill="none"
-              stroke={CONTROL_LINE_COLOR}
-              points={pathData}
-              markerEnd="url(#arrow-control)"
-            />
-            <text x={midX} y={midY - 4} textAnchor="middle" fontSize="10">
-              {cp.controls || cp.actuatorLabel || 'actuator'}
-            </text>
-          </g>
-        );
-      })}
+      {controlPaths.map(drawControlArrow)}
 
       {/* Draw lines for feedback paths */}
-      {feedbackPaths.map(fp => {
-        const src = positions[fp.sourceId];
-        const tgt = positions[fp.targetControllerId];
-        if (!src || !tgt) return null;
-        const startX = src.x;
-        const startY = src.y - NODE_HEIGHT / 2;
-        const endX = tgt.x;
-        const endY = tgt.y + NODE_HEIGHT / 2;
-        const midY = (startY + endY) / 2;
-        const pathData = `${startX},${startY} ${startX},${midY} ${endX},${midY} ${endX},${endY}`;
-        const midX = (startX + endX) / 2;
-        const stroke = fp.isMissing ? MISSING_LINE_COLOR : FEEDBACK_LINE_COLOR;
-        const dash = fp.isMissing ? '4 2' : undefined;
-        const marker = fp.isMissing ? 'url(#arrow-missing)' : 'url(#arrow-feedback)';
-        return (
-          <g key={fp.id}>
-            <polyline
-              fill="none"
-              stroke={stroke}
-              strokeDasharray={dash}
-              markerEnd={marker}
-              points={pathData}
-            />
-            <text x={midX} y={midY - 4} textAnchor="middle" fontSize="10">
-              {fp.feedback || fp.sensorLabel || 'sensor'}
-              {fp.indirect ? ' (indirect)' : ''}
-              {fp.isMissing ? ' MISSING' : ''}
-            </text>
-          </g>
-        );
-      })}
+      {feedbackPaths.map(drawFeedbackArrow)}
 
       {/* Draw nodes */}
-      {controllers.map(ctrl => {
-        const pos = positions[ctrl.id];
-        if (!pos) return null;
-        const classes = CONTROLLER_TYPE_COLORS[ctrl.ctrlType];
-        const fill = CONTROLLER_TYPE_FILL_COLORS[ctrl.ctrlType];
-        return (
-          <g key={ctrl.id}>
-            <rect x={pos.x - NODE_WIDTH/2} y={pos.y - NODE_HEIGHT/2} width={NODE_WIDTH} height={NODE_HEIGHT} className={classes} fill={fill} stroke="black" />
-            <text x={pos.x} y={pos.y} textAnchor="middle" dominantBaseline="middle" fontSize="12">{ctrl.name}</text>
-          </g>
-        );
-      })}
+      {controllers.map(c => drawNode(c.id, c.name, 'controller', c.ctrlType))}
 
-      {systemComponents.map(comp => {
-        const pos = positions[comp.id];
-        if (!pos) return null;
-        return (
-          <g key={comp.id}>
-            <rect x={pos.x - NODE_WIDTH/2} y={pos.y - NODE_HEIGHT/2} width={NODE_WIDTH} height={NODE_HEIGHT} fill="white" stroke="black" />
-            <text x={pos.x} y={pos.y} textAnchor="middle" dominantBaseline="middle" fontSize="12">{comp.name}</text>
-          </g>
-        );
-      })}
+      {systemComponents.map(sc => drawNode(sc.id, sc.name, 'component'))}
 
     </svg>
   );
