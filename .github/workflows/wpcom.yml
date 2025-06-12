@@ -12,7 +12,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      - name: Debug workspace
+        run: |
+          echo "Workflow file in use:" $(basename $GITHUB_WORKFLOW)
+          echo
+          echo "Repo root contents:"
+          ls -1
+          echo
+          echo "Lockfile exists at:"
+          ls -l package-lock.json || echo "  → not here"
       - name: Set up Node.js (with npm cache)
         uses: actions/setup-node@v4
         with:
