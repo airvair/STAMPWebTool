@@ -13,6 +13,12 @@ const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const { analysisSession, setCurrentStep, resetAnalysis } = useAnalysis();
 
+  React.useEffect(() => {
+    if (!analysisSession || !analysisSession.analysisType) {
+      navigate('/start', { replace: true });
+    }
+  }, [analysisSession, navigate]);
+
   if (!analysisSession || !analysisSession.analysisType) {
      // This case should ideally be handled by App.tsx redirecting or showing StartupModal
     return <div className="p-8 text-center text-slate-700">Loading analysis session...</div>;
