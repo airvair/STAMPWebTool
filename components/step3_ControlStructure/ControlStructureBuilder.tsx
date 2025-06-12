@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { SystemComponent, Controller, ControlPath, FeedbackPath, ComponentType, ControllerType, Hazard } from '../../types';
 import { CONTROLLER_TYPE_COLORS, MISSING_FEEDBACK_COLOR } from '../../constants';
@@ -9,6 +9,24 @@ import Button from '../shared/Button';
 import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
 import ControlStructureDiagram from './ControlStructureDiagram';
+
+const downloadSvg = (svg: SVGSVGElement | null) => {
+  if (!svg) return;
+  const serializer = new XMLSerializer();
+  let source = serializer.serializeToString(svg);
+  if (!source.match(/^<svg[^>]+xmlns="http:\/\/www.w3.org\/2000\/svg"/)) {
+    source = source.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'control-structure.svg';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 const PlaceholderPlusIcon = () => (
   <svg
@@ -48,6 +66,10 @@ const ControlStructureBuilder: React.FC = () => {
     feedbackPaths, addFeedbackPath, updateFeedbackPath, deleteFeedbackPath,
     hazards,
   } = useAnalysis();
+
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  const handleExportSvg = () => downloadSvg(svgRef.current);
 
   // Component Form
   const [componentName, setComponentName] = useState('');
@@ -340,8 +362,11 @@ const ControlStructureBuilder: React.FC = () => {
       </section>
       <section>
         <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">5. Visualization</h3>
+        <div className="mb-2">
+          <Button size="sm" variant="secondary" onClick={handleExportSvg}>Download SVG</Button>
+        </div>
         <div className="overflow-auto border p-2">
-          <ControlStructureDiagram />
+          <ControlStructureDiagram svgRef={svgRef} />
         </div>
       </section>
     </div>
