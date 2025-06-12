@@ -28,7 +28,15 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
   const [scope, setScope] = useState(analysisSession?.scope || '');
   const [otherLossTitle, setOtherLossTitle] = useState('');
   const [otherLossDesc, setOtherLossDesc] = useState('');
-  const [selectedLossIdsState, setSelectedLossIdsState] = useState<string[]>(losses.map(l => l.id));
+  const mapLossesToCheckboxIds = useCallback((lossList: Loss[]) =>
+    lossList.map(l =>
+      l.isStandard
+        ? STANDARD_LOSSES.find(sl => sl.title === l.title)?.id || l.id
+        : l.id
+    ),
+  []);
+
+  const [selectedLossIdsState, setSelectedLossIdsState] = useState<string[]>(mapLossesToCheckboxIds(losses));
 
   const [newEventDesc, setNewEventDesc] = useState('');
 
@@ -44,7 +52,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
 
 
   useEffect(() => { setScope(analysisSession?.scope || ''); }, [analysisSession?.scope]);
-  useEffect(() => { setSelectedLossIdsState(losses.map(l => l.id)); }, [losses]);
+  useEffect(() => { setSelectedLossIdsState(mapLossesToCheckboxIds(losses)); }, [losses, mapLossesToCheckboxIds]);
   
   const handleScopeBlur = () => { if (analysisSession && analysisSession.scope !== scope) updateAnalysisSession({ scope }); };
   
@@ -70,12 +78,18 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
   const handleLossSelectionChange = (lossId: string, isSelected: boolean) => {
     const standardLoss = STANDARD_LOSSES.find(sl => sl.id === lossId);
     if (standardLoss) {
-      const existing = losses.find(l => l.id === lossId);
-      if (isSelected && !existing) {
-        addLoss({ title: standardLoss.title, description: standardLoss.description, isStandard: true });
+      const existing = losses.find(l => l.isStandard && l.title === standardLoss.title);
+      if (isSelected) {
+        if (!existing) {
+          addLoss({ title: standardLoss.title, description: standardLoss.description, isStandard: true });
+        }
+      } else if (existing) {
+        deleteLoss(existing.id);
       }
     }
-    setSelectedLossIdsState(prev => isSelected ? [...prev, lossId] : prev.filter(id => id !== lossId));
+    setSelectedLossIdsState(prev =>
+      isSelected ? [...prev, lossId] : prev.filter(id => id !== lossId)
+    );
   };
 
   const handleAddOtherLoss = () => {
