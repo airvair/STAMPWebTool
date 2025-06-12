@@ -36,6 +36,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
   // Hazard creation form state
   const [currentHazardData, setCurrentHazardData] = useState<Partial<Omit<Hazard, 'id' | 'code'>>>({ systemComponent: '', environmentalCondition: '', systemState: '', linkedLossIds: [] });
   const [editingHazardId, setEditingHazardId] = useState<string | null>(null);
+  const [hazardError, setHazardError] = useState('');
   
   // Sub-hazard state (might be more STPA focused, but can exist here)
   const [parentHazardForSubHazard, setParentHazardForSubHazard] = useState<string | null>(null);
@@ -104,9 +105,15 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
   };
 
   const handleSaveHazard = () => {
-    if (!currentHazardData.systemComponent || !currentHazardData.environmentalCondition || !currentHazardData.systemState || !currentHazardData.linkedLossIds || currentHazardData.linkedLossIds.length === 0) {
-      alert("Please fill all hazard fields (System Component, Environmental Condition, System State) and link to at least one loss."); return;
+    if (!currentHazardData.systemComponent || !currentHazardData.environmentalCondition || !currentHazardData.systemState) {
+      setHazardError('Please fill all hazard fields (System Component, Environmental Condition, System State).');
+      return;
     }
+    if (!currentHazardData.linkedLossIds || currentHazardData.linkedLossIds.length === 0) {
+      setHazardError('Please link the hazard to at least one loss.');
+      return;
+    }
+    setHazardError('');
     const hazardTitle = `${currentHazardData.systemComponent} ${currentHazardData.systemState} under ${currentHazardData.environmentalCondition}`;
     const hazardPayload = { ...currentHazardData, title: hazardTitle } as Omit<Hazard, 'id' | 'code'>;
 
@@ -180,6 +187,8 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
   useEffect(() => { autoGenerateConstraints(); }, [hazards, autoGenerateConstraints]);
 
   const getUnlinkedLosses = (): Loss[] => losses.filter(loss => !hazards.some(h => h.linkedLossIds.includes(loss.id)));
+
+  const coveredLossCount = losses.filter(loss => hazards.some(h => h.linkedLossIds.includes(loss.id))).length;
   
   const systemComponentOptions = SYSTEM_COMPONENT_EXAMPLES.map(e => ({ value: e, label: e }));
   const stateConditionOptions = SYSTEM_STATE_CONDITION_EXAMPLES.flatMap(cat => 
@@ -287,16 +296,26 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
       <div>
         <h3 className="text-xl font-semibold text-slate-700 mb-3">
          {analysisType === AnalysisType.CAST ? "4. Identify Hazards Leading to Losses" : "3. Identify System-Level Hazards"}
+         {losses.length > 0 && (
+            <span className="ml-2 text-xs bg-slate-200 text-slate-800 rounded-full px-2 py-0.5">
+              {coveredLossCount} / {losses.length} losses covered
+            </span>
+         )}
         </h3>
-         <p className="text-sm text-slate-600 mb-1">A hazard is a system state or set of conditions that, together with a worst-case environment, will lead to a loss. A hazard must be something that can be controlled through system design.</p>
-         <p className="text-xs text-slate-500 mb-3">Format: {"<System Component> is in <System State> under <Environmental Condition>"}. Use the dropdowns for examples or type directly.</p>
+        <p className="text-sm text-slate-600 mb-1">A hazard is a system state or set of conditions that, together with a worst-case environment, will lead to a loss. A hazard must be something that can be controlled through system design.</p>
+        <p className="text-xs text-slate-500">Brake failure ≠ hazard; inability to stop when an obstacle is ahead = hazard.</p>
+        <p className="text-xs text-slate-500 mb-3">Format: {"<System Component> is in <System State> under <Environmental Condition>"}. Use the dropdowns for examples or type directly.</p>
         <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3 mb-6">
           <AutocompleteInput label="System Component (involved in the hazard)" id="hazard-system-component" value={currentHazardData.systemComponent || ''} onChange={e => handleHazardInputChange('systemComponent', e.target.value)} options={[{value:'', label:'Select or type component'}, ...systemComponentOptions]} placeholder="e.g., Aircraft" />
           <AutocompleteInput label="Environmental Condition (that makes it hazardous)" id="hazard-environmental-condition" value={currentHazardData.environmentalCondition || ''} onChange={e => handleHazardInputChange('environmentalCondition', e.target.value)} options={[{value:'', label:'Select or type condition'}, ...stateConditionOptions.filter(opt => opt.label.toLowerCase().includes('condition') || opt.label.toLowerCase().includes('inflight') || opt.label.toLowerCase().includes('ground'))]} placeholder="e.g., in heavy turbulence" />
           <AutocompleteInput label="System State" id="hazard-system-state" value={currentHazardData.systemState || ''} onChange={e => handleHazardInputChange('systemState', e.target.value)} options={[{value:'', label:'Select or type state'}, ...stateConditionOptions]} placeholder="e.g., provides incorrect altitude reading" />
           
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Link to Losses (select at least one):</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Link to Losses (select at least one):
+              {currentHazardData.linkedLossIds && currentHazardData.linkedLossIds.length > 0 && (
+                <span className="text-green-600 ml-1">&#10003;</span>
+              )}
+            </label>
             {losses.length === 0 && <p className="text-sm text-slate-500">No losses defined yet. Please add losses first.</p>}
             {losses.map(loss => ( <Checkbox key={loss.id} id={`hazard-link-${loss.id}-${analysisType}`} label={`${loss.code}: ${loss.title}`} checked={currentHazardData.linkedLossIds?.includes(loss.id) || false} onChange={e => handleHazardLossLinkChange(loss.id, e.target.checked)}/> ))}
              {currentHazardData.linkedLossIds?.length === 0 && <p className="text-xs text-red-500 mt-1">A hazard must be linked to at least one loss.</p>}
@@ -305,11 +324,15 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
             <Button onClick={handleSaveHazard} leftIcon={<PlaceholderPlusIcon />}>{editingHazardId ? 'Update Hazard' : 'Add Hazard'}</Button>
             {editingHazardId && <Button onClick={resetHazardForm} variant="secondary">Cancel Edit</Button>}
           </div>
+          {hazardError && <p className="text-red-500 text-sm mt-1">{hazardError}</p>}
         </div>
 
         {hazards.filter(h => !h.parentHazardId).length > 0 && (
           <div>
             <h4 className="text-md font-semibold text-slate-600 mb-2">Defined Hazards:</h4>
+            {hazards.length > 30 && (
+              <p className="text-xs text-orange-600 mb-2">Consider grouping or refining hazards if the list becomes very large.</p>
+            )}
             <ul className="space-y-2">
               {hazards.filter(h => !h.parentHazardId).map(h => (
                 <li key={h.id} className="p-3 border border-slate-200 rounded-md bg-white">
