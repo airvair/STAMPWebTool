@@ -19,7 +19,7 @@ jobs:
           node-version: "20"
           cache: "npm"
           # Good practice: point the cache to the correct lock file
-          cache-dependency-path: STAMPWebTool/package-lock.json
+          cache-dependency-path: "StpaCastWebTool/package-lock.json"
 
       - name: Install dependencies in subfolder
         run: npm ci
