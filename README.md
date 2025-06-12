@@ -44,5 +44,3 @@ npm run preview
 - `hooks/` – custom hooks used by the application
 - `constants.ts` and `types.ts` – shared types and configuration values
 
-## License
-This project is provided without a specific license. Use at your own discretion.
