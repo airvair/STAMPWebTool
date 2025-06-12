@@ -8,11 +8,11 @@ const NODE_HEIGHT = 50;
 const LEVEL_HEIGHT = 150;
 const SVG_WIDTH = 1200;
 const SIDE_MARGIN = 20;
-const ACTUATOR_SENSOR_BOX_WIDTH = 60;
-const ACTUATOR_SENSOR_BOX_HEIGHT = 18;
+const ACTUATOR_SENSOR_BOX_SIZE = 18; // Size for the square 'A' and 'S' boxes
 const CONTROL_LINE_COLOR = '#000000';
 const FEEDBACK_LINE_COLOR = '#000000';
 const MISSING_LINE_COLOR = '#FF0000';
+const TEXT_OFFSET_VERTICAL = 5; // Pixels to offset text from the arrow line
 
 const CONTROLLER_TYPE_FILL_COLORS: Record<ControllerType, string> = {
     S: '#d1e7dd', // Software: Green
@@ -32,11 +32,11 @@ const useControlStructureLayout = (analysisData: {
     systemComponents: any[];
     controlPaths: any[];
 }): Layout => {
-    // This logic correctly calculates the positions and remains unchanged.
     const { controllers, systemComponents, controlPaths } = analysisData;
     return React.useMemo(() => {
         const ctrlLevels: Record<string, number> = {};
         controllers.forEach(c => { ctrlLevels[c.id] = 0; });
+
         let updated = true;
         while (updated) {
             updated = false;
@@ -51,41 +51,111 @@ const useControlStructureLayout = (analysisData: {
                 }
             });
         }
+
         const maxCtrlLevel = Math.max(0, ...Object.values(ctrlLevels));
         const componentLevel = maxCtrlLevel + 1;
         const levelNodes: Record<number, NodeData[]> = {};
+
         controllers.forEach(c => {
             const level = ctrlLevels[c.id] ?? 0;
             levelNodes[level] = levelNodes[level] || [];
             levelNodes[level].push({ id: c.id, label: c.name, type: 'controller', ctrlType: c.ctrlType });
         });
+
         systemComponents.forEach(sc => {
             levelNodes[componentLevel] = levelNodes[componentLevel] || [];
             levelNodes[componentLevel].push({ id: sc.id, label: sc.name, type: 'component' });
         });
+
         const levels = Object.keys(levelNodes).map(n => parseInt(n)).sort((a, b) => a - b);
         const positions: Record<string, Position> = {};
         levels.forEach(level => {
             const itemsOnLevel = levelNodes[level];
             const totalWidth = SVG_WIDTH - 2 * SIDE_MARGIN;
-            const spacing = itemsOnLevel.length > 1 ? totalWidth / (itemsOnLevel.length - 1) : totalWidth / 2;
+            const spacing = itemsOnLevel.length > 1 ? totalWidth / (itemsOnLevel.length - 1) : 0;
             itemsOnLevel.forEach((node, i) => {
                 let xPos = SIDE_MARGIN + spacing * i;
                 if (itemsOnLevel.length === 1) xPos = SVG_WIDTH / 2;
                 positions[node.id] = { x: xPos, y: LEVEL_HEIGHT * level + NODE_HEIGHT };
             });
         });
+
         const height = (levels.length + 1) * LEVEL_HEIGHT;
         return { positions, height };
     }, [controllers, systemComponents, controlPaths]);
 };
 
+
 // --- Presentational Components (with fixes) ---
+
+// NEW: A component to render text with a white background for legibility
+const TextWithBackground: React.FC<{
+    x: number;
+    y: number;
+    textAnchor?: "start" | "middle" | "end";
+    dominantBaseline?: string;
+    children: React.ReactNode;
+}> = ({ x, y, children, textAnchor, dominantBaseline }) => {
+    const textRef = React.useRef<SVGTextElement>(null);
+    const [bbox, setBbox] = React.useState<DOMRect | null>(null);
+
+    // This effect measures the text's bounding box after it renders
+    React.useLayoutEffect(() => {
+        if (textRef.current) {
+            setBbox(textRef.current.getBBox());
+        }
+    }, [children]);
+
+    return (
+        <g>
+            {/* Draw the white background rectangle behind the text */}
+            {bbox && (
+                <rect
+                    x={bbox.x - 2}
+                    y={bbox.y - 1}
+                    width={bbox.width + 4}
+                    height={bbox.height + 2}
+                    fill="white"
+                    rx="1"
+                />
+            )}
+            <text
+                ref={textRef}
+                x={x}
+                y={y}
+                textAnchor={textAnchor}
+                dominantBaseline={dominantBaseline}
+                fontSize="10"
+                fontFamily="sans-serif"
+            >
+                {children}
+            </text>
+        </g>
+    );
+};
 
 const Node: React.FC<{ node: NodeData; pos: Position }> = ({ node, pos }) => (
     <g>
-        <rect x={pos.x - NODE_WIDTH / 2} y={pos.y - NODE_HEIGHT / 2} width={NODE_WIDTH} height={NODE_HEIGHT} fill={node.type === 'controller' && node.ctrlType ? CONTROLLER_TYPE_FILL_COLORS[node.ctrlType] : '#FFFFFF'} stroke="#333" rx="5" ry="5" />
-        <text x={pos.x} y={pos.y} textAnchor="middle" dominantBaseline="middle" fontSize="12" fontFamily="sans-serif">{node.label}</text>
+        <rect
+            x={pos.x - NODE_WIDTH / 2}
+            y={pos.y - NODE_HEIGHT / 2}
+            width={NODE_WIDTH}
+            height={NODE_HEIGHT}
+            fill={node.type === 'controller' && node.ctrlType ? CONTROLLER_TYPE_FILL_COLORS[node.ctrlType] : '#FFFFFF'}
+            stroke="#333"
+            rx="5"
+            ry="5"
+        />
+        <text
+            x={pos.x}
+            y={pos.y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize="12"
+            fontFamily="sans-serif"
+        >
+            {node.label}
+        </text>
     </g>
 );
 
@@ -99,18 +169,38 @@ const ControlPath: React.FC<{ path: any; positions: Record<string, Position> }> 
     const endX = tgtPos.x - NODE_WIDTH / 4;
     const endY = tgtPos.y - NODE_HEIGHT / 2;
     const bendY = (startY + endY) / 2;
-    const actuatorY = bendY + (endY - bendY) / 2;
-
-    // CHANGED: Calculate midpoint for intelligent text placement
+    const actuatorY = startY + (bendY - startY) / 2;
     const midX = (startX + endX) / 2;
 
     return (
         <g>
-            <polyline fill="none" stroke={CONTROL_LINE_COLOR} strokeWidth="1.5" markerEnd="url(#arrow-control)" points={`${startX},${startY} ${startX},${bendY} ${endX},${bendY} ${endX},${endY}`} />
-            {/* CHANGED: Text is now centered on the horizontal line segment */}
-            <text x={midX} y={bendY - 8} textAnchor="middle" fontSize="10" fontFamily="sans-serif">{path.controls}</text>
-            <rect x={endX - ACTUATOR_SENSOR_BOX_WIDTH / 2} y={actuatorY - ACTUATOR_SENSOR_BOX_HEIGHT / 2} width={ACTUATOR_SENSOR_BOX_WIDTH} height={ACTUATOR_SENSOR_BOX_HEIGHT} fill="white" stroke={CONTROL_LINE_COLOR} />
-            <text x={endX} y={actuatorY} textAnchor="middle" dominantBaseline="middle" fontSize="9" fontFamily="sans-serif">actuator</text>
+            {/* Control Path Line */}
+            <polyline
+                fill="none"
+                stroke={CONTROL_LINE_COLOR}
+                strokeWidth="1.5"
+                markerEnd="url(#arrow-control)"
+                points={`${startX},${startY} ${startX},${bendY} ${endX},${bendY} ${endX},${endY}`}
+            />
+            {/* MODIFIED: Use TextWithBackground for control label */}
+            <TextWithBackground
+                x={midX}
+                y={bendY + TEXT_OFFSET_VERTICAL}
+                textAnchor="middle"
+                dominantBaseline="hanging"
+            >
+                {path.controls}
+            </TextWithBackground>
+            {/* Actuator Box */}
+            <rect
+                x={startX - ACTUATOR_SENSOR_BOX_SIZE / 2}
+                y={actuatorY - ACTUATOR_SENSOR_BOX_SIZE / 2}
+                width={ACTUATOR_SENSOR_BOX_SIZE}
+                height={ACTUATOR_SENSOR_BOX_SIZE}
+                fill="white"
+                stroke={CONTROL_LINE_COLOR}
+            />
+            <text x={startX} y={actuatorY} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="bold" fontFamily="sans-serif">A</text>
         </g>
     );
 };
@@ -126,8 +216,6 @@ const FeedbackPath: React.FC<{ path: any; positions: Record<string, Position> }>
     const endY = tgtPos.y + NODE_HEIGHT / 2;
     const bendY = (startY + endY) / 2;
     const sensorY = startY + (bendY - startY) / 2;
-
-    // CHANGED: Calculate midpoint for intelligent text placement
     const midX = (startX + endX) / 2;
 
     const stroke = path.isMissing ? MISSING_LINE_COLOR : FEEDBACK_LINE_COLOR;
@@ -135,17 +223,40 @@ const FeedbackPath: React.FC<{ path: any; positions: Record<string, Position> }>
 
     return (
         <g>
-            <polyline fill="none" stroke={stroke} strokeWidth="1.5" strokeDasharray={path.isMissing ? '4 2' : 'none'} markerEnd={marker} points={`${startX},${startY} ${startX},${bendY} ${endX},${bendY} ${endX},${endY}`} />
-            {/* CHANGED: Text is now centered on the horizontal line segment */}
-            <text x={midX} y={bendY + 12} textAnchor="middle" fontSize="10" fontFamily="sans-serif">{path.isMissing ? 'MISSING ' : ''}{path.feedback}</text>
-            <rect x={startX - ACTUATOR_SENSOR_BOX_WIDTH / 2} y={sensorY - ACTUATOR_SENSOR_BOX_HEIGHT / 2} width={ACTUATOR_SENSOR_BOX_WIDTH} height={ACTUATOR_SENSOR_BOX_HEIGHT} fill="white" stroke={stroke} />
-            <text x={startX} y={sensorY} textAnchor="middle" dominantBaseline="middle" fontSize="9" fontFamily="sans-serif">sensor</text>
+            {/* Feedback Path Line */}
+            <polyline
+                fill="none"
+                stroke={stroke}
+                strokeWidth="1.5"
+                strokeDasharray={path.isMissing ? '4 2' : 'none'}
+                markerEnd={marker}
+                points={`${startX},${startY} ${startX},${bendY} ${endX},${bendY} ${endX},${endY}`}
+            />
+            {/* MODIFIED: Use TextWithBackground for feedback label */}
+            <TextWithBackground
+                x={midX}
+                y={bendY - TEXT_OFFSET_VERTICAL}
+                textAnchor="middle"
+                dominantBaseline="auto"
+            >
+                {path.isMissing ? 'MISSING ' : ''}{path.feedback}
+            </TextWithBackground>
+            {/* Sensor Box */}
+            <rect
+                x={startX - ACTUATOR_SENSOR_BOX_SIZE / 2}
+                y={sensorY - ACTUATOR_SENSOR_BOX_SIZE / 2}
+                width={ACTUATOR_SENSOR_BOX_SIZE}
+                height={ACTUATOR_SENSOR_BOX_SIZE}
+                fill="white"
+                stroke={stroke}
+            />
+            <text x={startX} y={sensorY} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="bold" fontFamily="sans-serif">S</text>
         </g>
     );
 };
 
 
-// --- Main Diagram Component (with comments on rendering order) ---
+// --- Main Diagram Component ---
 const CastControlStructureDiagram: React.FC<{ svgRef?: React.Ref<SVGSVGElement> }> = ({ svgRef }) => {
     const analysisData = useAnalysis();
     const { positions, height } = useControlStructureLayout(analysisData);
@@ -163,7 +274,7 @@ const CastControlStructureDiagram: React.FC<{ svgRef?: React.Ref<SVGSVGElement> 
                 <marker id="arrow-missing" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill={MISSING_LINE_COLOR} /></marker>
             </defs>
 
-            {/* FIXED: Render all paths first, so they appear underneath the nodes. This ensures nodes are always "on top". */}
+            {/* Render all paths first, so they appear underneath the nodes and text backgrounds. */}
             {analysisData.controlPaths.map(path => <ControlPath key={path.id} path={path} positions={positions} />)}
             {analysisData.feedbackPaths.map(path => <FeedbackPath key={path.id} path={path} positions={positions} />)}
 
