@@ -11,7 +11,7 @@ const NODE_HEIGHT = 50;
 const LEVEL_HEIGHT = 120;
 const SVG_WIDTH = 1000;
 
-const PATH_OFFSET = 15;
+const PATH_OFFSET = 25;
 
 const StpaControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
   const { systemComponents, controllers, controlPaths, feedbackPaths } = useAnalysis();

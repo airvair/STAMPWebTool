@@ -13,7 +13,7 @@ const CONTROL_LINE_COLOR = '#000000';
 const FEEDBACK_LINE_COLOR = '#000000';
 const MISSING_LINE_COLOR = '#FF0000';
 const TEXT_OFFSET_VERTICAL = 5; // Pixels to offset text from the arrow line
-const PATH_OFFSET = 15;
+const PATH_OFFSET = 25;
 
 const CONTROLLER_TYPE_FILL_COLORS: Record<ControllerType, string> = {
     S: '#d1e7dd', // Software: Green
@@ -170,7 +170,7 @@ const ControlPath: React.FC<{ path: any; positions: Record<string, Position>; of
     const endX = tgtPos.x - NODE_WIDTH / 4;
     const endY = tgtPos.y - NODE_HEIGHT / 2;
     const bendY = (startY + endY) / 2 + offset;
-    const actuatorY = startY + (bendY - startY) / 2;
+    const actuatorY = startY + (bendY - startY) / 2 + offset / 2;
     const midX = (startX + endX) / 2;
 
     return (
@@ -216,7 +216,7 @@ const FeedbackPath: React.FC<{ path: any; positions: Record<string, Position>; o
     const endX = tgtPos.x + NODE_WIDTH / 4;
     const endY = tgtPos.y + NODE_HEIGHT / 2;
     const bendY = (startY + endY) / 2 + offset;
-    const sensorY = startY + (bendY - startY) / 2;
+    const sensorY = startY + (bendY - startY) / 2 + offset / 2;
     const midX = (startX + endX) / 2;
 
     const stroke = path.isMissing ? MISSING_LINE_COLOR : FEEDBACK_LINE_COLOR;
