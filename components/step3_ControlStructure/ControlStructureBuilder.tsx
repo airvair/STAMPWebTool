@@ -9,8 +9,50 @@ import Button from '../shared/Button';
 import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
 
-const PlaceholderPlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>;
-const PlaceholderTrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>;
+const PlaceholderPlusIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className="w-5 h-5"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+  </svg>
+);
+const PlaceholderTrashIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className="w-5 h-5"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+    />
+  </svg>
+);
+const PlaceholderEditIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className="w-5 h-5"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-.88 2.685 2.685-.88a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+    />
+  </svg>
+);
 
 
 const ControlStructureBuilder: React.FC = () => {
@@ -140,8 +182,24 @@ const ControlStructureBuilder: React.FC = () => {
             <li key={comp.id} className="p-3 border border-slate-300 rounded-md bg-white shadow-sm flex justify-between items-center">
               <div><span className="font-medium">{comp.name}</span> <span className="text-sm text-slate-500">({comp.type})</span></div>
               <div className="space-x-2">
-                <Button onClick={() => editComponent(comp)} size="sm" variant="ghost">Edit</Button>
-                <Button onClick={() => deleteSystemComponent(comp.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700"><PlaceholderTrashIcon /></Button>
+                <Button
+                  onClick={() => editComponent(comp)}
+                  size="sm"
+                  variant="ghost"
+                  className="p-1"
+                  aria-label="Edit"
+                >
+                  <PlaceholderEditIcon />
+                </Button>
+                <Button
+                  onClick={() => deleteSystemComponent(comp.id)}
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-500 hover:text-red-700 p-1"
+                  aria-label="Delete"
+                >
+                  <PlaceholderTrashIcon />
+                </Button>
               </div>
             </li>
           ))}
@@ -163,8 +221,24 @@ const ControlStructureBuilder: React.FC = () => {
             <li key={ctrl.id} className={`p-3 border rounded-md shadow-sm flex justify-between items-center ${CONTROLLER_TYPE_COLORS[ctrl.ctrlType]}`}>
               <div><span className="font-medium">{ctrl.name}</span> <span className="text-sm">({controllerTypeOptions.find(o=>o.value === ctrl.ctrlType)?.label})</span></div>
               <div className="space-x-2">
-                <Button onClick={() => editController(ctrl)} size="sm" variant="ghost" className="bg-white/50 hover:bg-white/70">Edit</Button>
-                <Button onClick={() => deleteController(ctrl.id)} size="sm" variant="ghost" className="text-red-600 hover:text-red-700 bg-white/50 hover:bg-white/70"><PlaceholderTrashIcon /></Button>
+                <Button
+                  onClick={() => editController(ctrl)}
+                  size="sm"
+                  variant="ghost"
+                  className="bg-white/50 hover:bg-white/70 p-1"
+                  aria-label="Edit"
+                >
+                  <PlaceholderEditIcon />
+                </Button>
+                <Button
+                  onClick={() => deleteController(ctrl.id)}
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-600 hover:text-red-700 bg-white/50 hover:bg-white/70 p-1"
+                  aria-label="Delete"
+                >
+                  <PlaceholderTrashIcon />
+                </Button>
               </div>
             </li>
           ))}
@@ -188,8 +262,24 @@ const ControlStructureBuilder: React.FC = () => {
               <p><span className="font-semibold">{getItemName(cp.sourceControllerId)}</span> ➔ <span className="font-semibold">{getItemName(cp.targetId)}</span></p>
               <p className="text-sm text-slate-600">Controls: {cp.controls}</p>
               <div className="mt-1 space-x-2">
-                <Button onClick={() => editControlPath(cp)} size="sm" variant="ghost">Edit</Button>
-                <Button onClick={() => deleteControlPath(cp.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700"><PlaceholderTrashIcon /></Button>
+                <Button
+                  onClick={() => editControlPath(cp)}
+                  size="sm"
+                  variant="ghost"
+                  className="p-1"
+                  aria-label="Edit"
+                >
+                  <PlaceholderEditIcon />
+                </Button>
+                <Button
+                  onClick={() => deleteControlPath(cp.id)}
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-500 hover:text-red-700 p-1"
+                  aria-label="Delete"
+                >
+                  <PlaceholderTrashIcon />
+                </Button>
               </div>
             </li>
           ))}
@@ -214,8 +304,24 @@ const ControlStructureBuilder: React.FC = () => {
               <p><span className="font-semibold">{getItemName(fp.sourceId)}</span> ➔ <span className="font-semibold">{getItemName(fp.targetControllerId)}</span> {fp.isMissing && <span className="text-sm font-bold">(MISSING/INADEQUATE)</span>}</p>
               <p className="text-sm">Feedback: {fp.feedback}</p>
               <div className="mt-1 space-x-2">
-                <Button onClick={() => editFeedbackPath(fp)} size="sm" variant="ghost">Edit</Button>
-                <Button onClick={() => deleteFeedbackPath(fp.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700"><PlaceholderTrashIcon /></Button>
+                <Button
+                  onClick={() => editFeedbackPath(fp)}
+                  size="sm"
+                  variant="ghost"
+                  className="p-1"
+                  aria-label="Edit"
+                >
+                  <PlaceholderEditIcon />
+                </Button>
+                <Button
+                  onClick={() => deleteFeedbackPath(fp.id)}
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-500 hover:text-red-700 p-1"
+                  aria-label="Delete"
+                >
+                  <PlaceholderTrashIcon />
+                </Button>
               </div>
             </li>
           ))}
