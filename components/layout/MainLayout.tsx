@@ -6,14 +6,21 @@ import { APP_TITLE, CAST_STEPS, STPA_STEPS } from '../../constants';
 import { AnalysisType, StepDefinition } from '../../types';
 import Button from '../shared/Button';
 
-const Stepper: React.FC<{ steps: StepDefinition[]; currentPath: string }> = ({ steps, currentPath }) => {
+const Stepper: React.FC<{ steps: StepDefinition[]; currentPath: string; headerHeight: number }> = ({ steps, currentPath, headerHeight }) => {
   const navigate = useNavigate();
   const { analysisSession } = useAnalysis();
   if (!analysisSession) return null;
 
   return (
-    <nav aria-label="Progress" className="bg-white shadow-sm sticky top-16 z-30">
-      <ol role="list" className="flex items-center justify-center p-2 space-x-2 md:space-x-4 overflow-x-auto">
+    <nav
+      aria-label="Progress"
+      className="bg-white shadow-sm sticky z-30"
+      style={{ top: headerHeight }}
+    >
+      <ol
+        role="list"
+        className="flex items-center justify-center p-2 space-x-2 md:space-x-4 overflow-x-auto"
+      >
         {steps.map((step, stepIdx) => {
           const isCurrent = currentPath === step.path || (currentPath.startsWith(step.path) && step.path !== '/'); // Handle nested routes better
           const isCompleted = steps.findIndex(s => s.path === currentPath) > stepIdx;
@@ -74,16 +81,26 @@ const MainLayout: React.FC = () => {
 
   const currentStepDefinition = steps[currentStepIndex];
 
+  const headerRef = React.useRef<HTMLElement>(null);
+  const [headerHeight, setHeaderHeight] = React.useState(0);
+
+  React.useLayoutEffect(() => {
+    const updateHeight = () => setHeaderHeight(headerRef.current?.offsetHeight ?? 0);
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-sky-700 text-white shadow-md sticky top-0 z-40">
+      <header ref={headerRef} className="bg-sky-700 text-white shadow-md sticky top-0 z-40">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <h1 className="text-xl font-semibold">{APP_TITLE} - {analysisSession.analysisType}</h1>
           <Button onClick={handleReset} variant="danger" size="sm">Reset Analysis</Button>
         </div>
       </header>
 
-      <Stepper steps={steps} currentPath={location.pathname} />
+      <Stepper steps={steps} currentPath={location.pathname} headerHeight={headerHeight} />
       
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
         {currentStepDefinition && (
