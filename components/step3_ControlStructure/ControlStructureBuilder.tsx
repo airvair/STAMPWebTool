@@ -37,22 +37,6 @@ const PlaceholderTrashIcon = () => (
     />
   </svg>
 );
-const PlaceholderEditIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className="w-5 h-5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-.88 2.685 2.685-.88a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
-    />
-  </svg>
-);
 
 
 const ControlStructureBuilder: React.FC = () => {
@@ -181,22 +165,15 @@ const ControlStructureBuilder: React.FC = () => {
           {systemComponents.map(comp => (
             <li key={comp.id} className="p-3 border border-slate-300 rounded-md bg-white shadow-sm flex justify-between items-center">
               <div><span className="font-medium">{comp.name}</span> <span className="text-sm text-slate-500">({comp.type})</span></div>
-              <div className="space-x-2">
-                <Button
-                  onClick={() => editComponent(comp)}
-                  size="sm"
-                  variant="ghost"
-                  className="p-1"
-                  aria-label="Edit"
-                >
-                  <PlaceholderEditIcon />
+              <div className="flex items-center space-x-2">
+                <Button onClick={() => editComponent(comp)} size="sm" variant="ghost">
+                  Edit
                 </Button>
                 <Button
                   onClick={() => deleteSystemComponent(comp.id)}
                   size="sm"
                   variant="ghost"
-                  className="text-red-500 hover:text-red-700 p-1"
-                  aria-label="Delete"
+                  className="text-red-500 hover:text-red-700"
                 >
                   <PlaceholderTrashIcon />
                 </Button>
@@ -220,22 +197,20 @@ const ControlStructureBuilder: React.FC = () => {
           {controllers.map(ctrl => (
             <li key={ctrl.id} className={`p-3 border rounded-md shadow-sm flex justify-between items-center ${CONTROLLER_TYPE_COLORS[ctrl.ctrlType]}`}>
               <div><span className="font-medium">{ctrl.name}</span> <span className="text-sm">({controllerTypeOptions.find(o=>o.value === ctrl.ctrlType)?.label})</span></div>
-              <div className="space-x-2">
+              <div className="flex items-center space-x-2">
                 <Button
                   onClick={() => editController(ctrl)}
                   size="sm"
                   variant="ghost"
-                  className="bg-white/50 hover:bg-white/70 p-1"
-                  aria-label="Edit"
+                  className="bg-white/50 hover:bg-white/70"
                 >
-                  <PlaceholderEditIcon />
+                  Edit
                 </Button>
                 <Button
                   onClick={() => deleteController(ctrl.id)}
                   size="sm"
                   variant="ghost"
-                  className="text-red-600 hover:text-red-700 bg-white/50 hover:bg-white/70 p-1"
-                  aria-label="Delete"
+                  className="text-red-600 hover:text-red-700 bg-white/50 hover:bg-white/70"
                 >
                   <PlaceholderTrashIcon />
                 </Button>
@@ -261,22 +236,15 @@ const ControlStructureBuilder: React.FC = () => {
             <li key={cp.id} className="p-3 border border-slate-300 rounded-md bg-white shadow-sm">
               <p><span className="font-semibold">{getItemName(cp.sourceControllerId)}</span> ➔ <span className="font-semibold">{getItemName(cp.targetId)}</span></p>
               <p className="text-sm text-slate-600">Controls: {cp.controls}</p>
-              <div className="mt-1 space-x-2">
-                <Button
-                  onClick={() => editControlPath(cp)}
-                  size="sm"
-                  variant="ghost"
-                  className="p-1"
-                  aria-label="Edit"
-                >
-                  <PlaceholderEditIcon />
+              <div className="mt-1 flex items-center space-x-2">
+                <Button onClick={() => editControlPath(cp)} size="sm" variant="ghost">
+                  Edit
                 </Button>
                 <Button
                   onClick={() => deleteControlPath(cp.id)}
                   size="sm"
                   variant="ghost"
-                  className="text-red-500 hover:text-red-700 p-1"
-                  aria-label="Delete"
+                  className="text-red-500 hover:text-red-700"
                 >
                   <PlaceholderTrashIcon />
                 </Button>
@@ -303,22 +271,15 @@ const ControlStructureBuilder: React.FC = () => {
             <li key={fp.id} className={`p-3 border rounded-md bg-white shadow-sm ${fp.isMissing ? `${MISSING_FEEDBACK_COLOR} border-dashed` : 'border-slate-300'}`}>
               <p><span className="font-semibold">{getItemName(fp.sourceId)}</span> ➔ <span className="font-semibold">{getItemName(fp.targetControllerId)}</span> {fp.isMissing && <span className="text-sm font-bold">(MISSING/INADEQUATE)</span>}</p>
               <p className="text-sm">Feedback: {fp.feedback}</p>
-              <div className="mt-1 space-x-2">
-                <Button
-                  onClick={() => editFeedbackPath(fp)}
-                  size="sm"
-                  variant="ghost"
-                  className="p-1"
-                  aria-label="Edit"
-                >
-                  <PlaceholderEditIcon />
+              <div className="mt-1 flex items-center space-x-2">
+                <Button onClick={() => editFeedbackPath(fp)} size="sm" variant="ghost">
+                  Edit
                 </Button>
                 <Button
                   onClick={() => deleteFeedbackPath(fp.id)}
                   size="sm"
                   variant="ghost"
-                  className="text-red-500 hover:text-red-700 p-1"
-                  aria-label="Delete"
+                  className="text-red-500 hover:text-red-700"
                 >
                   <PlaceholderTrashIcon />
                 </Button>
