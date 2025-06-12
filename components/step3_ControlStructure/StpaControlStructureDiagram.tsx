@@ -11,7 +11,7 @@ const NODE_HEIGHT = 50;
 const LEVEL_HEIGHT = 120;
 const SVG_WIDTH = 1000;
 
-const ControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
+const StpaControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
   const { systemComponents, controllers, controlPaths, feedbackPaths } = useAnalysis();
 
   // Determine controller levels based on control relationships
@@ -157,5 +157,5 @@ const ControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
   );
 };
 
-export default ControlStructureDiagram;
+export default StpaControlStructureDiagram;
 
