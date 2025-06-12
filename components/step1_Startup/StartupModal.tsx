@@ -12,7 +12,7 @@ const StartupModal: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSelectType = (type: AnalysisType) => {
-    const initialStep = type === AnalysisType.CAST ? CAST_STEPS[0].path : STPA_STEPS[0].path;
+    const initialStep = type === AnalysisType.CAST ? CAST_STEPS[1].path : STPA_STEPS[1].path;
     setAnalysisType(type, initialStep);
     navigate(initialStep);
   };

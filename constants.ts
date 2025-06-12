@@ -105,8 +105,14 @@ export const SCENARIO_CLASSES_BY_CONTROLLER: Record<ControllerType, { classType:
   ],
 };
 
+export const START_STEP: StepDefinition = {
+  path: '/start',
+  title: 'Select CAST or STPA',
+  shortTitle: 'Choose Method',
+};
+
 export const STEPS_BASE: StepDefinition[] = [
-  // Step 1 is StartupModal, Step 2 is specific
+  // Step 2 is specific (CAST or STPA)
   { path: 'step3', title: 'Control Structure', shortTitle: 'Structure' }, // OCR Step 3
   { path: 'step4', title: 'Control Actions', shortTitle: 'Actions' }, // OCR Step 4
   { path: 'step5', title: 'Unsafe Control Actions (UCAs & UCCAs)', shortTitle: 'UCAs/UCCAs' }, // OCR Step 5
@@ -116,11 +122,13 @@ export const STEPS_BASE: StepDefinition[] = [
 ];
 
 export const CAST_STEPS: StepDefinition[] = [
+  START_STEP,
   { path: '/cast/step2', title: 'CAST: Scope, Events, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses (CAST)' }, // OCR Step 2 CAST
   ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}`}))
 ];
 
 export const STPA_STEPS: StepDefinition[] = [
+  START_STEP,
   { path: '/stpa/step2', title: 'STPA: Scope, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses (STPA)' }, // OCR Step 2 STPA
   ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}`}))
 ];
