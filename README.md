@@ -38,6 +38,13 @@ You can preview the production build locally with:
 npm run preview
 ```
 
+### Troubleshooting
+If you encounter an error like `Failed to resolve import "dagre"`, ensure you
+have installed all dependencies after pulling updates:
+```bash
+npm install
+```
+
 ## Project Structure
 - `components/` – page and UI components for each analysis step
 - `contexts/` – React context for shared state
