@@ -8,7 +8,9 @@ import Select from '../shared/Select';
 import Button from '../shared/Button';
 import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
-import ControlStructureDiagram from './ControlStructureDiagram';
+import CastControlStructureDiagram from './CastControlStructureDiagram';
+import StpaControlStructureDiagram from './StpaControlStructureDiagram';
+import { AnalysisType } from '../../types';
 
 const downloadSvg = (svg: SVGSVGElement | null) => {
   if (!svg) return;
@@ -60,6 +62,7 @@ const PlaceholderTrashIcon = () => (
 
 const ControlStructureBuilder: React.FC = () => {
   const {
+    analysisSession,
     systemComponents, addSystemComponent, updateSystemComponent, deleteSystemComponent,
     controllers, addController, updateController, deleteController,
     controlPaths, addControlPath, updateControlPath, deleteControlPath,
@@ -366,7 +369,11 @@ const ControlStructureBuilder: React.FC = () => {
           <Button size="sm" variant="secondary" onClick={handleExportSvg}>Download SVG</Button>
         </div>
         <div className="overflow-auto border p-2">
-          <ControlStructureDiagram svgRef={svgRef} />
+          {analysisSession?.analysisType === AnalysisType.CAST ? (
+            <CastControlStructureDiagram svgRef={svgRef} />
+          ) : (
+            <StpaControlStructureDiagram svgRef={svgRef} />
+          )}
         </div>
       </section>
     </div>
