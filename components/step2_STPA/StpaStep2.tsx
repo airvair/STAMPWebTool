@@ -52,9 +52,11 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
   const handleLossSelectionChange = (lossId: string, isSelected: boolean) => {
     const standardLoss = STANDARD_LOSSES.find(sl => sl.id === lossId);
     if (standardLoss) {
-      const existing = losses.find(l => l.id === lossId);
+      const existing = losses.find(l => l.title === standardLoss.title && l.isStandard);
       if (isSelected && !existing) {
         addLoss({ title: standardLoss.title, description: standardLoss.description, isStandard: true });
+      } else if (!isSelected && existing) {
+        deleteLoss(existing.id);
       }
     }
     setSelectedLossIdsState(prev => isSelected ? [...prev, lossId] : prev.filter(id => id !== lossId));
