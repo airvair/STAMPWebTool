@@ -11,6 +11,8 @@ const NODE_HEIGHT = 50;
 const LEVEL_HEIGHT = 120;
 const SVG_WIDTH = 1000;
 
+const PATH_OFFSET = 15;
+
 const StpaControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
   const { systemComponents, controllers, controlPaths, feedbackPaths } = useAnalysis();
 
@@ -60,6 +62,41 @@ const StpaControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
     });
   });
 
+  // Precompute offsets so overlapping lines from the same level are spaced out
+  const cpGroups: Record<string, string[]> = {};
+  controlPaths.forEach(cp => {
+    const tgt = positions[cp.targetId];
+    const src = positions[cp.sourceControllerId];
+    if (!src || !tgt) return;
+    const key = `${src.y}-${tgt.y}`;
+    cpGroups[key] = cpGroups[key] || [];
+    cpGroups[key].push(cp.id);
+  });
+  const cpOffsets: Record<string, number> = {};
+  Object.values(cpGroups).forEach(ids => {
+    ids.forEach((id, idx) => {
+      const offset = (idx - (ids.length - 1) / 2) * PATH_OFFSET;
+      cpOffsets[id] = offset;
+    });
+  });
+
+  const fpGroups: Record<string, string[]> = {};
+  feedbackPaths.forEach(fp => {
+    const src = positions[fp.sourceId];
+    const tgt = positions[fp.targetControllerId];
+    if (!src || !tgt) return;
+    const key = `${src.y}-${tgt.y}`;
+    fpGroups[key] = fpGroups[key] || [];
+    fpGroups[key].push(fp.id);
+  });
+  const fpOffsets: Record<string, number> = {};
+  Object.values(fpGroups).forEach(ids => {
+    ids.forEach((id, idx) => {
+      const offset = (idx - (ids.length - 1) / 2) * PATH_OFFSET;
+      fpOffsets[id] = offset;
+    });
+  });
+
   return (
     <svg ref={svgRef} width="100%" height={(levels.length + 1) * LEVEL_HEIGHT} viewBox={`0 0 ${SVG_WIDTH} ${(levels.length + 1) * LEVEL_HEIGHT}`}>\
       <defs>
@@ -79,11 +116,12 @@ const StpaControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
         const src = positions[cp.sourceControllerId];
         const tgt = positions[cp.targetId];
         if (!src || !tgt) return null;
+        const offset = cpOffsets[cp.id] || 0;
         const startX = src.x;
         const startY = src.y + NODE_HEIGHT / 2;
         const endX = tgt.x;
         const endY = tgt.y - NODE_HEIGHT / 2;
-        const midY = (startY + endY) / 2;
+        const midY = (startY + endY) / 2 + offset;
         const pathData = `${startX},${startY} ${startX},${midY} ${endX},${midY} ${endX},${endY}`;
         const midX = (startX + endX) / 2;
         return (
@@ -106,11 +144,12 @@ const StpaControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
         const src = positions[fp.sourceId];
         const tgt = positions[fp.targetControllerId];
         if (!src || !tgt) return null;
+        const offset = fpOffsets[fp.id] || 0;
         const startX = src.x;
         const startY = src.y - NODE_HEIGHT / 2;
         const endX = tgt.x;
         const endY = tgt.y + NODE_HEIGHT / 2;
-        const midY = (startY + endY) / 2;
+        const midY = (startY + endY) / 2 + offset;
         const pathData = `${startX},${startY} ${startX},${midY} ${endX},${midY} ${endX},${endY}`;
         const midX = (startX + endX) / 2;
         const stroke = fp.isMissing ? MISSING_LINE_COLOR : FEEDBACK_LINE_COLOR;
