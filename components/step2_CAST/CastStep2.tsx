@@ -45,7 +45,13 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
 
 
   useEffect(() => { setScope(analysisSession?.scope || ''); }, [analysisSession?.scope]);
-  useEffect(() => { setSelectedLossIdsState(losses.map(l => l.id)); }, [losses]);
+  useEffect(() => {
+    const ids = losses
+      .filter(l => l.isStandard)
+      .map(l => STANDARD_LOSSES.find(sl => sl.title === l.title)?.id)
+      .filter((id): id is string => Boolean(id));
+    setSelectedLossIdsState(ids);
+  }, [losses]);
   
   const handleScopeBlur = () => { if (analysisSession && analysisSession.scope !== scope) updateAnalysisSession({ scope }); };
   
@@ -78,7 +84,9 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
         deleteLoss(existing.id);
       }
     }
-    setSelectedLossIdsState(prev => isSelected ? [...prev, lossId] : prev.filter(id => id !== lossId));
+    setSelectedLossIdsState(prev =>
+      isSelected ? (prev.includes(lossId) ? prev : [...prev, lossId]) : prev.filter(id => id !== lossId)
+    );
   };
 
   const handleAddOtherLoss = () => {
