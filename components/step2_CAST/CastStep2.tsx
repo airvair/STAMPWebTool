@@ -319,7 +319,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
                 value={otherLossTitle}
                 onChange={(e) => setOtherLossTitle(e.target.value)}
                 placeholder="e.g., Loss of Public Confidence"
-                containerClassName="flex-1"
+                containerClassName="flex-1 !mb-0"
               />
               <Input
                 label="Custom Loss Description"
@@ -327,7 +327,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
                 value={otherLossDesc}
                 onChange={(e) => setOtherLossDesc(e.target.value)}
                 placeholder="Brief description"
-                containerClassName="flex-1"
+                containerClassName="flex-1 !mb-0"
               />
               <Button onClick={handleAddOtherLoss} leftIcon={<PlaceholderPlusIcon />} className="mb-4 md:mb-0">Add Custom Loss</Button>
             </div>
