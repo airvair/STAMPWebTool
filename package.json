@@ -11,14 +11,12 @@
   },
   "dependencies": {
     "@heroicons/react": "2.0.18",
-    "dagre": "^0.8.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "6.25.1",
     "uuid": "9.0.1"
   },
   "devDependencies": {
-    "@types/dagre": "^0.7.52",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^4.5.2",
     "typescript": "~5.7.2",
