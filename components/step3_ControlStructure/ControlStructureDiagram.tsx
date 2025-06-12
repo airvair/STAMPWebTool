@@ -8,7 +8,7 @@ import {
   MISSING_LINE_COLOR,
   CONTROLLER_TYPE_FILL_COLORS,
 } from '../../constants';
-import dagre from 'dagre';
+import * as dagre from 'dagre';
 
 interface Position { x: number; y: number; }
 interface DiagramProps { svgRef?: React.Ref<SVGSVGElement>; }
