@@ -13,7 +13,7 @@ import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
 import Button from '../shared/Button';
 import Select from '../shared/Select';
-import InputWithDatalist from '../shared/InputWithDatalist';
+import AutocompleteInput from '../shared/AutocompleteInput';
 
 // Placeholder SVGs - these should be proper SVG components or from a library
 const PlaceholderPlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>;
@@ -251,9 +251,9 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
          <p className="text-sm text-slate-600 mb-1">A hazard is a system state or set of conditions that, together with a worst-case environment, will lead to a loss.</p>
          <p className="text-xs text-slate-500 mb-3">Format: {"<System Component> is in <System State> under <Environmental Condition>"}. Use the dropdowns for examples or type directly.</p>
         <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3 mb-6">
-          <InputWithDatalist label="System Component (involved in the hazard)" id="stpa-hazard-system-component" value={currentHazardData.systemComponent || ''} onChange={e => handleHazardInputChange('systemComponent', e.target.value)} options={[{value:'', label:'Select or type component'}, ...systemComponentOptions]} placeholder="e.g., Aircraft" />
-          <InputWithDatalist label="Environmental Condition (that makes it hazardous)" id="stpa-hazard-environmental-condition" value={currentHazardData.environmentalCondition || ''} onChange={e => handleHazardInputChange('environmentalCondition', e.target.value)} options={[{value:'', label:'Select or type condition'}, ...stateConditionOptions.filter(opt => opt.label.toLowerCase().includes('condition') || opt.label.toLowerCase().includes('inflight') || opt.label.toLowerCase().includes('ground'))]} placeholder="e.g., in heavy turbulence" />
-          <InputWithDatalist label="System State" id="stpa-hazard-system-state" value={currentHazardData.systemState || ''} onChange={e => handleHazardInputChange('systemState', e.target.value)} options={[{value:'', label:'Select or type state'}, ...stateConditionOptions]} placeholder="e.g., provides incorrect altitude reading" />
+          <AutocompleteInput label="System Component (involved in the hazard)" id="stpa-hazard-system-component" value={currentHazardData.systemComponent || ''} onChange={e => handleHazardInputChange('systemComponent', e.target.value)} options={[{value:'', label:'Select or type component'}, ...systemComponentOptions]} placeholder="e.g., Aircraft" />
+          <AutocompleteInput label="Environmental Condition (that makes it hazardous)" id="stpa-hazard-environmental-condition" value={currentHazardData.environmentalCondition || ''} onChange={e => handleHazardInputChange('environmentalCondition', e.target.value)} options={[{value:'', label:'Select or type condition'}, ...stateConditionOptions.filter(opt => opt.label.toLowerCase().includes('condition') || opt.label.toLowerCase().includes('inflight') || opt.label.toLowerCase().includes('ground'))]} placeholder="e.g., in heavy turbulence" />
+          <AutocompleteInput label="System State" id="stpa-hazard-system-state" value={currentHazardData.systemState || ''} onChange={e => handleHazardInputChange('systemState', e.target.value)} options={[{value:'', label:'Select or type state'}, ...stateConditionOptions]} placeholder="e.g., provides incorrect altitude reading" />
           
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Link to Losses (select at least one):</label>
