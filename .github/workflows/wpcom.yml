@@ -10,23 +10,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-      - run: npm ci
-      - run: npm run build
+          # Good practice: point the cache to the correct lock file
+          cache-dependency-path: STAMPWebTool/package-lock.json
 
-      - name: Move dist → deploy root
-        run: |
-          mkdir public
-          mv dist/* public/
+      - name: Install dependencies in subfolder
+        run: npm ci
+        working-directory: ./STAMPWebTool
+
+      - name: Build project in subfolder
+        run: npm run build
+        working-directory: ./STAMPWebTool
+
+      - name: Prepare artifact for deployment
+        # The build creates a 'dist' folder inside ./STAMPWebTool
+        # This command moves it to a 'public' folder at the root
+        run: mv ./STAMPWebTool/dist ./public
+
       - name: Upload artifact for WordPress.com
         uses: actions/upload-artifact@v4
         with:
           name: wpcom
-          path: |
-            public
+          path: public
           retention-days: 1
