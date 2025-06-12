@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<!--
+  Copyright (c) 2020-2024 THALES.
+  
+  This program and the accompanying materials are made available under the
+  terms of the Eclipse Public License 2.0 which is available at
+  http://www.eclipse.org/legal/epl-2.0
+  
+  SPDX-License-Identifier: EPL-2.0
+
+  Contributors:
+       THALES - initial API and implementation
+-->
+<plugin>
+
+   <extension
+         point="org.eclipse.egf.core.fcore">
+      <fcore
+            id="egf/stpa-docgen.fcore">
+      </fcore>
+   </extension>
+
+   <extension
+         point="org.polarsys.kitalpha.doc.gen.business.core.contentExtension">
+      <pageExtension
+            category="STPA Viewpoint"
+            defaultStatus="Active"
+            description="STPA Viewpoint"
+            diagramHelper="com.thalesgroup.mde.capella.stpa.docgen.util.StpaDocGenDiagramHelper"
+            domain="capella"
+            fileNameService="com.thalesgroup.mde.capella.stpa.docgen.util.StpaDocGenFileNameService"
+            name="STPA Viewpoint">
+         <pagePattern
+               URI="platform:/plugin/com.thalesgroup.mde.capella.stpa.docgen/egf/stpa-docgen.fcore#_Jw884Cw9EeyISLpWJUiW6A">
+         </pagePattern>
+      </pageExtension>
+   </extension>
+
+</plugin>
