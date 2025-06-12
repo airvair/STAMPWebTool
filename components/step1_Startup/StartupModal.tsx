@@ -20,6 +20,23 @@ const StartupModal: React.FC = () => {
 
   const isOpen = !analysisSession || !analysisSession.analysisType;
 
+  if (!isOpen && analysisSession) {
+    const continueTo =
+      analysisSession.currentStep ||
+      (analysisSession.analysisType === AnalysisType.CAST
+        ? CAST_STEPS[1].path
+        : STPA_STEPS[1].path);
+    return (
+      <div className="p-8 text-center space-y-4">
+        <h2 className="text-2xl font-semibold text-slate-700">{APP_TITLE}</h2>
+        <p className="text-slate-700">
+          You already have a {analysisSession.analysisType} session in progress.
+        </p>
+        <Button onClick={() => navigate(continueTo)}>Continue Analysis</Button>
+      </div>
+    );
+  }
+
   return (
     <Modal isOpen={isOpen} title={APP_TITLE} persistent={true} size="lg">
       <div className="mx-auto max-w-xl">
