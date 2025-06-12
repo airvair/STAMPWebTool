@@ -31,7 +31,6 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
   const [scope, setScope] = useState(analysisSession?.scope || '');
   const [otherLossTitle, setOtherLossTitle] = useState('');
   const [otherLossDesc, setOtherLossDesc] = useState('');
-  const [otherLossRationale, setOtherLossRationale] = useState('');
   const [selectedLossIdsState, setSelectedLossIdsState] = useState<string[]>(losses.map(l => l.id));
 
   // Hazard creation form state
@@ -73,8 +72,9 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
 
   const handleAddOtherLoss = () => {
     if (otherLossTitle.trim() === '') return;
-    addLoss({ title: otherLossTitle, description: otherLossDesc, rationale: otherLossRationale, isStandard: false });
-    setOtherLossTitle(''); setOtherLossDesc(''); setOtherLossRationale('');
+    addLoss({ title: otherLossTitle, description: otherLossDesc, isStandard: false });
+    setOtherLossTitle('');
+    setOtherLossDesc('');
   };
   
   const handleHazardInputChange = <K extends keyof Omit<Hazard, 'id' | 'code'>>(field: K, value: Omit<Hazard, 'id' | 'code'>[K]) => {
@@ -219,7 +219,6 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
                 <div>
                   <p className="font-medium text-slate-700">{loss.code}: {loss.title}</p>
                   <p className="text-sm text-slate-500">{loss.description}</p>
-                  {loss.rationale && <p className="text-xs text-slate-400">Rationale: {loss.rationale}</p>}
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => deleteLoss(loss.id)} className="text-red-500 hover:text-red-700">
                   <PlaceholderTrashIcon/>
@@ -229,7 +228,6 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
             <div className="flex items-end space-x-2">
               <Input label="Custom Loss Title" id={`otherLossTitle-${analysisType}`} value={otherLossTitle} onChange={(e) => setOtherLossTitle(e.target.value)} placeholder="e.g., Loss of Public Confidence" containerClassName="flex-grow"/>
               <Input label="Custom Loss Description" id={`otherLossDesc-${analysisType}`} value={otherLossDesc} onChange={(e) => setOtherLossDesc(e.target.value)} placeholder="Brief description" containerClassName="flex-grow"/>
-              <Input label="Rationale" id={`otherLossRat-${analysisType}`} value={otherLossRationale} onChange={(e) => setOtherLossRationale(e.target.value)} placeholder="Why this loss matters" containerClassName="flex-grow"/>
               <Button onClick={handleAddOtherLoss} leftIcon={<PlaceholderPlusIcon />} className="mb-4">Add Custom Loss</Button>
             </div>
              {losses.length === 0 && (<p className="text-xs text-red-600">Please add at least one loss.</p>)}
