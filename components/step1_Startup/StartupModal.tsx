@@ -86,35 +86,29 @@ const StartupModal: React.FC = () => {
     <Modal isOpen={isOpen} title={APP_TITLE} persistent={true} size="lg">
       <div className="mx-auto max-w-xl">
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="bg-white border rounded-lg shadow p-6 flex flex-col items-center text-center space-y-4">
-            <ExclamationTriangleIcon className="h-8 w-8 text-sky-600" />
+          <button
+            onClick={() => handleSelectType(AnalysisType.CAST)}
+            className="bg-white border rounded-lg shadow p-8 flex flex-col items-center text-center space-y-4 hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          >
+            <ExclamationTriangleIcon className="h-12 w-12 text-sky-600" />
             <p className="text-slate-700">
               Are you investigating an incident or accident or something that has already occurred?
             </p>
-            <Button
-              onClick={() => handleSelectType(AnalysisType.CAST)}
-              className="w-full"
-              size="lg"
-            >
-              CAST Analysis
-            </Button>
-          </div>
-          <div className="bg-white border rounded-lg shadow p-6 flex flex-col items-center text-center space-y-4">
-            <LightBulbIcon className="h-8 w-8 text-sky-600" />
+            <span className="text-lg font-semibold text-sky-600">CAST Analysis</span>
+          </button>
+          <button
+            onClick={() => handleSelectType(AnalysisType.STPA)}
+            className="bg-white border rounded-lg shadow p-8 flex flex-col items-center text-center space-y-4 hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          >
+            <LightBulbIcon className="h-12 w-12 text-sky-600" />
             <p className="text-slate-700">
               Are you designing something new (physical system, training, procedure, organization or other)?
             </p>
-            <Button
-              onClick={() => handleSelectType(AnalysisType.STPA)}
-              className="w-full"
-              size="lg"
-            >
-              STPA Analysis
-            </Button>
+            <span className="text-lg font-semibold text-sky-600">STPA Analysis</span>
             <p className="text-xs text-slate-500 italic">
               A system is a set of interdependent parts sharing a common purpose. The performance of the whole is affected by each and every one of its parts.
             </p>
-          </div>
+          </button>
         </div>
       </div>
     </Modal>
