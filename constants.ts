@@ -15,12 +15,13 @@ export const MISSING_FEEDBACK_COLOR = 'border-red-500 text-red-700'; // Dashed p
 export const STANDARD_LOSSES: { id: string; title: string; description: string }[] = [
   { id: 'L-Std-Life', title: 'Loss of life', description: 'Fatalities or severe harm to individuals.' },
   { id: 'L-Std-Property', title: 'Loss of property', description: 'Aircraft damage, other physical damage or loss.' },
-  { id: 'L-Std-Revenue', title: 'Loss of revenue', description: 'Significant financial loss from operations.' },
-  { id: 'L-Std-Security', title: 'Loss of security (software or physical)', description: 'Breach of security measures.' },
+  { id: 'L-Std-Revenue', title: 'Loss of revenue', description: 'Financial impact or reduced market share from dissatisfied customers.' },
+  { id: 'L-Std-Security', title: 'Loss of security (software or physical)', description: 'Financial or reputational impact from a security breach.' },
   { id: 'L-Std-Mission', title: 'Loss of mission', description: 'Inability to complete the primary objectives of the system.' },
-  { id: 'L-Std-Compliance', title: 'Loss of regulatory compliance', description: 'Failure to meet legal or regulatory obligations.' },
+  { id: 'L-Std-Compliance', title: 'Loss of regulatory compliance', description: 'Legal action or fines resulting from noncompliance.' },
   { id: 'L-Std-Reputation', title: 'Loss of brand or reputation', description: 'Damage to public image or trust.' },
   { id: 'L-Std-CustomerSat', title: 'Loss of customer satisfaction', description: 'Negative impact on customer experience.' },
+  { id: 'L-Std-Environment', title: 'Loss of environmental integrity', description: 'Spill or contamination harming the environment.' },
 ]; // Updated to match OCR pg 2
 
 // FR-5.1 / OCR pg 25: UCA questions map. Current one is fine.

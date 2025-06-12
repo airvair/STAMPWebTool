@@ -30,6 +30,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
   const [scope, setScope] = useState(analysisSession?.scope || '');
   const [otherLossTitle, setOtherLossTitle] = useState('');
   const [otherLossDesc, setOtherLossDesc] = useState('');
+  const [otherLossRationale, setOtherLossRationale] = useState('');
   const [selectedLossIdsState, setSelectedLossIdsState] = useState<string[]>(losses.map(l => l.id));
 
   // Hazard creation form state
@@ -61,8 +62,8 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
 
   const handleAddOtherLoss = () => {
     if (otherLossTitle.trim() === '') return;
-    addLoss({ title: otherLossTitle, description: otherLossDesc, isStandard: false });
-    setOtherLossTitle(''); setOtherLossDesc('');
+    addLoss({ title: otherLossTitle, description: otherLossDesc, rationale: otherLossRationale, isStandard: false });
+    setOtherLossTitle(''); setOtherLossDesc(''); setOtherLossRationale('');
   };
   
   const handleHazardInputChange = <K extends keyof Omit<Hazard, 'id' | 'code'>>(field: K, value: Omit<Hazard, 'id' | 'code'>[K]) => {
@@ -77,7 +78,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
     if (!currentHazardData.systemComponent || !currentHazardData.environmentalCondition || !currentHazardData.systemState || !currentHazardData.linkedLossIds || currentHazardData.linkedLossIds.length === 0) {
       alert("Please fill all hazard fields (System Component, Environmental Condition, System State) and link to at least one loss."); return;
     }
-    const hazardTitle = `${currentHazardData.systemComponent} ${currentHazardData.environmentalCondition} when ${currentHazardData.systemState}`;
+    const hazardTitle = `${currentHazardData.systemComponent} ${currentHazardData.systemState} under ${currentHazardData.environmentalCondition}`;
     const hazardPayload = { ...currentHazardData, title: hazardTitle } as Omit<Hazard, 'id' | 'code'>;
 
     if (editingHazardId) {
@@ -134,7 +135,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
         constraintPrefix += " must prevent";
       }
 
-      const constraintText = `${constraintPrefix}: ${hazard.systemComponent} ${hazard.environmentalCondition} when ${hazard.systemState}.`;
+      const constraintText = `${constraintPrefix}: ${hazard.systemComponent} ${hazard.systemState} under ${hazard.environmentalCondition}.`;
       
       const newConstraintData: Partial<SystemConstraint> = { text: constraintText };
       if (analysisType === AnalysisType.STPA) {
@@ -207,6 +208,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
                 <div>
                   <p className="font-medium text-slate-700">{loss.code}: {loss.title}</p>
                   <p className="text-sm text-slate-500">{loss.description}</p>
+                  {loss.rationale && <p className="text-xs text-slate-400">Rationale: {loss.rationale}</p>}
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => deleteLoss(loss.id)} className="text-red-500 hover:text-red-700">
                   <PlaceholderTrashIcon/>
@@ -216,6 +218,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
             <div className="flex items-end space-x-2">
               <Input label="Custom Loss Title" id={`otherLossTitle-${analysisType}`} value={otherLossTitle} onChange={(e) => setOtherLossTitle(e.target.value)} placeholder="e.g., Loss of Public Confidence" containerClassName="flex-grow"/>
               <Input label="Custom Loss Description" id={`otherLossDesc-${analysisType}`} value={otherLossDesc} onChange={(e) => setOtherLossDesc(e.target.value)} placeholder="Brief description" containerClassName="flex-grow"/>
+              <Input label="Rationale" id={`otherLossRat-${analysisType}`} value={otherLossRationale} onChange={(e) => setOtherLossRationale(e.target.value)} placeholder="Why this loss matters" containerClassName="flex-grow"/>
               <Button onClick={handleAddOtherLoss} leftIcon={<PlaceholderPlusIcon />} className="mb-4">Add Custom Loss</Button>
             </div>
              {losses.length === 0 && (<p className="text-xs text-red-600">Please add at least one loss.</p>)}
@@ -235,11 +238,11 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
          3. Identify System-Level Hazards
         </h3>
          <p className="text-sm text-slate-600 mb-1">A hazard is a system state or set of conditions that, together with a worst-case environment, will lead to a loss.</p>
-         <p className="text-xs text-slate-500 mb-3">Format: {"<System Component> <Environmental Condition> when <System State>"}. Use the dropdowns for examples or type directly.</p>
+         <p className="text-xs text-slate-500 mb-3">Format: {"<System Component> is in <System State> under <Environmental Condition>"}. Use the dropdowns for examples or type directly.</p>
         <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3 mb-6">
           <Select label="System Component (involved in the hazard)" value={currentHazardData.systemComponent || ''} onChange={e => handleHazardInputChange('systemComponent', e.target.value)} options={[{value:'', label:'Select or type component'}, ...systemComponentOptions]} placeholder="e.g., Aircraft"/>
           <Select label="Environmental Condition (that makes it hazardous)" value={currentHazardData.environmentalCondition || ''} onChange={e => handleHazardInputChange('environmentalCondition', e.target.value)} options={[{value:'', label:'Select or type condition'}, ...stateConditionOptions.filter(opt => opt.label.toLowerCase().includes("condition") || opt.label.toLowerCase().includes("inflight") || opt.label.toLowerCase().includes("ground"))]} placeholder="e.g., in heavy turbulence"/>
-          <Select label="System State (that is hazardous under this condition)" value={currentHazardData.systemState || ''} onChange={e => handleHazardInputChange('systemState', e.target.value)} options={[{value:'', label:'Select or type state'}, ...stateConditionOptions]} placeholder="e.g., provides incorrect altitude reading"/>
+          <Select label="System State" value={currentHazardData.systemState || ''} onChange={e => handleHazardInputChange('systemState', e.target.value)} options={[{value:'', label:'Select or type state'}, ...stateConditionOptions]} placeholder="e.g., provides incorrect altitude reading"/>
           
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Link to Losses (select at least one):</label>
@@ -309,7 +312,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
         <h3 className="text-xl font-semibold text-slate-700 mb-3">
           4. Define System Safety Constraints
         </h3>
-        <p className="text-sm text-slate-600 mb-3">Safety constraints are the inverse of hazards and represent requirements for safe operation. These are auto-generated but can be refined. For STPA, specify if the constraint is a "shall not" or "must not" condition related to the hazard.</p>
+        <p className="text-sm text-slate-600 mb-3">Safety constraints express the positive requirements for safe operation derived from each hazard. These are auto-generated but can be refined. For STPA, specify if the constraint is a "shall not" or "must not" condition related to the hazard.</p>
         {analysisType === AnalysisType.STPA && (
              <div className="mb-4">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Default constraint phrasing for new top-level hazards:</label>
