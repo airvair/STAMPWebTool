@@ -120,6 +120,7 @@ export interface ControlPath extends Identifiable {
   sourceControllerId: string;
   targetId: string; // Could be SystemComponent or another Controller
   controls: string; // Comma-separated or list of control actions text (e.g., "Throttle command, Steering angle")
+  higherAuthority?: boolean; // Does the target controller have higher authority than the source?
   actuatorLabel?: string; // e.g., "Actuator"
 }
 
@@ -128,6 +129,7 @@ export interface FeedbackPath extends Identifiable {
   targetControllerId: string;
   feedback: string; // Comma-separated or list of sensor/feedback text (e.g., "Speedometer reading, GPS position")
   isMissing: boolean;
+  indirect?: boolean; // Is the feedback indirect via another controller?
   sensorLabel?: string; // e.g., "Sensor"
 }
 
