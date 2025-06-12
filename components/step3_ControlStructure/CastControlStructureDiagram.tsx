@@ -13,6 +13,7 @@ const CONTROL_LINE_COLOR = '#000000';
 const FEEDBACK_LINE_COLOR = '#000000';
 const MISSING_LINE_COLOR = '#FF0000';
 const TEXT_OFFSET_VERTICAL = 5; // Pixels to offset text from the arrow line
+const PATH_OFFSET = 25;
 
 const CONTROLLER_TYPE_FILL_COLORS: Record<ControllerType, string> = {
     S: '#d1e7dd', // Software: Green
@@ -159,7 +160,7 @@ const Node: React.FC<{ node: NodeData; pos: Position }> = ({ node, pos }) => (
     </g>
 );
 
-const ControlPath: React.FC<{ path: any; positions: Record<string, Position> }> = ({ path, positions }) => {
+const ControlPath: React.FC<{ path: any; positions: Record<string, Position>; offset?: number }> = ({ path, positions, offset = 0 }) => {
     const srcPos = positions[path.sourceControllerId];
     const tgtPos = positions[path.targetId];
     if (!srcPos || !tgtPos) return null;
@@ -168,8 +169,8 @@ const ControlPath: React.FC<{ path: any; positions: Record<string, Position> }> 
     const startY = srcPos.y + NODE_HEIGHT / 2;
     const endX = tgtPos.x - NODE_WIDTH / 4;
     const endY = tgtPos.y - NODE_HEIGHT / 2;
-    const bendY = (startY + endY) / 2;
-    const actuatorY = startY + (bendY - startY) / 2;
+    const bendY = (startY + endY) / 2 + offset;
+    const actuatorY = startY + (bendY - startY) / 2 + offset / 2;
     const midX = (startX + endX) / 2;
 
     return (
@@ -205,7 +206,7 @@ const ControlPath: React.FC<{ path: any; positions: Record<string, Position> }> 
     );
 };
 
-const FeedbackPath: React.FC<{ path: any; positions: Record<string, Position> }> = ({ path, positions }) => {
+const FeedbackPath: React.FC<{ path: any; positions: Record<string, Position>; offset?: number }> = ({ path, positions, offset = 0 }) => {
     const srcPos = positions[path.sourceId];
     const tgtPos = positions[path.targetControllerId];
     if (!srcPos || !tgtPos) return null;
@@ -214,8 +215,8 @@ const FeedbackPath: React.FC<{ path: any; positions: Record<string, Position> }>
     const startY = srcPos.y - NODE_HEIGHT / 2;
     const endX = tgtPos.x + NODE_WIDTH / 4;
     const endY = tgtPos.y + NODE_HEIGHT / 2;
-    const bendY = (startY + endY) / 2;
-    const sensorY = startY + (bendY - startY) / 2;
+    const bendY = (startY + endY) / 2 + offset;
+    const sensorY = startY + (bendY - startY) / 2 + offset / 2;
     const midX = (startX + endX) / 2;
 
     const stroke = path.isMissing ? MISSING_LINE_COLOR : FEEDBACK_LINE_COLOR;
@@ -261,6 +262,38 @@ const CastControlStructureDiagram: React.FC<{ svgRef?: React.Ref<SVGSVGElement> 
     const analysisData = useAnalysis();
     const { positions, height } = useControlStructureLayout(analysisData);
 
+    const cpGroups: Record<string, string[]> = {};
+    analysisData.controlPaths.forEach(cp => {
+        const src = positions[cp.sourceControllerId];
+        const tgt = positions[cp.targetId];
+        if (!src || !tgt) return;
+        const key = `${src.y}-${tgt.y}`;
+        cpGroups[key] = cpGroups[key] || [];
+        cpGroups[key].push(cp.id);
+    });
+    const cpOffsets: Record<string, number> = {};
+    Object.values(cpGroups).forEach(ids => {
+        ids.forEach((id, idx) => {
+            cpOffsets[id] = (idx - (ids.length - 1) / 2) * PATH_OFFSET;
+        });
+    });
+
+    const fpGroups: Record<string, string[]> = {};
+    analysisData.feedbackPaths.forEach(fp => {
+        const src = positions[fp.sourceId];
+        const tgt = positions[fp.targetControllerId];
+        if (!src || !tgt) return;
+        const key = `${src.y}-${tgt.y}`;
+        fpGroups[key] = fpGroups[key] || [];
+        fpGroups[key].push(fp.id);
+    });
+    const fpOffsets: Record<string, number> = {};
+    Object.values(fpGroups).forEach(ids => {
+        ids.forEach((id, idx) => {
+            fpOffsets[id] = (idx - (ids.length - 1) / 2) * PATH_OFFSET;
+        });
+    });
+
     const allNodes = [
         ...analysisData.controllers.map(c => ({ id: c.id, label: c.name, type: 'controller' as const, ctrlType: c.ctrlType })),
         ...analysisData.systemComponents.map(sc => ({ id: sc.id, label: sc.name, type: 'component' as const })),
@@ -275,8 +308,12 @@ const CastControlStructureDiagram: React.FC<{ svgRef?: React.Ref<SVGSVGElement> 
             </defs>
 
             {/* Render all paths first, so they appear underneath the nodes and text backgrounds. */}
-            {analysisData.controlPaths.map(path => <ControlPath key={path.id} path={path} positions={positions} />)}
-            {analysisData.feedbackPaths.map(path => <FeedbackPath key={path.id} path={path} positions={positions} />)}
+            {analysisData.controlPaths.map(path => (
+                <ControlPath key={path.id} path={path} positions={positions} offset={cpOffsets[path.id]} />
+            ))}
+            {analysisData.feedbackPaths.map(path => (
+                <FeedbackPath key={path.id} path={path} positions={positions} offset={fpOffsets[path.id]} />
+            ))}
 
             {/* Nodes are rendered last, ensuring they are drawn on top of all paths and their labels. */}
             {allNodes.map(node => {
