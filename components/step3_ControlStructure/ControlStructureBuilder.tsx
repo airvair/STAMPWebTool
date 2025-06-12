@@ -1,13 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
-import { SystemComponent, Controller, ControlPath, FeedbackPath, ComponentType, ControllerType } from '../../types';
+import { SystemComponent, Controller, ControlPath, FeedbackPath, ComponentType, ControllerType, Hazard } from '../../types';
 import { CONTROLLER_TYPE_COLORS, MISSING_FEEDBACK_COLOR } from '../../constants';
 import Input from '../shared/Input';
 import Select from '../shared/Select';
 import Button from '../shared/Button';
 import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
+import ControlStructureDiagram from './ControlStructureDiagram';
 
 const PlaceholderPlusIcon = () => (
   <svg
@@ -45,6 +46,7 @@ const ControlStructureBuilder: React.FC = () => {
     controllers, addController, updateController, deleteController,
     controlPaths, addControlPath, updateControlPath, deleteControlPath,
     feedbackPaths, addFeedbackPath, updateFeedbackPath, deleteFeedbackPath,
+    hazards,
   } = useAnalysis();
 
   // Component Form
@@ -61,6 +63,7 @@ const ControlStructureBuilder: React.FC = () => {
   const [cpSourceCtrlId, setCpSourceCtrlId] = useState('');
   const [cpTargetId, setCpTargetId] = useState('');
   const [cpControls, setCpControls] = useState('');
+  const [cpHigherAuth, setCpHigherAuth] = useState(false);
   const [editingCpId, setEditingCpId] = useState<string | null>(null);
 
   // Feedback Path Form
@@ -68,6 +71,7 @@ const ControlStructureBuilder: React.FC = () => {
   const [fpTargetCtrlId, setFpTargetCtrlId] = useState('');
   const [fpFeedback, setFpFeedback] = useState('');
   const [fpIsMissing, setFpIsMissing] = useState(false);
+  const [fpIndirect, setFpIndirect] = useState(false);
   const [editingFpId, setEditingFpId] = useState<string | null>(null);
 
 
@@ -78,6 +82,22 @@ const ControlStructureBuilder: React.FC = () => {
   const componentOptions = systemComponents.map(sc => ({ value: sc.id, label: sc.name }));
   const pathTargetOptions = [...controllerOptions, ...componentOptions];
 
+  // Auto-import system components from hazards on first render
+  useEffect(() => {
+    if (hazards.length === 0) return;
+    hazards.forEach(h => {
+      const base = h.systemComponent.trim();
+      if (!base) return;
+      const existing = systemComponents.filter(sc => sc.name.startsWith(base));
+      const existsExact = systemComponents.some(sc => sc.name === base);
+      if (!existsExact) {
+        const name = existing.length > 0 ? `${base} ${existing.length + 1}` : base;
+        addSystemComponent({ name, type: ComponentType.Physical });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   // System Component Handlers
   const handleSaveComponent = () => {
@@ -85,7 +105,10 @@ const ControlStructureBuilder: React.FC = () => {
     if (editingComponentId) {
       updateSystemComponent(editingComponentId, { name: componentName, type: componentType });
     } else {
-      addSystemComponent({ name: componentName, type: componentType });
+      const existing = systemComponents.filter(sc => sc.name.startsWith(componentName));
+      const existsExact = systemComponents.some(sc => sc.name === componentName);
+      const name = existsExact ? `${componentName} ${existing.length + 1}` : componentName;
+      addSystemComponent({ name, type: componentType });
     }
     setComponentName(''); setComponentType(ComponentType.Physical); setEditingComponentId(null);
   };
@@ -111,28 +134,28 @@ const ControlStructureBuilder: React.FC = () => {
   const handleSaveControlPath = () => {
     if (!cpSourceCtrlId || !cpTargetId || !cpControls) return;
     if (editingCpId) {
-      updateControlPath(editingCpId, { sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: cpControls });
+      updateControlPath(editingCpId, { sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: cpControls, higherAuthority: cpHigherAuth });
     } else {
-      addControlPath({ sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: cpControls });
+      addControlPath({ sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: cpControls, higherAuthority: cpHigherAuth });
     }
-    setCpSourceCtrlId(''); setCpTargetId(''); setCpControls(''); setEditingCpId(null);
+    setCpSourceCtrlId(''); setCpTargetId(''); setCpControls(''); setCpHigherAuth(false); setEditingCpId(null);
   };
   const editControlPath = (cp: ControlPath) => {
-    setEditingCpId(cp.id); setCpSourceCtrlId(cp.sourceControllerId); setCpTargetId(cp.targetId); setCpControls(cp.controls);
+    setEditingCpId(cp.id); setCpSourceCtrlId(cp.sourceControllerId); setCpTargetId(cp.targetId); setCpControls(cp.controls); setCpHigherAuth(!!cp.higherAuthority);
   };
 
   // Feedback Path Handlers
   const handleSaveFeedbackPath = () => {
     if (!fpSourceId || !fpTargetCtrlId || !fpFeedback) return;
     if (editingFpId) {
-      updateFeedbackPath(editingFpId, { sourceId: fpSourceId, targetControllerId: fpTargetCtrlId, feedback: fpFeedback, isMissing: fpIsMissing });
+      updateFeedbackPath(editingFpId, { sourceId: fpSourceId, targetControllerId: fpTargetCtrlId, feedback: fpFeedback, isMissing: fpIsMissing, indirect: fpIndirect });
     } else {
-      addFeedbackPath({ sourceId: fpSourceId, targetControllerId: fpTargetCtrlId, feedback: fpFeedback, isMissing: fpIsMissing });
+      addFeedbackPath({ sourceId: fpSourceId, targetControllerId: fpTargetCtrlId, feedback: fpFeedback, isMissing: fpIsMissing, indirect: fpIndirect });
     }
-    setFpSourceId(''); setFpTargetCtrlId(''); setFpFeedback(''); setFpIsMissing(false); setEditingFpId(null);
+    setFpSourceId(''); setFpTargetCtrlId(''); setFpFeedback(''); setFpIsMissing(false); setFpIndirect(false); setEditingFpId(null);
   };
   const editFeedbackPath = (fp: FeedbackPath) => {
-    setEditingFpId(fp.id); setFpSourceId(fp.sourceId); setFpTargetCtrlId(fp.targetControllerId); setFpFeedback(fp.feedback); setFpIsMissing(fp.isMissing);
+    setEditingFpId(fp.id); setFpSourceId(fp.sourceId); setFpTargetCtrlId(fp.targetControllerId); setFpFeedback(fp.feedback); setFpIsMissing(fp.isMissing); setFpIndirect(!!fp.indirect);
   };
   
   const getItemName = (id: string) => {
@@ -236,6 +259,7 @@ const ControlStructureBuilder: React.FC = () => {
           <Select label="Source Controller" value={cpSourceCtrlId} onChange={e => setCpSourceCtrlId(e.target.value)} options={[{value: '', label: 'Select Source Controller'}, ...controllerOptions]} placeholder="Select Source Controller" />
           <Select label="Target (Component or Controller)" value={cpTargetId} onChange={e => setCpTargetId(e.target.value)} options={[{value: '', label: 'Select Target'}, ...pathTargetOptions]} placeholder="Select Target" />
           <Textarea label="Controls (comma-separated list of control actions)" value={cpControls} onChange={e => setCpControls(e.target.value)} placeholder="e.g., SET_SPEED, TOGGLE_POWER, SEND_DATA" />
+          <Checkbox label="Target controller has higher authority?" checked={cpHigherAuth} onChange={e => setCpHigherAuth(e.target.checked)} />
           <Button onClick={handleSaveControlPath} leftIcon={<PlaceholderPlusIcon />}>
             {editingCpId ? 'Update Control Path' : 'Add Control Path'}
           </Button>
@@ -245,6 +269,7 @@ const ControlStructureBuilder: React.FC = () => {
             <li key={cp.id} className="p-3 border border-slate-300 rounded-md bg-white shadow-sm">
               <p><span className="font-semibold">{getItemName(cp.sourceControllerId)}</span> ➔ <span className="font-semibold">{getItemName(cp.targetId)}</span></p>
               <p className="text-sm text-slate-600">Controls: {cp.controls}</p>
+              {cp.higherAuthority && <p className="text-xs text-slate-500">Target has higher authority</p>}
               <div className="mt-1 space-x-2">
                 <Button
                   onClick={() => editControlPath(cp)}
@@ -278,6 +303,7 @@ const ControlStructureBuilder: React.FC = () => {
           <Select label="Target Controller" value={fpTargetCtrlId} onChange={e => setFpTargetCtrlId(e.target.value)} options={[{value: '', label: 'Select Target Controller'}, ...controllerOptions]} placeholder="Select Target Controller" />
           <Textarea label="Feedback/Sensors (comma-separated list)" value={fpFeedback} onChange={e => setFpFeedback(e.target.value)} placeholder="e.g., CURRENT_SPEED, TEMP_READING, STATUS_FLAG" />
           <Checkbox label="Is this feedback path missing or inadequate?" checked={fpIsMissing} onChange={e => setFpIsMissing(e.target.checked)} />
+          <Checkbox label="Is this feedback indirect via another controller?" checked={fpIndirect} onChange={e => setFpIndirect(e.target.checked)} />
           <Button onClick={handleSaveFeedbackPath} leftIcon={<PlaceholderPlusIcon />}>
             {editingFpId ? 'Update Feedback Path' : 'Add Feedback Path'}
           </Button>
@@ -287,6 +313,7 @@ const ControlStructureBuilder: React.FC = () => {
             <li key={fp.id} className={`p-3 border rounded-md bg-white shadow-sm ${fp.isMissing ? `${MISSING_FEEDBACK_COLOR} border-dashed` : 'border-slate-300'}`}>
               <p><span className="font-semibold">{getItemName(fp.sourceId)}</span> ➔ <span className="font-semibold">{getItemName(fp.targetControllerId)}</span> {fp.isMissing && <span className="text-sm font-bold">(MISSING/INADEQUATE)</span>}</p>
               <p className="text-sm">Feedback: {fp.feedback}</p>
+              {fp.indirect && <p className="text-xs text-slate-500">Indirect feedback</p>}
               <div className="mt-1 space-x-2">
                 <Button
                   onClick={() => editFeedbackPath(fp)}
@@ -310,6 +337,12 @@ const ControlStructureBuilder: React.FC = () => {
             </li>
           ))}
         </ul>
+      </section>
+      <section>
+        <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">5. Visualization</h3>
+        <div className="overflow-auto border p-2">
+          <ControlStructureDiagram />
+        </div>
       </section>
     </div>
   );
