@@ -1,21 +1,32 @@
-name: Publish Website
+name: Build and deploy CAST web-app
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   workflow_dispatch:
+
 jobs:
-  Publish-Website:
-    name: Publish-Website
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@master
-      - name: Upload the artifact
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
+
+      - name: Move dist → deploy root
+        run: |
+          mkdir public
+          mv dist/* public/
+      - name: Upload artifact for WordPress.com
         uses: actions/upload-artifact@v4
         with:
           name: wpcom
           path: |
-            .
-            !.git*
+            public
           retention-days: 1
