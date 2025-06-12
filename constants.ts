@@ -12,6 +12,10 @@ export const CONTROLLER_TYPE_COLORS: Record<ControllerType, string> = {
 
 export const MISSING_FEEDBACK_COLOR = 'border-red-500 text-red-700'; // Dashed property handled by border-style
 
+export const CONTROL_LINE_COLOR = '#2563eb'; // blue-600
+export const FEEDBACK_LINE_COLOR = '#16a34a'; // green-600
+export const MISSING_LINE_COLOR = 'red';
+
 export const STANDARD_LOSSES: { id: string; title: string; description: string }[] = [
   { id: 'L-Std-Life', title: 'Loss of life', description: 'Fatalities or severe harm to individuals.' },
   { id: 'L-Std-Property', title: 'Loss of property', description: 'Aircraft damage, other physical damage or loss.' },

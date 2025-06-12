@@ -1,16 +1,17 @@
 import React from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { ControllerType } from '../../types';
-import { CONTROLLER_TYPE_COLORS } from '../../constants';
+import { CONTROLLER_TYPE_COLORS, CONTROL_LINE_COLOR, FEEDBACK_LINE_COLOR, MISSING_LINE_COLOR } from '../../constants';
 
 interface Position { x: number; y: number; }
+interface DiagramProps { svgRef?: React.Ref<SVGSVGElement>; }
 
 const NODE_WIDTH = 140;
 const NODE_HEIGHT = 50;
 const LEVEL_HEIGHT = 120;
 const SVG_WIDTH = 1000;
 
-const ControlStructureDiagram: React.FC = () => {
+const ControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
   const { systemComponents, controllers, controlPaths, feedbackPaths } = useAnalysis();
 
   // Determine controller levels based on control relationships
@@ -60,13 +61,16 @@ const ControlStructureDiagram: React.FC = () => {
   });
 
   return (
-    <svg width="100%" height={(levels.length + 1) * LEVEL_HEIGHT} viewBox={`0 0 ${SVG_WIDTH} ${(levels.length + 1) * LEVEL_HEIGHT}`}>\
+    <svg ref={svgRef} width="100%" height={(levels.length + 1) * LEVEL_HEIGHT} viewBox={`0 0 ${SVG_WIDTH} ${(levels.length + 1) * LEVEL_HEIGHT}`}>\
       <defs>
-        <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
-          <path d="M0,0 L0,6 L9,3 z" fill="currentColor" />
+        <marker id="arrow-control" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill={CONTROL_LINE_COLOR} />
         </marker>
-        <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
-          <path d="M0,0 L0,6 L9,3 z" fill="red" />
+        <marker id="arrow-feedback" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill={FEEDBACK_LINE_COLOR} />
+        </marker>
+        <marker id="arrow-missing" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill={MISSING_LINE_COLOR} />
         </marker>
       </defs>
 
@@ -79,9 +83,17 @@ const ControlStructureDiagram: React.FC = () => {
         const midY = (src.y + tgt.y) / 2;
         return (
           <g key={cp.id}>
-            <line x1={src.x} y1={src.y + NODE_HEIGHT/2} x2={tgt.x} y2={tgt.y - NODE_HEIGHT/2}
-              stroke="black" markerEnd="url(#arrow)" />
-            <text x={midX} y={midY - 4} textAnchor="middle" fontSize="10">{cp.actuatorLabel || 'actuator'}</text>
+            <line
+              x1={src.x}
+              y1={src.y + NODE_HEIGHT / 2}
+              x2={tgt.x}
+              y2={tgt.y - NODE_HEIGHT / 2}
+              stroke={CONTROL_LINE_COLOR}
+              markerEnd="url(#arrow-control)"
+            />
+            <text x={midX} y={midY - 4} textAnchor="middle" fontSize="10">
+              {cp.actuatorLabel || 'actuator'}
+            </text>
           </g>
         );
       })}
@@ -93,15 +105,24 @@ const ControlStructureDiagram: React.FC = () => {
         if (!src || !tgt) return null;
         const midX = (src.x + tgt.x) / 2;
         const midY = (src.y + tgt.y) / 2;
-        const stroke = fp.isMissing ? 'red' : 'black';
+        const stroke = fp.isMissing ? MISSING_LINE_COLOR : FEEDBACK_LINE_COLOR;
         const dash = fp.isMissing ? '4 2' : undefined;
-        const marker = fp.isMissing ? 'url(#arrow-red)' : 'url(#arrow)';
+        const marker = fp.isMissing ? 'url(#arrow-missing)' : 'url(#arrow-feedback)';
         return (
           <g key={fp.id}>
-            <line x1={src.x} y1={src.y - NODE_HEIGHT/2} x2={tgt.x} y2={tgt.y + NODE_HEIGHT/2}
-              stroke={stroke} strokeDasharray={dash} markerEnd={marker} />
+            <line
+              x1={src.x}
+              y1={src.y - NODE_HEIGHT / 2}
+              x2={tgt.x}
+              y2={tgt.y + NODE_HEIGHT / 2}
+              stroke={stroke}
+              strokeDasharray={dash}
+              markerEnd={marker}
+            />
             <text x={midX} y={midY - 4} textAnchor="middle" fontSize="10">
-              {fp.sensorLabel || 'sensor'}{fp.indirect ? ' (indirect)' : ''}{fp.isMissing ? ' MISSING' : ''}
+              {fp.sensorLabel || 'sensor'}
+              {fp.indirect ? ' (indirect)' : ''}
+              {fp.isMissing ? ' MISSING' : ''}
             </text>
           </g>
         );
