@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { ControllerType } from '../../types';
-import { CONTROLLER_TYPE_COLORS, CONTROL_LINE_COLOR, FEEDBACK_LINE_COLOR, MISSING_LINE_COLOR } from '../../constants';
+import { CONTROLLER_TYPE_COLORS, CONTROL_LINE_COLOR, FEEDBACK_LINE_COLOR, MISSING_LINE_COLOR, CONTROLLER_TYPE_FILL_COLORS } from '../../constants';
 
 interface Position { x: number; y: number; }
 interface DiagramProps { svgRef?: React.Ref<SVGSVGElement>; }
@@ -133,9 +133,10 @@ const ControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
         const pos = positions[ctrl.id];
         if (!pos) return null;
         const classes = CONTROLLER_TYPE_COLORS[ctrl.ctrlType];
+        const fill = CONTROLLER_TYPE_FILL_COLORS[ctrl.ctrlType];
         return (
           <g key={ctrl.id}>
-            <rect x={pos.x - NODE_WIDTH/2} y={pos.y - NODE_HEIGHT/2} width={NODE_WIDTH} height={NODE_HEIGHT} className={classes} stroke="black" />
+            <rect x={pos.x - NODE_WIDTH/2} y={pos.y - NODE_HEIGHT/2} width={NODE_WIDTH} height={NODE_HEIGHT} className={classes} fill={fill} stroke="black" />
             <text x={pos.x} y={pos.y} textAnchor="middle" dominantBaseline="middle" fontSize="12">{ctrl.name}</text>
           </g>
         );

@@ -9,6 +9,14 @@ export const CONTROLLER_TYPE_COLORS: Record<ControllerType, string> = {
   [ControllerType.Team]: 'bg-amber-100 text-amber-800 border-amber-300',        // #FFECB3
   [ControllerType.Organisation]: 'bg-purple-100 text-purple-800 border-purple-300', // #E1BEE7
 };
+// Colors for SVG elements in the control structure diagram
+export const CONTROLLER_TYPE_FILL_COLORS: Record<ControllerType, string> = {
+  [ControllerType.Software]: "#E0F2F1",
+  [ControllerType.Human]: "#FFF9C4",
+  [ControllerType.Team]: "#FFECB3",
+  [ControllerType.Organisation]: "#E1BEE7",
+};
+
 
 export const MISSING_FEEDBACK_COLOR = 'border-red-500 text-red-700'; // Dashed property handled by border-style
 
