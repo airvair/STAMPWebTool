@@ -131,7 +131,6 @@ const ControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
       {/* Draw nodes */}
       {controllers.map(ctrl => {
         const pos = positions[ctrl.id];
-        if (!pos) return null;
         const classes = CONTROLLER_TYPE_COLORS[ctrl.ctrlType];
         return (
           <g key={ctrl.id}>
@@ -143,7 +142,6 @@ const ControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
 
       {systemComponents.map(comp => {
         const pos = positions[comp.id];
-        if (!pos) return null;
         return (
           <g key={comp.id}>
             <rect x={pos.x - NODE_WIDTH/2} y={pos.y - NODE_HEIGHT/2} width={NODE_WIDTH} height={NODE_HEIGHT} fill="white" stroke="black" />
