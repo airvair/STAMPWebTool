@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
-import { UnsafeControlAction, UCAType, Hazard } from '../../types';
+import { UnsafeControlAction, UCAType, Hazard, UCCA } from '../../types';
 import { UCA_QUESTIONS_MAP, CONTROLLER_TYPE_COLORS } from '../../constants';
 import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
@@ -16,8 +16,15 @@ interface UCAFormState {
   hazardIds: string[];
 }
 
+interface UCCAFormState {
+  description: string;
+  context: string;
+  hazardIds: string[];
+}
+
 const UnsafeControlActions: React.FC = () => {
-  const { controllers, controlActions, ucas, addUCA, updateUCA, deleteUCA, hazards } = useAnalysis();
+  const { controllers, controlActions, ucas, addUCA, updateUCA, deleteUCA, hazards,
+          uccas, addUCCA, updateUCCA, deleteUCCA } = useAnalysis();
 
   const [selectedControllerId, setSelectedControllerId] = useState<string | null>(null);
   const [selectedControlActionId, setSelectedControlActionId] = useState<string | null>(null);
@@ -25,6 +32,9 @@ const UnsafeControlActions: React.FC = () => {
   
   const [formState, setFormState] = useState<UCAFormState>({ context: '', hazardIds: [] });
   const [editingUcaId, setEditingUcaId] = useState<string | null>(null);
+
+  const [uccaForm, setUccaForm] = useState<UCCAFormState>({ description: '', context: '', hazardIds: [] });
+  const [editingUccaId, setEditingUccaId] = useState<string | null>(null);
 
   const availableControlActions = controlActions.filter(ca => ca.controllerId === selectedControllerId && !ca.isOutOfScope);
   const currentControlAction = controlActions.find(ca => ca.id === selectedControlActionId);
@@ -44,12 +54,23 @@ const UnsafeControlActions: React.FC = () => {
   const resetForm = () => {
     setFormState({ context: '', hazardIds: [] });
     setEditingUcaId(null);
+    setUccaForm({ description: '', context: '', hazardIds: [] });
+    setEditingUccaId(null);
   };
 
   const handleHazardLinkChange = (hazardId: string, checked: boolean) => {
     setFormState(prev => {
-      const newHazardIds = checked 
-        ? [...prev.hazardIds, hazardId] 
+      const newHazardIds = checked
+        ? [...prev.hazardIds, hazardId]
+        : prev.hazardIds.filter(id => id !== hazardId);
+      return { ...prev, hazardIds: newHazardIds };
+    });
+  };
+
+  const handleUccaHazardLinkChange = (hazardId: string, checked: boolean) => {
+    setUccaForm(prev => {
+      const newHazardIds = checked
+        ? [...prev.hazardIds, hazardId]
         : prev.hazardIds.filter(id => id !== hazardId);
       return { ...prev, hazardIds: newHazardIds };
     });
@@ -106,6 +127,29 @@ const UnsafeControlActions: React.FC = () => {
     // resetForm(); // Or keep form populated for minor edits
   };
 
+  const handleSaveUCCA = () => {
+    if (!uccaForm.description.trim() || !uccaForm.context.trim()) {
+      alert('Please provide a description and context for the UCCA.');
+      return;
+    }
+    if (uccaForm.hazardIds.length === 0) {
+      alert('A UCCA must be linked to at least one hazard.');
+      return;
+    }
+    const data: Omit<UCCA, 'id' | 'code'> = {
+      description: uccaForm.description,
+      context: uccaForm.context,
+      hazardIds: uccaForm.hazardIds,
+    };
+    if (editingUccaId) {
+      updateUCCA(editingUccaId, data);
+    } else {
+      addUCCA(data);
+    }
+    setUccaForm({ description: '', context: '', hazardIds: [] });
+    setEditingUccaId(null);
+  };
+
   const loadUcaForEdit = (uca: UnsafeControlAction) => {
     setSelectedControllerId(uca.controllerId);
     setSelectedControlActionId(uca.controlActionId);
@@ -114,9 +158,16 @@ const UnsafeControlActions: React.FC = () => {
     setEditingUcaId(uca.id);
   };
 
+  const loadUccaForEdit = (ucca: UCCA) => {
+    setUccaForm({ description: ucca.description, context: ucca.context, hazardIds: ucca.hazardIds });
+    setEditingUccaId(ucca.id);
+  };
+
   const displayedUcas = ucas.filter(u => selectedControlActionId ? u.controlActionId === selectedControlActionId : true)
                            .filter(u => selectedUcaType ? u.ucaType === selectedUcaType : true)
                            .filter(u => selectedControllerId ? u.controllerId === selectedControllerId : true);
+
+  const displayedUccas = uccas;
 
 
   if (controllers.length === 0) return <p className="text-slate-600">No controllers defined. Please complete Step 3.</p>;
@@ -212,6 +263,70 @@ const UnsafeControlActions: React.FC = () => {
           </ul>
         ) : (
           <p className="text-slate-500">No UCAs match the current filter criteria. Select a controller, control action, and UCA type to define one, or broaden your filters.</p>
+        )}
+      </div>
+
+      {/* UCCA Definition Section */}
+      <div className="mt-10 space-y-4">
+        <h3 className="text-xl font-semibold text-slate-700">Unsafe Combinations of Control Actions (UCCAs)</h3>
+        <p className="text-sm text-slate-600">Describe combinations of control actions that together could lead to a hazard.</p>
+        <Textarea
+          label="Description of Combination"
+          value={uccaForm.description}
+          onChange={e => setUccaForm(prev => ({ ...prev, description: e.target.value }))}
+          rows={2}
+        />
+        <Textarea
+          label="Context (Why is this unsafe?)"
+          value={uccaForm.context}
+          onChange={e => setUccaForm(prev => ({ ...prev, context: e.target.value }))}
+          rows={3}
+        />
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Link to Hazards (select at least one):</label>
+          <div className="max-h-40 overflow-y-auto p-2 border border-slate-300 rounded-md bg-white">
+            {hazards.map(hazard => (
+              <Checkbox
+                key={hazard.id}
+                id={`ucca-hazard-link-${hazard.id}`}
+                label={`${hazard.code}: ${hazard.title}`}
+                checked={uccaForm.hazardIds.includes(hazard.id)}
+                onChange={e => handleUccaHazardLinkChange(hazard.id, e.target.checked)}
+                containerClassName="mb-1"
+              />
+            ))}
+          </div>
+          {uccaForm.hazardIds.length === 0 && <p className="text-xs text-red-500 mt-1">Must link to at least one hazard.</p>}
+        </div>
+        <div className="flex space-x-2 pt-2">
+          <Button onClick={handleSaveUCCA} leftIcon={<PlaceholderPlusIcon />}>{editingUccaId ? 'Update UCCA' : 'Add UCCA'}</Button>
+          {editingUccaId && <Button onClick={resetForm} variant="secondary">Cancel Edit</Button>}
+        </div>
+
+        {/* Existing UCCAs */}
+        {displayedUccas.length > 0 ? (
+          <ul className="space-y-3">
+            {displayedUccas.map(ucca => (
+              <li key={ucca.id} className="p-4 border rounded-md shadow-sm bg-white">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-semibold text-lg">{ucca.code}</p>
+                    <p className="text-sm text-slate-700">{ucca.description}</p>
+                    <p className="mt-1 text-sm text-slate-600">Context: {ucca.context}</p>
+                    <p className="text-sm text-slate-600">Linked Hazards: {ucca.hazardIds.map(hid => hazards.find(h => h.id === hid)?.code || 'N/A').join(', ')}</p>
+                  </div>
+                  <div className="space-x-1 flex-shrink-0">
+                    <Button onClick={() => loadUccaForEdit(ucca)} size="sm" variant="ghost" className="bg-white/50 hover:bg-white/70">Edit</Button>
+                    <Button onClick={() => deleteUCCA(ucca.id)} size="sm" variant="ghost" className="text-red-600 hover:text-red-700 bg-white/50 hover:bg-white/70">
+                      <PlaceholderTrashIcon />
+                    </Button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-slate-500">No UCCAs defined yet.</p>
         )}
       </div>
     </div>
