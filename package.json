@@ -1,5 +1,5 @@
 {
-  "name": "stpa/cast-analysis-tool",
+  "name": "stpa-cast-analysis-tool",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,10 +11,8 @@
   "dependencies": {
     "react-router-dom": "6.25.1",
     "react": "^19.1.0",
-    "react-dom/client": "18.3.1",
     "uuid": "9.0.1",
-    "@heroicons/react/24/outline": "2.0.18",
-    "@heroicons/react/24/solid": "2.0.18",
+    "@heroicons/react": "2.0.18",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
