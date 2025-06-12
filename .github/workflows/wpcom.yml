@@ -21,12 +21,12 @@ jobs:
           echo
           echo "Lockfile exists at:"
           ls -l package-lock.json || echo "  → not here"
-      - name: Set up Node.js (with npm cache)
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-          # no subfolder → repo-root lockfile
+          cache-dependency-path: "package-lock.json"    # ← exactly here
       - name: Install dependencies
         run: npm ci
 
