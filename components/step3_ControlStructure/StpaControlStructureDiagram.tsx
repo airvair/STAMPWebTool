@@ -79,20 +79,23 @@ const StpaControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
         const src = positions[cp.sourceControllerId];
         const tgt = positions[cp.targetId];
         if (!src || !tgt) return null;
-        const midX = (src.x + tgt.x) / 2;
-        const midY = (src.y + tgt.y) / 2;
+        const startX = src.x;
+        const startY = src.y + NODE_HEIGHT / 2;
+        const endX = tgt.x;
+        const endY = tgt.y - NODE_HEIGHT / 2;
+        const midY = (startY + endY) / 2;
+        const pathData = `${startX},${startY} ${startX},${midY} ${endX},${midY} ${endX},${endY}`;
+        const midX = (startX + endX) / 2;
         return (
           <g key={cp.id}>
-            <line
-              x1={src.x}
-              y1={src.y + NODE_HEIGHT / 2}
-              x2={tgt.x}
-              y2={tgt.y - NODE_HEIGHT / 2}
+            <polyline
+              fill="none"
               stroke={CONTROL_LINE_COLOR}
+              points={pathData}
               markerEnd="url(#arrow-control)"
             />
             <text x={midX} y={midY - 4} textAnchor="middle" fontSize="10">
-              {cp.actuatorLabel || 'actuator'}
+              {cp.controls || cp.actuatorLabel || 'actuator'}
             </text>
           </g>
         );
@@ -103,24 +106,27 @@ const StpaControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
         const src = positions[fp.sourceId];
         const tgt = positions[fp.targetControllerId];
         if (!src || !tgt) return null;
-        const midX = (src.x + tgt.x) / 2;
-        const midY = (src.y + tgt.y) / 2;
+        const startX = src.x;
+        const startY = src.y - NODE_HEIGHT / 2;
+        const endX = tgt.x;
+        const endY = tgt.y + NODE_HEIGHT / 2;
+        const midY = (startY + endY) / 2;
+        const pathData = `${startX},${startY} ${startX},${midY} ${endX},${midY} ${endX},${endY}`;
+        const midX = (startX + endX) / 2;
         const stroke = fp.isMissing ? MISSING_LINE_COLOR : FEEDBACK_LINE_COLOR;
         const dash = fp.isMissing ? '4 2' : undefined;
         const marker = fp.isMissing ? 'url(#arrow-missing)' : 'url(#arrow-feedback)';
         return (
           <g key={fp.id}>
-            <line
-              x1={src.x}
-              y1={src.y - NODE_HEIGHT / 2}
-              x2={tgt.x}
-              y2={tgt.y + NODE_HEIGHT / 2}
+            <polyline
+              fill="none"
               stroke={stroke}
               strokeDasharray={dash}
               markerEnd={marker}
+              points={pathData}
             />
             <text x={midX} y={midY - 4} textAnchor="middle" fontSize="10">
-              {fp.sensorLabel || 'sensor'}
+              {fp.feedback || fp.sensorLabel || 'sensor'}
               {fp.indirect ? ' (indirect)' : ''}
               {fp.isMissing ? ' MISSING' : ''}
             </text>
