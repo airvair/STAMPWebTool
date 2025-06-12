@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { ControllerType } from '../../types';
 import { CONTROLLER_TYPE_COLORS, CONTROL_LINE_COLOR, FEEDBACK_LINE_COLOR, MISSING_LINE_COLOR } from '../../constants';
+import { layoutControlStructure } from '../../utils/layout';
 
 interface Position { x: number; y: number; }
 interface DiagramProps { svgRef?: React.Ref<SVGSVGElement>; }
@@ -14,54 +15,19 @@ const SVG_WIDTH = 1000;
 const ControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
   const { systemComponents, controllers, controlPaths, feedbackPaths } = useAnalysis();
 
-  // Determine controller levels based on control relationships
-  const ctrlLevels: Record<string, number> = {};
-  controllers.forEach(c => { ctrlLevels[c.id] = 0; });
+  const [positions, setPositions] = useState<Record<string, Position>>({});
 
-  let updated = true;
-  while (updated) {
-    updated = false;
-    controlPaths.forEach(cp => {
-      const targetIsController = controllers.some(c => c.id === cp.targetId);
-      if (!targetIsController) return;
-      const srcLevel = ctrlLevels[cp.sourceControllerId] ?? 0;
-      const newLevel = srcLevel + 1;
-      if (ctrlLevels[cp.targetId] === undefined || newLevel > ctrlLevels[cp.targetId]) {
-        ctrlLevels[cp.targetId] = newLevel;
-        updated = true;
-      }
-    });
-  }
+  useEffect(() => {
+    layoutControlStructure(controllers, systemComponents, controlPaths, feedbackPaths)
+      .then(res => setPositions(res.positions))
+      .catch(() => setPositions({}));
+  }, [controllers, systemComponents, controlPaths, feedbackPaths]);
 
-  const maxCtrlLevel = Math.max(0, ...Object.values(ctrlLevels));
-  const componentLevel = maxCtrlLevel + 1;
-
-  const levelNodes: Record<number, { id: string; label: string; type: 'controller' | 'component'; ctrlType?: ControllerType }[]> = {};
-
-  controllers.forEach(c => {
-    const lvl = ctrlLevels[c.id] ?? 0;
-    levelNodes[lvl] = levelNodes[lvl] || [];
-    levelNodes[lvl].push({ id: c.id, label: c.name, type: 'controller', ctrlType: c.ctrlType });
-  });
-
-  systemComponents.forEach(sc => {
-    levelNodes[componentLevel] = levelNodes[componentLevel] || [];
-    levelNodes[componentLevel].push({ id: sc.id, label: sc.name, type: 'component' });
-  });
-
-  const levels = Object.keys(levelNodes).map(n => parseInt(n)).sort((a, b) => a - b);
-
-  const positions: Record<string, Position> = {};
-  levels.forEach((lvl, idx) => {
-    const items = levelNodes[lvl];
-    const spacing = SVG_WIDTH / (items.length + 1);
-    items.forEach((n, i) => {
-      positions[n.id] = { x: spacing * (i + 1), y: LEVEL_HEIGHT * idx + 40 };
-    });
-  });
+  const maxY = Object.values(positions).reduce((m, p) => Math.max(m, p.y), 0);
+  const svgHeight = maxY + LEVEL_HEIGHT;
 
   return (
-    <svg ref={svgRef} width="100%" height={(levels.length + 1) * LEVEL_HEIGHT} viewBox={`0 0 ${SVG_WIDTH} ${(levels.length + 1) * LEVEL_HEIGHT}`}>\
+    <svg ref={svgRef} width="100%" height={svgHeight} viewBox={`0 0 ${SVG_WIDTH} ${svgHeight}`}>\
       <defs>
         <marker id="arrow-control" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
           <path d="M0,0 L0,6 L9,3 z" fill={CONTROL_LINE_COLOR} />
@@ -131,6 +97,7 @@ const ControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
       {/* Draw nodes */}
       {controllers.map(ctrl => {
         const pos = positions[ctrl.id];
+        if (!pos) return null;
         const classes = CONTROLLER_TYPE_COLORS[ctrl.ctrlType];
         return (
           <g key={ctrl.id}>
@@ -142,6 +109,7 @@ const ControlStructureDiagram: React.FC<DiagramProps> = ({ svgRef }) => {
 
       {systemComponents.map(comp => {
         const pos = positions[comp.id];
+        if (!pos) return null;
         return (
           <g key={comp.id}>
             <rect x={pos.x - NODE_WIDTH/2} y={pos.y - NODE_HEIGHT/2} width={NODE_WIDTH} height={NODE_HEIGHT} fill="white" stroke="black" />
