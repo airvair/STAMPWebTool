@@ -13,26 +13,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js (with npm cache)
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-          # Good practice: point the cache to the correct lock file
-          cache-dependency-path: "StpaCastWebTool/package-lock.json"
+          # no subfolder → repo-root lockfile
+          cache-dependency-path: "package-lock.json"
 
-      - name: Install dependencies in subfolder
+      - name: Install dependencies
         run: npm ci
-        working-directory: ./STAMPWebTool
 
-      - name: Build project in subfolder
+      - name: Build project
         run: npm run build
-        working-directory: ./STAMPWebTool
 
       - name: Prepare artifact for deployment
-        # The build creates a 'dist' folder inside ./STAMPWebTool
-        # This command moves it to a 'public' folder at the root
-        run: mv ./STAMPWebTool/dist ./public
+        # Vite (or your build) spits out `dist/` in repo root now
+        run: mv dist public
 
       - name: Upload artifact for WordPress.com
         uses: actions/upload-artifact@v4
