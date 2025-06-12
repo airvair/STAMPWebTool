@@ -62,6 +62,7 @@ export interface Loss extends Identifiable {
   code: string; // L-1, L-2
   title: string;
   description: string;
+  rationale?: string;
   isStandard?: boolean; // To differentiate standard from 'Other'
 }
 
