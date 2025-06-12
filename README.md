@@ -41,6 +41,9 @@ npm run preview
 ## Project Structure
 - `components/` – page and UI components for each analysis step
 - `contexts/` – React context for shared state
+
+## License
+This project is licensed under the [MIT License](LICENSE).
 - `hooks/` – custom hooks used by the application
 - `constants.ts` and `types.ts` – shared types and configuration values
 
