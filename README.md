@@ -21,10 +21,6 @@ A web application that guides you through System-Theoretic Process Analysis (STP
    ```bash
    npm install
    ```
-2. Create a `.env.local` file and set your Gemini API key:
-   ```bash
-   GEMINI_API_KEY=YOUR_API_KEY
-   ```
 
 ### Development
 Run the app with hot reloading:
