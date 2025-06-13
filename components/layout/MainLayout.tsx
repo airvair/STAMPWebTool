@@ -56,10 +56,19 @@ const MainLayout: React.FC = () => {
   const [headerHeight, setHeaderHeight] = React.useState(0);
 
   React.useLayoutEffect(() => {
+    if (!headerRef.current) return;
+
     const updateHeight = () => setHeaderHeight(headerRef.current?.offsetHeight ?? 0);
+
+    const resizeObserver = new ResizeObserver(updateHeight);
+    resizeObserver.observe(headerRef.current);
     updateHeight();
+
     window.addEventListener('resize', updateHeight);
-    return () => window.removeEventListener('resize', updateHeight);
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+      resizeObserver.disconnect();
+    };
   }, []);
 
   return (
