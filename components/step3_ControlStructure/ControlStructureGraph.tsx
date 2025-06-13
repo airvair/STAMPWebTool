@@ -89,15 +89,30 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
     dagreGraph.setDefaultEdgeLabel(() => ({}));
     dagreGraph.setGraph({ rankdir: direction, nodesep: 50, ranksep: 100 });
     nodes.forEach((node) => dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT }));
-    edges.forEach((edge) => dagreGraph.setEdge(edge.source, edge.target));
-    dagre.layout(dagreGraph);
-    const layoutedNodes = nodes.map((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
-        node.position = { x: nodeWithPosition.x - NODE_WIDTH / 2, y: nodeWithPosition.y - NODE_HEIGHT / 2 };
-        return node;
+
+    edges.forEach((edge) => {
+        if (edge.id.startsWith('cp-')) {
+            dagreGraph.setEdge(edge.source, edge.target);
+        }
     });
-    return { nodes: layoutedNodes, edges };
+
+    dagre.layout(dagreGraph);
+
+    return {
+        nodes: nodes.map((node) => {
+            const nodeWithPosition = dagreGraph.node(node.id);
+            return {
+                ...node,
+                position: {
+                    x: nodeWithPosition.x - NODE_WIDTH / 2,
+                    y: nodeWithPosition.y - NODE_HEIGHT / 2,
+                },
+            };
+        }),
+        edges,
+    };
 };
+
 
 const GraphCanvas: React.FC = () => {
     const analysisData = useAnalysis();
@@ -110,24 +125,25 @@ const GraphCanvas: React.FC = () => {
     const { fitView } = useReactFlow();
 
     const onLayout = useCallback(() => {
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges);
-        setNodes([...layoutedNodes]);
-        setEdges([...layoutedEdges]);
-        window.setTimeout(() => fitView(), 50);
-    }, [nodes, edges, setNodes, setEdges, fitView]);
+        const { nodes: layoutedNodes } = getLayoutedElements(nodes, edges);
+        setNodes(layoutedNodes);
+        window.setTimeout(() => fitView({ duration: 500 }), 50);
+    }, [nodes, edges, setNodes, fitView]);
 
     useEffect(() => {
-        const nodePositionMap = new Map(nodes.map(n => [n.id, n.position]));
-        const updatedNodes = initialNodes.map(n => ({ ...n, position: nodePositionMap.get(n.id) || n.position }));
+        const nodeMap = new Map(nodes.map(n => [n.id, n]));
+        const updatedNodes = initialNodes.map(node => ({
+            ...node,
+            position: nodeMap.get(node.id)?.position || node.position
+        }));
         setNodes(updatedNodes);
         setEdges(initialEdges);
-        // This effect should be carefully managed to prevent infinite loops.
-        // Let's make it dependent on the raw data count to be safer.
-    }, [analysisData.controllers.length, analysisData.systemComponents.length, analysisData.controlPaths.length, analysisData.feedbackPaths.length]);
+    }, [initialNodes, initialEdges]); // This now correctly syncs additions/deletions
 
     useEffect(() => {
+        // Perform initial layout only once
         onLayout();
-    }, []);
+    }, []); // Empty dependency array ensures it runs only once on mount
 
     const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
     const edgeTypes = useMemo(() => ({ custom: CustomEdge }), []);
