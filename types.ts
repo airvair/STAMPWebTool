@@ -15,21 +15,11 @@ export enum ComponentType {
   Process = 'Process',
 }
 
-// Add this new interface for peer-to-peer communication links
 export interface CommunicationPath {
   id: string;
   sourceControllerId: string;
   targetControllerId: string;
   description: string;
-}
-
-// Add the 'parentNode' property to your existing Controller interface
-export interface Controller {
-  id: string;
-  name: string;
-  ctrlType: ControllerType;
-  parentNode?: string; // ID of the parent controller (if any)
-  // ... other existing properties
 }
 
 export enum UCAType {
@@ -123,7 +113,7 @@ export interface Controller extends Identifiable {
   customFiveFactorScores?: FiveFactorScores;
   x?: number;
   y?: number;
-  parentId?: string; // Property to link to a parent controller
+  parentNode?: string; // ID of the parent controller for grouping
 }
 
 export interface ControlPath extends Identifiable {
