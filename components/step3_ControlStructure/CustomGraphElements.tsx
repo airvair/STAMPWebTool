@@ -3,38 +3,45 @@ import { EdgeProps, getBezierPath, EdgeLabelRenderer, BaseEdge, Handle, Position
 
 interface CustomNodeData {
     label: string;
-    sourceCommCount: number;
-    targetCommCount: number;
+    // This is the total number of communication links attached to this node
+    commCount: number;
 }
 
 // --- CustomNode component ---
 export const CustomNode: React.FC<{ data: CustomNodeData }> = ({ data }) => {
     const handleStyle = { width: '8px', height: '8px', background: 'transparent', border: 'none', zIndex: 10 };
 
-    // Dynamically generate handle positions based on the number of connections
+    // Dynamically generate handle positions based on the number of connections for a side
     const getPositions = (count: number) => {
         if (count === 0) return [];
+        // Creates an array of percentage strings for positioning, e.g., ["33.33%", "66.67%"] for 2 handles
         return Array.from({ length: count }, (_, i) => `${((i + 1) * 100) / (count + 1)}%`);
     };
 
-    const sourceHandlePositions = getPositions(data.sourceCommCount || 0);
-    const targetHandlePositions = getPositions(data.targetCommCount || 0);
+    const commHandlePositions = getPositions(data.commCount || 0);
 
     return (
         <>
-            {/* Handles for vertical Control/Feedback Paths */}
+            {/* Handles for vertical Control/Feedback Paths (Unchanged) */}
             <Handle type="target" position={Position.Top} id="top_left" style={{ ...handleStyle, left: '30%' }} />
             <Handle type="target" position={Position.Bottom} id="bottom_right" style={{ ...handleStyle, left: '70%' }} />
             <Handle type="source" position={Position.Bottom} id="bottom_left" style={{ ...handleStyle, left: '30%' }} />
             <Handle type="source" position={Position.Top} id="top_right" style={{ ...handleStyle, left: '70%' }} />
 
-            {/* --- UPDATED --- Dynamically rendered handles */}
-            {sourceHandlePositions.map((top, index) => (
-                <Handle key={`source_comm_${index}`} type="source" position={Position.Right} id={`right_comm_${index}`} style={{ ...handleStyle, top }} />
+            {/* --- UPDATED --- Create both Source and Target handles on both LEFT and RIGHT sides */}
+            {commHandlePositions.map((top, index) => (
+                <React.Fragment key={`L_handles_${index}`}>
+                    <Handle type="source" position={Position.Left} id={`comm_left_S_${index}`} style={{ ...handleStyle, top }} />
+                    <Handle type="target" position={Position.Left} id={`comm_left_T_${index}`} style={{ ...handleStyle, top }} />
+                </React.Fragment>
             ))}
-            {targetHandlePositions.map((top, index) => (
-                <Handle key={`target_comm_${index}`} type="target" position={Position.Left} id={`left_comm_${index}`} style={{ ...handleStyle, top }} />
+            {commHandlePositions.map((top, index) => (
+                <React.Fragment key={`R_handles_${index}`}>
+                    <Handle type="source" position={Position.Right} id={`comm_right_S_${index}`} style={{ ...handleStyle, top }} />
+                    <Handle type="target" position={Position.Right} id={`comm_right_T_${index}`} style={{ ...handleStyle, top }} />
+                </React.Fragment>
             ))}
+
 
             <div>{data.label}</div>
         </>

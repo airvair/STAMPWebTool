@@ -1,20 +1,20 @@
-
 import { ControllerType, UCAType, ScenarioClass, StepDefinition, FiveFactorArchetype, FiveFactorScores } from './types';
 
 export const APP_TITLE = "STAMP Tool"; // Updated title
 
 export const CONTROLLER_TYPE_COLORS: Record<ControllerType, string> = {
-  [ControllerType.Software]: 'bg-teal-100 text-teal-800 border-teal-300',       // #E0F2F1
-  [ControllerType.Human]: 'bg-yellow-100 text-yellow-800 border-yellow-300',     // #FFF9C4
-  [ControllerType.Team]: 'bg-amber-100 text-amber-800 border-amber-300',        // #FFECB3
-  [ControllerType.Organisation]: 'bg-purple-100 text-purple-800 border-purple-300', // #E1BEE7
+  [ControllerType.Software]: 'bg-teal-100 text-teal-800 border-teal-300',
+  [ControllerType.Human]: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  [ControllerType.Team]: 'bg-amber-100 text-amber-800 border-amber-300',
+  [ControllerType.Organisation]: 'bg-purple-100 text-purple-800 border-purple-300',
 };
 // Colors for SVG elements in the control structure diagram
+// UPDATED: These hex values now match the Tailwind classes above
 export const CONTROLLER_TYPE_FILL_COLORS: Record<ControllerType, string> = {
-  [ControllerType.Software]: "#E0F2F1",
-  [ControllerType.Human]: "#FFF9C4",
-  [ControllerType.Team]: "#FFECB3",
-  [ControllerType.Organisation]: "#E1BEE7",
+  [ControllerType.Software]: "#CCFBF1",     // Tailwind teal-100
+  [ControllerType.Human]: "#FEF9C3",         // Tailwind yellow-100
+  [ControllerType.Team]: "#FEF3C7",         // Tailwind amber-100
+  [ControllerType.Organisation]: "#F3E8FF", // Tailwind purple-100
 };
 
 
