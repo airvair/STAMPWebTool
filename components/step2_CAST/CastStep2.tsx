@@ -196,7 +196,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-4xl mx-auto">
       {/* Scope */}
       <div>
         <h3 className="text-xl font-semibold text-slate-700 mb-3">
@@ -230,19 +230,57 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
           <p className="text-xs text-slate-400 mb-2">Example: 1. 00:42:17 – The aircraft descended through 10 000 ft without a cabin pressure checklist.</p>
           <div className="space-y-2 mb-4">
             {sequenceOfEvents.sort((a,b) => a.order - b.order).map((event, index) => (
-              <div key={event.id} className="flex items-center space-x-2 p-2 border border-slate-200 rounded-md bg-slate-50">
-                <span className="text-slate-500 w-6 text-right">{index + 1}.</span>
-                <Input value={event.description} onChange={(e) => updateEventDetail(event.id, { description: e.target.value })} className="flex-grow !mb-0" containerClassName="!mb-0 flex-grow"/>
-                 <div className="flex flex-col">
-                  <Button variant="ghost" size="sm" onClick={() => moveEvent(index, 'up')} disabled={index === 0} className="p-1"><PlaceholderArrowUpIcon /></Button>
-                  <Button variant="ghost" size="sm" onClick={() => moveEvent(index, 'down')} disabled={index === sequenceOfEvents.length - 1} className="p-1"><PlaceholderArrowDownIcon /></Button>
+              <div
+                key={event.id}
+                className="grid grid-cols-[auto,1fr,auto,auto] items-center gap-2 p-2 border border-slate-200 rounded-md bg-slate-50"
+              >
+                <span className="text-slate-500 w-8 text-right">{index + 1}.</span>
+                <Input
+                  value={event.description}
+                  onChange={(e) => updateEventDetail(event.id, { description: e.target.value })}
+                  className="!mb-0"
+                  containerClassName="!mb-0"
+                />
+                <div className="flex flex-col space-y-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => moveEvent(index, 'up')}
+                    disabled={index === 0}
+                    className="p-1"
+                  >
+                    <PlaceholderArrowUpIcon />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => moveEvent(index, 'down')}
+                    disabled={index === sequenceOfEvents.length - 1}
+                    className="p-1"
+                  >
+                    <PlaceholderArrowDownIcon />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => deleteEventDetail(event.id)} className="text-red-500 hover:text-red-700 p-1"><PlaceholderTrashIcon /></Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteEventDetail(event.id)}
+                  className="text-red-500 hover:text-red-700 p-1"
+                >
+                  <PlaceholderTrashIcon />
+                </Button>
               </div>
             ))}
           </div>
           <div className="flex items-center space-x-2">
-            <Input value={newEventDesc} onChange={(e) => setNewEventDesc(e.target.value)} placeholder="Enter new event description" className="flex-grow !mb-0" containerClassName="!mb-0 flex-grow" onKeyPress={(e) => e.key === 'Enter' && handleAddEvent()}/>
+            <Input
+              value={newEventDesc}
+              onChange={(e) => setNewEventDesc(e.target.value)}
+              placeholder="Enter new event description"
+              className="!mb-0"
+              containerClassName="flex-grow !mb-0"
+              onKeyPress={(e) => e.key === 'Enter' && handleAddEvent()}
+            />
             <Button onClick={handleAddEvent} leftIcon={<PlaceholderPlusIcon />}>Add Event</Button>
           </div>
         </div>
@@ -259,11 +297,11 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
              Warning (BR-2-HLink): The following losses are not yet linked to any hazard: {getUnlinkedLosses().map(l => `${l.code}: ${l.title}`).join(', ')}. Please link them in the Hazards section.
            </p>
         )}
-        <div className="space-y-3">
+        <div className="grid md:grid-cols-2 gap-3">
           {STANDARD_LOSSES.map(stdLoss => (
             <Checkbox key={stdLoss.id} id={`loss-${stdLoss.id}-${analysisType}`} label={`${stdLoss.title} - ${stdLoss.description}`} checked={selectedLossIdsState.includes(stdLoss.id)} onChange={(e) => handleLossSelectionChange(stdLoss.id, e.target.checked)}/>
           ))}
-          <div className="pt-2 border-t border-slate-200">
+          <div className="md:col-span-2 pt-2 border-t border-slate-200">
             <h4 className="text-md font-semibold text-slate-600 mb-2">Other Losses:</h4>
             {losses.filter(l => !l.isStandard).map(loss => (
               <div key={loss.id} className="flex items-center justify-between p-2 border border-slate-200 rounded-md mb-2 bg-slate-50">
@@ -274,10 +312,24 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
                 <Button variant="ghost" size="sm" onClick={() => deleteLoss(loss.id)} className="text-red-500 hover:text-red-700"><PlaceholderTrashIcon/></Button>
               </div>
             ))}
-            <div className="flex items-end space-x-2">
-              <Input label="Custom Loss Title" id={`otherLossTitle-${analysisType}`} value={otherLossTitle} onChange={(e) => setOtherLossTitle(e.target.value)} placeholder="e.g., Loss of Public Confidence" containerClassName="flex-grow"/>
-              <Input label="Custom Loss Description" id={`otherLossDesc-${analysisType}`} value={otherLossDesc} onChange={(e) => setOtherLossDesc(e.target.value)} placeholder="Brief description" containerClassName="flex-grow"/>
-              <Button onClick={handleAddOtherLoss} leftIcon={<PlaceholderPlusIcon />} className="mb-4">Add Custom Loss</Button>
+            <div className="flex flex-col md:flex-row md:items-end gap-2">
+              <Input
+                label="Custom Loss Title"
+                id={`otherLossTitle-${analysisType}`}
+                value={otherLossTitle}
+                onChange={(e) => setOtherLossTitle(e.target.value)}
+                placeholder="e.g., Loss of Public Confidence"
+                containerClassName="flex-1 !mb-0"
+              />
+              <Input
+                label="Custom Loss Description"
+                id={`otherLossDesc-${analysisType}`}
+                value={otherLossDesc}
+                onChange={(e) => setOtherLossDesc(e.target.value)}
+                placeholder="Brief description"
+                containerClassName="flex-1 !mb-0"
+              />
+              <Button onClick={handleAddOtherLoss} leftIcon={<PlaceholderPlusIcon />} className="mb-4 md:mb-0">Add Custom Loss</Button>
             </div>
              {losses.length === 0 && (<p className="text-xs text-red-600">Please add at least one loss.</p>)}
           </div>
