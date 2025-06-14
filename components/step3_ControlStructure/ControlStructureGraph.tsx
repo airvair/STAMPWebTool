@@ -4,7 +4,7 @@ import 'reactflow/dist/style.css';
 import dagre from 'dagre';
 
 import { CustomEdge, CustomNode } from './CustomGraphElements';
-import { Controller, SystemComponent, ControlPath, FeedbackPath, ControllerType } from '../../types';
+import { Controller, SystemComponent, ControlPath, FeedbackPath, CommunicationPath, ControllerType } from '../../types';
 import { useAnalysis } from '../../hooks/useAnalysis';
 
 // A simple icon for our layout button
@@ -27,7 +27,8 @@ const transformAnalysisData = (
     controllers: Controller[],
     systemComponents: SystemComponent[],
     controlPaths: ControlPath[],
-    feedbackPaths: FeedbackPath[]
+    feedbackPaths: FeedbackPath[],
+    communicationPaths: CommunicationPath[]
 ): { initialNodes: Node[], initialEdges: Edge[] } => {
     const initialNodes: Node[] = [];
     const initialEdges: Edge[] = [];
@@ -81,17 +82,41 @@ const transformAnalysisData = (
         });
     });
 
+    communicationPaths.forEach(path => {
+        initialEdges.push({
+            id: `comm-${path.id}`,
+            source: path.sourceControllerId,
+            target: path.targetControllerId,
+            type: 'default', // Using a default edge type for simplicity
+            label: path.description,
+            style: {
+                stroke: '#888888',
+                strokeDasharray: '5, 5',
+            },
+            markerStart: { type: 'arrowclosed', color: '#888888', width: 15, height: 15 },
+            markerEnd: { type: 'arrowclosed', color: '#888888', width: 15, height: 15 },
+        });
+    });
+
     return { initialNodes, initialEdges };
 };
 
 const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
     const dagreGraph = new dagre.graphlib.Graph();
     dagreGraph.setDefaultEdgeLabel(() => ({}));
-    dagreGraph.setGraph({ rankdir: direction, nodesep: 50, ranksep: 100 });
+
+    // Increase node and rank separation to prevent label overlap
+    dagreGraph.setGraph({
+        rankdir: direction,
+        nodesep: 270, // Increased horizontal separation
+        ranksep: 150  // Increased vertical separation
+    });
+
     nodes.forEach((node) => dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT }));
 
     edges.forEach((edge) => {
-        if (edge.id.startsWith('cp-')) {
+        // Only use hierarchical edges for layouting to prevent cycles
+        if (edge.id.startsWith('cp-') || edge.id.startsWith('fp-')) {
             dagreGraph.setEdge(edge.source, edge.target);
         }
     });
@@ -101,13 +126,17 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
     return {
         nodes: nodes.map((node) => {
             const nodeWithPosition = dagreGraph.node(node.id);
-            return {
-                ...node,
-                position: {
-                    x: nodeWithPosition.x - NODE_WIDTH / 2,
-                    y: nodeWithPosition.y - NODE_HEIGHT / 2,
-                },
-            };
+            // Only update positions for nodes that were part of the layout
+            if (nodeWithPosition) {
+                return {
+                    ...node,
+                    position: {
+                        x: nodeWithPosition.x - NODE_WIDTH / 2,
+                        y: nodeWithPosition.y - NODE_HEIGHT / 2,
+                    },
+                };
+            }
+            return node;
         }),
         edges,
     };
@@ -117,7 +146,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
 const GraphCanvas: React.FC = () => {
     const analysisData = useAnalysis();
     const { initialNodes, initialEdges } = useMemo(() => transformAnalysisData(
-        analysisData.controllers, analysisData.systemComponents, analysisData.controlPaths, analysisData.feedbackPaths
+        analysisData.controllers, analysisData.systemComponents, analysisData.controlPaths, analysisData.feedbackPaths, analysisData.communicationPaths
     ), [analysisData]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -131,19 +160,21 @@ const GraphCanvas: React.FC = () => {
     }, [nodes, edges, setNodes, fitView]);
 
     useEffect(() => {
+        // This effect syncs the graph with the context state, preserving positions
         const nodeMap = new Map(nodes.map(n => [n.id, n]));
         const updatedNodes = initialNodes.map(node => ({
             ...node,
-            position: nodeMap.get(node.id)?.position || node.position
+            position: nodeMap.get(node.id)?.position || { x: 0, y: 0 }
         }));
         setNodes(updatedNodes);
         setEdges(initialEdges);
-    }, [initialNodes, initialEdges]); // This now correctly syncs additions/deletions
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialNodes, initialEdges]);
 
     useEffect(() => {
-        // Perform initial layout only once
         onLayout();
-    }, []); // Empty dependency array ensures it runs only once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
     const edgeTypes = useMemo(() => ({ custom: CustomEdge }), []);

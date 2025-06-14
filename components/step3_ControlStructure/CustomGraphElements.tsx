@@ -1,7 +1,7 @@
 import React from 'react';
-import { EdgeProps, getBezierPath, EdgeLabelRenderer, BaseEdge, Handle, Position } from 'reactflow';
+import { EdgeProps, getBezierPath, EdgeLabelRenderer, BaseEdge, Handle, Position, getStraightPath } from 'reactflow';
 
-// --- CustomNode component ---
+// --- CustomNode component (Unchanged) ---
 export const CustomNode: React.FC<{ data: { label: string } }> = ({ data }) => {
     const handleStyle = { width: '8px', height: '8px', background: 'transparent', border: 'none' };
     return (
@@ -18,7 +18,7 @@ export const CustomNode: React.FC<{ data: { label: string } }> = ({ data }) => {
 const ACTUATOR_SENSOR_BOX_SIZE = 16;
 const LABEL_GAP = 4;
 
-// --- UPDATED getBoxTransform ---
+// --- UPDATED getBoxTransform (Unchanged) ---
 const getBoxTransform = (side: Position): string => {
     switch (side) {
         case Position.Top:
@@ -34,7 +34,7 @@ const getBoxTransform = (side: Position): string => {
     }
 };
 
-// --- CustomEdge component ---
+// --- CustomEdge component (Unchanged) ---
 export const CustomEdge: React.FC<EdgeProps> = ({
                                                     id,
                                                     sourceX,
@@ -59,7 +59,6 @@ export const CustomEdge: React.FC<EdgeProps> = ({
     const isActuator = id.startsWith('cp-');
     const isSensor = id.startsWith('fp-');
 
-    // The box is always positioned at the source handle
     const boxX = sourceX;
     const boxY = sourceY;
     const boxSide = sourcePosition;
@@ -68,7 +67,6 @@ export const CustomEdge: React.FC<EdgeProps> = ({
         <>
             <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />
             <EdgeLabelRenderer>
-                {/* Text label at the midpoint of the edge */}
                 <div
                     style={{
                         position: 'absolute',
@@ -93,7 +91,6 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                     )}
                 </div>
 
-                {/* Actuator/Sensor box at the source of the edge */}
                 {(isActuator || isSensor) && (
                     <div
                         style={{
@@ -122,6 +119,53 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                         </div>
                     </div>
                 )}
+            </EdgeLabelRenderer>
+        </>
+    );
+};
+
+// --- NEW: CommunicationEdge component ---
+export const CommunicationEdge: React.FC<EdgeProps> = ({
+                                                           id,
+                                                           sourceX,
+                                                           sourceY,
+                                                           targetX,
+                                                           targetY,
+                                                           sourcePosition,
+                                                           targetPosition,
+                                                           style = {},
+                                                           label,
+                                                           markerStart,
+                                                           markerEnd,
+                                                       }) => {
+    const [edgePath, labelX, labelY] = getStraightPath({
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+    });
+
+    return (
+        <>
+            <BaseEdge path={edgePath} markerStart={markerStart} markerEnd={markerEnd} style={style} />
+            <EdgeLabelRenderer>
+                <div
+                    style={{
+                        position: 'absolute',
+                        transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+                        background: '#f1f5f9', // slate-100
+                        padding: '2px 6px',
+                        borderRadius: '6px',
+                        fontSize: '10px',
+                        fontWeight: 500,
+                        pointerEvents: 'all',
+                        border: '1px solid #cbd5e1', // slate-300
+                        zIndex: 10,
+                    }}
+                    className="nodrag nopan"
+                >
+                    {label}
+                </div>
             </EdgeLabelRenderer>
         </>
     );

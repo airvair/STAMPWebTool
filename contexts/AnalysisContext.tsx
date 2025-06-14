@@ -1,8 +1,8 @@
 import React, { createContext, useState, useCallback, ReactNode, useEffect } from 'react';
-import { 
-  AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent, 
+import {
+  AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent,
   Controller, ControlAction, UnsafeControlAction, CausalScenario, Requirement, EventDetail,
-  ControlPath, FeedbackPath, UCCA, FiveFactorArchetype, FiveFactorScores
+  ControlPath, FeedbackPath, UCCA, CommunicationPath
 } from '../types';
 import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs
 
@@ -15,6 +15,7 @@ interface AnalysisContextState {
   controllers: Controller[];
   controlPaths: ControlPath[];
   feedbackPaths: FeedbackPath[];
+  communicationPaths: CommunicationPath[]; // Added for Peer-to-Peer
   controlActions: ControlAction[];
   ucas: UnsafeControlAction[];
   uccas: UCCA[]; // Added for Unsafe Combinations of Control Actions
@@ -24,11 +25,11 @@ interface AnalysisContextState {
 
   setAnalysisType: (type: AnalysisType, initialStep: string) => void;
   updateAnalysisSession: (data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => void;
-  
+
   addLoss: (loss: Omit<Loss, 'id' | 'code'>) => void;
   updateLoss: (id: string, updates: Partial<Loss>) => void;
   deleteLoss: (id: string) => void;
-  
+
   addHazard: (hazard: Omit<Hazard, 'id' | 'code'>) => void;
   updateHazard: (id: string, updates: Partial<Hazard>) => void;
   deleteHazard: (id: string) => void;
@@ -58,6 +59,11 @@ interface AnalysisContextState {
   updateFeedbackPath: (id: string, updates: Partial<FeedbackPath>) => void;
   deleteFeedbackPath: (id: string) => void;
 
+  // Added for Peer-to-Peer
+  addCommunicationPath: (path: Omit<CommunicationPath, 'id'>) => void;
+  updateCommunicationPath: (id: string, updates: Partial<CommunicationPath>) => void;
+  deleteCommunicationPath: (id: string) => void;
+
   addControlAction: (action: Omit<ControlAction, 'id'>) => void;
   updateControlAction: (id: string, updates: Partial<ControlAction>) => void;
   deleteControlAction: (id: string) => void;
@@ -77,7 +83,7 @@ interface AnalysisContextState {
   addRequirement: (req: Omit<Requirement, 'id'>) => void;
   updateRequirement: (id: string, updates: Partial<Requirement>) => void;
   deleteRequirement: (id: string) => void;
-  
+
   setCurrentStep: (stepPath: string) => void;
   resetAnalysis: () => void;
 }
@@ -85,7 +91,7 @@ interface AnalysisContextState {
 const initialState: AnalysisContextState = {
   analysisSession: null,
   losses: [], hazards: [], systemConstraints: [], systemComponents: [], controllers: [],
-  controlPaths: [], feedbackPaths: [], controlActions: [], ucas: [], uccas: [], scenarios: [], requirements: [], sequenceOfEvents: [],
+  controlPaths: [], feedbackPaths: [], communicationPaths: [], controlActions: [], ucas: [], uccas: [], scenarios: [], requirements: [], sequenceOfEvents: [],
   setAnalysisType: () => {}, updateAnalysisSession: () => {},
   addLoss: () => {}, updateLoss: () => {}, deleteLoss: () => {},
   addHazard: () => {}, updateHazard: () => {}, deleteHazard: () => {},
@@ -95,6 +101,7 @@ const initialState: AnalysisContextState = {
   addController: () => {}, updateController: () => {}, deleteController: () => {},
   addControlPath: () => {}, updateControlPath: () => {}, deleteControlPath: () => {},
   addFeedbackPath: () => {}, updateFeedbackPath: () => {}, deleteFeedbackPath: () => {},
+  addCommunicationPath: () => {}, updateCommunicationPath: () => {}, deleteCommunicationPath: () => {},
   addControlAction: () => {}, updateControlAction: () => {}, deleteControlAction: () => {},
   addUCA: () => {}, updateUCA: () => {}, deleteUCA: () => {},
   addUCCA: () => {}, updateUCCA: () => {}, deleteUCCA: () => {},
@@ -111,7 +118,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     const saved = localStorage.getItem('analysisSession');
     return saved ? JSON.parse(saved) : null;
   });
-  
+
   const [losses, setLosses] = useState<Loss[]>(() => JSON.parse(localStorage.getItem('losses') || '[]'));
   const [hazards, setHazards] = useState<Hazard[]>(() => JSON.parse(localStorage.getItem('hazards') || '[]'));
   const [systemConstraints, setSystemConstraints] = useState<SystemConstraint[]>(() => JSON.parse(localStorage.getItem('systemConstraints') || '[]'));
@@ -120,6 +127,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const [controllers, setControllers] = useState<Controller[]>(() => JSON.parse(localStorage.getItem('controllers') || '[]'));
   const [controlPaths, setControlPaths] = useState<ControlPath[]>(() => JSON.parse(localStorage.getItem('controlPaths') || '[]'));
   const [feedbackPaths, setFeedbackPaths] = useState<FeedbackPath[]>(() => JSON.parse(localStorage.getItem('feedbackPaths') || '[]'));
+  const [communicationPaths, setCommunicationPaths] = useState<CommunicationPath[]>(() => JSON.parse(localStorage.getItem('communicationPaths') || '[]'));
   const [controlActions, setControlActions] = useState<ControlAction[]>(() => JSON.parse(localStorage.getItem('controlActions') || '[]'));
   const [ucas, setUcas] = useState<UnsafeControlAction[]>(() => JSON.parse(localStorage.getItem('ucas') || '[]'));
   const [uccas, setUccas] = useState<UCCA[]>(() => JSON.parse(localStorage.getItem('uccas') || '[]'));
@@ -135,6 +143,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   useEffect(() => { localStorage.setItem('controllers', JSON.stringify(controllers)); }, [controllers]);
   useEffect(() => { localStorage.setItem('controlPaths', JSON.stringify(controlPaths)); }, [controlPaths]);
   useEffect(() => { localStorage.setItem('feedbackPaths', JSON.stringify(feedbackPaths)); }, [feedbackPaths]);
+  useEffect(() => { localStorage.setItem('communicationPaths', JSON.stringify(communicationPaths)); }, [communicationPaths]);
   useEffect(() => { localStorage.setItem('controlActions', JSON.stringify(controlActions)); }, [controlActions]);
   useEffect(() => { localStorage.setItem('ucas', JSON.stringify(ucas)); }, [ucas]);
   useEffect(() => { localStorage.setItem('uccas', JSON.stringify(uccas)); }, [uccas]);
@@ -147,7 +156,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
       id: uuidv4(),
       analysisType: type,
       title: `${type} Analysis - ${new Date().toLocaleDateString()}`,
-      createdBy: 'Analyst', 
+      createdBy: 'Analyst',
       createdAt: now,
       updatedAt: now,
       currentStep: initialStep,
@@ -157,7 +166,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const updateAnalysisSession = useCallback((data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => {
     setAnalysisSession(prev => prev ? ({ ...prev, ...data, updatedAt: new Date().toISOString() }) : null);
   }, []);
-  
+
   const setCurrentStep = useCallback((stepPath: string) => {
     setAnalysisSession(prev => prev ? ({ ...prev, currentStep: stepPath, updatedAt: new Date().toISOString() }) : null);
   }, []);
@@ -172,18 +181,19 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     setControllers([]);
     setControlPaths([]);
     setFeedbackPaths([]);
+    setCommunicationPaths([]);
     setControlActions([]);
     setUcas([]);
     setUccas([]); // Reset UCCAs
     setScenarios([]);
     setRequirements([]);
-    localStorage.clear(); 
+    localStorage.clear();
   }, []);
 
   const createCrudOperations = <T extends {id: string}>(
-    setter: React.Dispatch<React.SetStateAction<T[]>>, 
-    list: T[],
-    codePrefix?: string
+      setter: React.Dispatch<React.SetStateAction<T[]>>,
+      list: T[],
+      codePrefix?: string
   ) => ({
     add: (item: Omit<T, 'id' | 'code'> | Omit<T, 'id'>) => { // Allow items without 'code' property
       const newItemData: any = { ...item, id: uuidv4() };
@@ -200,21 +210,22 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
       setter(prev => prev.filter(i => i.id !== id));
     },
   });
-  
+
   const lossOps = createCrudOperations(setLosses, losses, 'L');
   const hazardOps = createCrudOperations(setHazards, hazards, 'H');
   const constraintOps = createCrudOperations(setSystemConstraints, systemConstraints, 'SC');
   const ucaOps = createCrudOperations(setUcas, ucas, 'UCA');
-  const uccaOps = createCrudOperations(setUccas, uccas, 'UCCA'); // CRUD for UCCAs
+  const uccaOps = createCrudOperations(setUccas, uccas, 'UCCA');
 
   const componentOps = createCrudOperations(setSystemComponents, systemComponents);
   const controllerOps = createCrudOperations(setControllers, controllers);
   const controlPathOps = createCrudOperations(setControlPaths, controlPaths);
   const feedbackPathOps = createCrudOperations(setFeedbackPaths, feedbackPaths);
+  const communicationPathOps = createCrudOperations(setCommunicationPaths, communicationPaths); // Added
   const actionOps = createCrudOperations(setControlActions, controlActions);
   const scenarioOps = createCrudOperations(setScenarios, scenarios);
   const requirementOps = createCrudOperations(setRequirements, requirements);
-  
+
   const eventOps = {
     add: (item: Omit<EventDetail, 'id' | 'order'>) => {
       const newEvent = { ...item, id: uuidv4(), order: sequenceOfEvents.length + 1 } as EventDetail;
@@ -232,35 +243,36 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   };
 
   return (
-    <AnalysisContext.Provider value={{
-      analysisSession, losses, hazards, systemConstraints, systemComponents, controllers, controlPaths, feedbackPaths,
-      controlActions, ucas, uccas, scenarios, requirements, sequenceOfEvents,
-      setAnalysisType, updateAnalysisSession, setCurrentStep, resetAnalysis,
-      addLoss: lossOps.add, updateLoss: lossOps.update, deleteLoss: lossOps.delete,
-      addHazard: hazardOps.add as (item: Omit<Hazard, 'id' | 'code'>) => void, 
-      updateHazard: hazardOps.update, 
-      deleteHazard: hazardOps.delete,
-      addSystemConstraint: constraintOps.add as (item: Omit<SystemConstraint, 'id' | 'code'>) => void, 
-      updateSystemConstraint: constraintOps.update, 
-      deleteSystemConstraint: constraintOps.delete,
-      addEventDetail: eventOps.add, updateEventDetail: eventOps.update, deleteEventDetail: eventOps.delete, reorderEventDetails: eventOps.reorder,
-      addSystemComponent: componentOps.add, updateSystemComponent: componentOps.update, deleteSystemComponent: componentOps.delete,
-      addController: controllerOps.add as (item: Omit<Controller, 'id'>) => void, 
-      updateController: controllerOps.update, 
-      deleteController: controllerOps.delete,
-      addControlPath: controlPathOps.add, updateControlPath: controlPathOps.update, deleteControlPath: controlPathOps.delete,
-      addFeedbackPath: feedbackPathOps.add, updateFeedbackPath: feedbackPathOps.update, deleteFeedbackPath: feedbackPathOps.delete,
-      addControlAction: actionOps.add, updateControlAction: actionOps.update, deleteControlAction: actionOps.delete,
-      addUCA: ucaOps.add as (uca: Omit<UnsafeControlAction, 'id' | 'code'>) => void, 
-      updateUCA: ucaOps.update, 
-      deleteUCA: ucaOps.delete,
-      addUCCA: uccaOps.add as (ucca: Omit<UCCA, 'id' | 'code'>) => void, 
-      updateUCCA: uccaOps.update, 
-      deleteUCCA: uccaOps.delete,
-      addScenario: scenarioOps.add, updateScenario: scenarioOps.update, deleteScenario: scenarioOps.delete,
-      addRequirement: requirementOps.add, updateRequirement: requirementOps.update, deleteRequirement: requirementOps.delete,
-    }}>
-      {children}
-    </AnalysisContext.Provider>
+      <AnalysisContext.Provider value={{
+        analysisSession, losses, hazards, systemConstraints, systemComponents, controllers, controlPaths, feedbackPaths,
+        communicationPaths, controlActions, ucas, uccas, scenarios, requirements, sequenceOfEvents,
+        setAnalysisType, updateAnalysisSession, setCurrentStep, resetAnalysis,
+        addLoss: lossOps.add, updateLoss: lossOps.update, deleteLoss: lossOps.delete,
+        addHazard: hazardOps.add as (item: Omit<Hazard, 'id' | 'code'>) => void,
+        updateHazard: hazardOps.update,
+        deleteHazard: hazardOps.delete,
+        addSystemConstraint: constraintOps.add as (item: Omit<SystemConstraint, 'id' | 'code'>) => void,
+        updateSystemConstraint: constraintOps.update,
+        deleteSystemConstraint: constraintOps.delete,
+        addEventDetail: eventOps.add, updateEventDetail: eventOps.update, deleteEventDetail: eventOps.delete, reorderEventDetails: eventOps.reorder,
+        addSystemComponent: componentOps.add, updateSystemComponent: componentOps.update, deleteSystemComponent: componentOps.delete,
+        addController: controllerOps.add as (item: Omit<Controller, 'id'>) => void,
+        updateController: controllerOps.update,
+        deleteController: controllerOps.delete,
+        addControlPath: controlPathOps.add, updateControlPath: controlPathOps.update, deleteControlPath: controlPathOps.delete,
+        addFeedbackPath: feedbackPathOps.add, updateFeedbackPath: feedbackPathOps.update, deleteFeedbackPath: feedbackPathOps.delete,
+        addCommunicationPath: communicationPathOps.add, updateCommunicationPath: communicationPathOps.update, deleteCommunicationPath: communicationPathOps.delete,
+        addControlAction: actionOps.add, updateControlAction: actionOps.update, deleteControlAction: actionOps.delete,
+        addUCA: ucaOps.add as (uca: Omit<UnsafeControlAction, 'id' | 'code'>) => void,
+        updateUCA: ucaOps.update,
+        deleteUCA: ucaOps.delete,
+        addUCCA: uccaOps.add as (ucca: Omit<UCCA, 'id' | 'code'>) => void,
+        updateUCCA: uccaOps.update,
+        deleteUCCA: uccaOps.delete,
+        addScenario: scenarioOps.add, updateScenario: scenarioOps.update, deleteScenario: scenarioOps.delete,
+        addRequirement: requirementOps.add, updateRequirement: requirementOps.update, deleteRequirement: requirementOps.delete,
+      }}>
+        {children}
+      </AnalysisContext.Provider>
   );
 };
