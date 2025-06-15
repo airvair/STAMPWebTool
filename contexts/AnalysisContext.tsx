@@ -211,8 +211,38 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     },
   });
 
+  const addHazard = (hazard: Omit<Hazard, 'id' | 'code'>) => {
+    const parentHazard = hazards.find(h => h.id === hazard.parentHazardId);
+    let newCode = '';
+
+    if (parentHazard) {
+      const parentCodeNumber = parseInt(parentHazard.code.replace('H-', ''));
+      const subHazards = hazards.filter(h => h.parentHazardId === parentHazard.id);
+      newCode = `H-${parentCodeNumber}.${subHazards.length + 1}`;
+    } else {
+      const topLevelHazards = hazards.filter(h => !h.parentHazardId);
+      newCode = `H-${topLevelHazards.length + 1}`;
+    }
+
+    const newHazard: Hazard = {
+      ...hazard,
+      id: uuidv4(),
+      code: newCode
+    };
+
+    setHazards(prev => [...prev, newHazard]);
+  };
+
+  const updateHazard = (id: string, updates: Partial<Hazard>) => {
+    setHazards(prev => prev.map(h => (h.id === id ? { ...h, ...updates } : h)));
+  };
+
+  const deleteHazard = (id: string) => {
+    setHazards(prev => prev.filter(h => h.id !== id));
+  };
+
+
   const lossOps = createCrudOperations(setLosses, losses, 'L');
-  const hazardOps = createCrudOperations(setHazards, hazards, 'H');
   const constraintOps = createCrudOperations(setSystemConstraints, systemConstraints, 'SC');
   const ucaOps = createCrudOperations(setUcas, ucas, 'UCA');
   const uccaOps = createCrudOperations(setUccas, uccas, 'UCCA');
@@ -248,9 +278,9 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         communicationPaths, controlActions, ucas, uccas, scenarios, requirements, sequenceOfEvents,
         setAnalysisType, updateAnalysisSession, setCurrentStep, resetAnalysis,
         addLoss: lossOps.add, updateLoss: lossOps.update, deleteLoss: lossOps.delete,
-        addHazard: hazardOps.add as (item: Omit<Hazard, 'id' | 'code'>) => void,
-        updateHazard: hazardOps.update,
-        deleteHazard: hazardOps.delete,
+        addHazard: addHazard,
+        updateHazard: updateHazard,
+        deleteHazard: deleteHazard,
         addSystemConstraint: constraintOps.add as (item: Omit<SystemConstraint, 'id' | 'code'>) => void,
         updateSystemConstraint: constraintOps.update,
         deleteSystemConstraint: constraintOps.delete,
