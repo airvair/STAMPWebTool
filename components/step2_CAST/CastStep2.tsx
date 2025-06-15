@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, ChangeEvent } from 'react';
+import React, { useState, useCallback, useEffect, ChangeEvent, ReactNode } from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { Loss, Hazard, SystemConstraint, EventDetail, AnalysisType } from '../../types';
 import { STANDARD_LOSSES } from '../../constants';
@@ -40,6 +40,50 @@ const hazardInfoContent = (
       <p>The system-level hazards define exactly what “unsafe” means at the system level. A common mistake is to use the word “unsafe” in the hazards themselves. Doing so creates a recursive definition and does not add information or value to the analysis. A simple solution is to avoid using the word “unsafe” in the hazard itself and instead specify exactly what is meant by “unsafe”—what system states or conditions would make it unsafe?</p>
       <h5>Confusing hazards with failures</h5>
       <p>Hazard identification in STPA is about system states and conditions that are inherently unsafe— regardless of the cause. In fact, the system hazards should be specified at a high-enough level that does not distinguish between causes related to technical failures, design errors, flawed requirements, or human procedures and interactions.</p>
+    </>
+);
+
+const subHazardInfoContent: ReactNode = (
+    <>
+      <h4>Refining the system-level hazards (optional)</h4>
+      <p>
+        Once the list of system-level hazards has been identified and reviewed, these hazards can be refined into sub-hazards if appropriate. Sub-hazards are not necessary for many STPA applications, but they can be useful for large analysis efforts and complex applications because they can guide future steps like modeling the control structure.
+      </p>
+      <p>
+        The first step in refining the system-level hazards is to identify basic system processes or activities that need to be controlled to prevent system hazards. For example, consider the system-level hazard we identified earlier for commercial aviation:
+      </p>
+      <blockquote className="border-l-4 pl-4 my-4 italic">
+        <p>H-4: Aircraft comes too close to other objects on the ground [L-1, L-2, L-5]</p>
+      </blockquote>
+      <p>
+        One way to derive sub-hazards is to ask: What do we need to control to prevent this hazard? To control the aircraft on the ground, we will need some way to control aircraft deceleration, acceleration, and steering. If these are not controlled adequately (for example if the deceleration is insufficient), it could lead to a system-level hazard.
+      </p>
+      <p>The following sub-hazards can be derived for H-4:</p>
+      <blockquote className="border-l-4 pl-4 my-4">
+        <p className="font-semibold">H-4: Aircraft comes too close to other objects on the ground [L-1, L-2, L-5]</p>
+        <h5 className="font-semibold mt-2">Deceleration</h5>
+        <ul className="list-disc list-inside">
+          <li>H-4.1: Deceleration is insufficient upon landing, rejected takeoff, or during taxiing</li>
+          <li>H-4.2: Asymmetric deceleration maneuvers aircraft toward other objects</li>
+          <li>H-4.3: Deceleration occurs after V1 point during takeoff</li>
+        </ul>
+        <h5 className="font-semibold mt-2">Acceleration</h5>
+        <ul className="list-disc list-inside">
+          <li>H-4.4: Excessive acceleration provided while taxiing</li>
+          <li>H-4.5: Asymmetric acceleration maneuvers aircraft toward other objects</li>
+          <li>H-4.6: Acceleration is insufficient during takeoff</li>
+          <li>H-4.7: Acceleration is provided during landing or when parked</li>
+          <li>H-4.8: Acceleration continues to be applied during rejected takeoff</li>
+        </ul>
+        <h5 className="font-semibold mt-2">Steering</h5>
+        <ul className="list-disc list-inside">
+          <li>H-4.9: Insufficient steering to turn along taxiway, runway, or apron path</li>
+          <li>H-4.10: Steering maneuvers aircraft off the taxiway, runway, or apron path</li>
+        </ul>
+      </blockquote>
+      <p>
+        Each of these sub-hazards can be used to produce more specific constraints.
+      </p>
     </>
 );
 
@@ -386,7 +430,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Link to Losses (select at least one):
                 {linkedLossIds.length > 0 && (
-                    <span className="text-green-600 ml-1">&#10003;</span>
+                    <span className="text-green-600 ml-1">✓</span>
                 )}
               </label>
               {losses.length === 0 && <p className="text-sm text-slate-500">No losses defined yet. Please add losses first.</p>}
@@ -408,10 +452,11 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
                   {hazards.filter(h => !h.parentHazardId).map(h => (
                       <li key={h.id} className="p-3 border border-slate-200 rounded-md bg-white">
                         <div className="font-semibold text-slate-800">{h.code}: {h.title} [{h.linkedLossIds.map(id => losses.find(l=>l.id===id)?.code || 'N/A').join(', ')}]</div>
-                        <div className="mt-2 space-x-2">
+                        <div className="mt-2 flex items-center space-x-2">
                           <Button onClick={() => editHazard(h)} size="sm" variant="ghost">Edit</Button>
                           <Button onClick={() => deleteHazard(h.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700">Delete</Button>
                           <Button onClick={() => setParentHazardForSubHazard(h.id)} size="sm" variant="ghost" className="text-sky-600 hover:text-sky-800">Add Sub-Hazard</Button>
+                          <InfoPopup title="Refining System-Level Hazards" content={subHazardInfoContent} />
                         </div>
                         {hazards.filter(subH => subH.parentHazardId === h.id).map(subH => (
                             <div key={subH.id} className="ml-4 mt-2 p-2 border-l-2 border-sky-200 bg-sky-50 rounded-r-md">
