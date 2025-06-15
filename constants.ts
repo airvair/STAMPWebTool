@@ -34,9 +34,8 @@ export const STANDARD_LOSSES: { id: string; title: string; description: string }
   { id: 'L-Std-Reputation', title: 'Loss of brand or reputation', description: 'Damage to public image or trust.' },
   { id: 'L-Std-CustomerSat', title: 'Loss of customer satisfaction', description: 'Negative impact on customer experience.' },
   { id: 'L-Std-Environment', title: 'Loss of environmental integrity', description: 'Spill or contamination harming the environment.' },
-]; // Updated to match OCR pg 2
+];
 
-// FR-5.1 / OCR pg 25: UCA questions map. Current one is fine.
 export const UCA_QUESTIONS_MAP: { type: UCAType; question: string }[] = [
   { type: UCAType.NotProvided, question: 'Is a hazard caused if the control action is NOT PROVIDED when needed?' },
   { type: UCAType.ProvidedUnsafe, question: 'Is a hazard caused if the control action is PROVIDED IN AN UNSAFE MANNER (e.g., incorrect, too much, not enough)?' },
@@ -47,43 +46,51 @@ export const UCA_QUESTIONS_MAP: { type: UCAType; question: string }[] = [
   { type: UCAType.TooShort, question: 'Is a hazard caused if a continuous control action is APPLIED TOO SHORT (stopped too soon)?' },
 ];
 
-// From OCR pg 3-4, 6-7 for Hazard creation guidance
+// As per "Gmail - text for hazard section.pdf"
 export const SYSTEM_COMPONENT_EXAMPLES: string[] = [
-  "Aircraft", "Ship", "Spacecraft", "Satellite", "Powerplant", "Vehicle", "Patient", "Software system", "Door", "Brakes", "Engine", "Landing Gear"
+  "Aircraft", "Ship", "Spacecraft", "Satellite", "Powerplant", "Vehicle", "Patient", "Software system"
 ];
 
+// As per "Gmail - text for hazard section.pdf"
 export const SYSTEM_STATE_CONDITION_EXAMPLES: { category: string, examples: string[] }[] = [
   {
     category: "Inflight Conditions / States",
     examples: [
-      "inability to control pitch attitude",
-      "inability to control roll the aircraft",
-      "violating minimum separation standards inflight",
-      "moving too close to the ground while inflight",
-      "moving too close to a severe storm inflight",
-      "flying in icing conditions",
-      "thrust not sufficient to prevent descent during flight",
-      "angle of attack not sufficient to prevent descent during flight"
+      "Inflight",
     ]
   },
   {
     category: "On Ground Conditions / States",
     examples: [
-      "inability on the runway (until aircraft lands)",
-      "moving at too high speed on ground",
-      "moving at too low speed on ground",
+      "On the ground",
     ]
   },
   {
-    category: "General Vehicle/System States",
+    category: "Speed Conditions",
     examples: [
-      "moving at too high speed (general)",
-      "moving at too low speed (general)",
-      "releasing dangerous materials",
-      "security is breached",
-      "unable to complete mission",
-      "exit doors not available when needed",
-      "regulations not followed when required"
+      "Too high a speed",
+      "Too low speed",
+    ]
+  },
+  {
+    category: "Proximity Conditions",
+    examples: [
+      "Too close to",
+    ]
+  },
+  {
+    category: "Material/Security States",
+    examples: [
+      "Releases dangerous materials",
+      "Security is breached",
+    ]
+  },
+  {
+    category: "Mission/Operational States",
+    examples: [
+      "Unable to complete mission",
+      "Exit doors not available",
+      "Regulations not followed when",
     ]
   }
 ];
@@ -95,7 +102,7 @@ export const SCENARIO_CLASSES_BY_CONTROLLER: Record<ControllerType, { classType:
     { classType: ScenarioClass.Class1, label: 'Incorrect Algorithm/Logic or Data leads to UCA', description: 'Software provides UCA due to flaws in its design, implementation, or the data it uses for its process model.' },
     { classType: ScenarioClass.Class2, label: 'Algorithm/Logic Correct, but UCA still provided to "correct" perceived issue', description: 'Software correctly implements its logic, but this logic is based on a flawed understanding of safety or leads to a UCA in specific unhandled contexts (Process Model flawed w.r.t safety goal).' },
     { classType: ScenarioClass.Class3, label: 'Safe CA by Software made Unsafe by Process', description: 'Software issues a safe command, but issues in the controlled process (hardware, network, other software) lead to a hazardous state.' },
-    { classType: ScenarioClass.Class4, label: 'Safe CA by Software Contributes to Hazard in Complex System', description: 'Software issues a safe command, correctly executed, but interaction with other system components or evolving system state leads to hazard.' },
+    { classType: ScenarioClass.Class4, label: 'Safe CA by Software Contributes to Hazard in Complex System', description: 'Software issues a safe command, correctly executed, but in combination with other system components or evolving system state, it leads to a hazard.' },
   ],
   [ControllerType.Human]: [
     { classType: ScenarioClass.Class1, label: 'Flawed Mental Model or Incorrect/Missing Information leads to UCA', description: 'Operator provides UCA due to misunderstanding system state, dynamics, or lacking necessary data for safe decision-making.' },
