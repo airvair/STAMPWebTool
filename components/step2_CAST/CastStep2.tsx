@@ -92,7 +92,7 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
     analysisSession, updateAnalysisSession,
     losses, addLoss, updateLoss, deleteLoss,
     hazards, addHazard, updateHazard, deleteHazard,
-    systemConstraints, addSystemConstraint, updateSystemConstraint,
+    systemConstraints, addSystemConstraint, updateSystemConstraint, deleteSystemConstraint,
     sequenceOfEvents, addEventDetail, updateEventDetail, deleteEventDetail, reorderEventDetails
   } = useAnalysis();
 
@@ -134,6 +134,16 @@ const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = (
       }
     }
   }, [editingHazardId, hazards]);
+
+  // Effect to remove orphaned constraints when a hazard is deleted
+  useEffect(() => {
+    const hazardIds = new Set(hazards.map(h => h.id));
+    const orphanedConstraints = systemConstraints.filter(sc => !hazardIds.has(sc.hazardId));
+
+    if (orphanedConstraints.length > 0) {
+      orphanedConstraints.forEach(sc => deleteSystemConstraint(sc.id));
+    }
+  }, [hazards, systemConstraints, deleteSystemConstraint]);
 
   const handleScopeBlur = () => { if (analysisSession && analysisSession.scope !== scope) updateAnalysisSession({ scope }); };
 

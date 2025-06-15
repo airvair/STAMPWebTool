@@ -217,14 +217,23 @@ const ControlStructureBuilder: React.FC = () => {
 
   return (
       <div className="space-y-10">
-        <p className="text-sm text-slate-600">
-          Define the components and controllers in your system, and the control/feedback relationships between them.
-          This forms the basis of your hierarchical control structure.
-        </p>
+        <div className="text-sm text-slate-600 space-y-2">
+          <p>
+            The goal of this analysis is to control or constrain the behavior of the system to prevent an accident or any unwanted behavior. To model this you will be creating a hierarchical control structure. This is not a schematic or organizational chart. Instead, the items on this structure are either something that is controlling something else (a controller), which can be software, human or organization, or a controlled process/item. This tool will guide you through this process.
+          </p>
+        </div>
 
         {/* System Components Section */}
         <section>
           <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">1. System Components (Physical/Process)</h3>
+          <div className="text-sm text-slate-600 space-y-2 mb-4">
+            <p>
+              Start at the most basic component in the system you intend to control. In most systems this is the physical system, such as a vehicle, an aircraft, a satellite or similar. If you are analyzing just a component that that is the most basic, which could be something like the brakes, a steering wheel, the engine, or perhaps even a door. It can also be a process if you are analyzing an organization on how it manages a department or even a person, such as the case in health care where the patient might be the most basic process. Regardless, it is the lowest level you are analyzing.
+            </p>
+            <p className="font-semibold">
+              Think about your system. What is the most basic component in your system?
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4">
             <Input label="Component Name" value={componentName} onChange={e => setComponentName(e.target.value)} placeholder="e.g., Engine, Database" />
             <Select label="Component Type" value={componentType} onChange={e => setComponentType(e.target.value as ComponentType)} options={componentTypeOptions} />
@@ -261,9 +270,31 @@ const ControlStructureBuilder: React.FC = () => {
           </ul>
         </section>
 
+        <div className="p-4 bg-sky-50 border-l-4 border-sky-400 text-sky-800 rounded-r-lg">
+          <p className="font-semibold">Next Step: Controllers</p>
+          <p className="text-sm mt-1">
+            Before adding controllers, please take a moment to ensure all the basic physical and process components of your system have been defined above. A complete foundation of controlled items will make defining the controllers and their relationships more straightforward and accurate. You can return later if you need to add more components.
+          </p>
+        </div>
+
         {/* Controllers Section */}
         <section>
           <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">2. Controllers (Software, Human, Team, Organization)</h3>
+          <div className="bg-blue-50 border border-blue-200 text-blue-900 rounded-lg p-4 mb-4 text-sm space-y-2">
+            <h4 className="font-bold text-md">Building Your Control Ladder</h4>
+            <p>Think of your analysis like building a ladder. The <strong>System Components</strong> you listed in Step 1 are the ground floor. Now, you need to add the rungs of control that lead to the top.</p>
+            <ol className="list-decimal list-inside space-y-1 pl-2">
+              <li>
+                <strong>Add the First Rung:</strong> What directly controls your basic components? This could be a person (a Pilot), a piece of software (an Autopilot), or a team. Add these as your first layer of controllers.
+              </li>
+              <li>
+                <strong>Climb to the Next Rung:</strong> Here's the key step. Look at the new controllers you just added. What controls <em>them</em>? For example, <strong>Airline Policies</strong> (a higher-level controller) guide the <strong>Pilot</strong>. The Pilot, in turn, controls the <strong>Autopilot</strong>.
+              </li>
+            </ol>
+            <p>
+              Keep asking the question, <em>"What controls this new controller?"</em> and add layers until you reach the top level or the boundary of your analysis.
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4">
             <Input label="Controller Name" value={controllerName} onChange={e => setControllerName(e.target.value)} placeholder="e.g., Pilot, ECU, Safety Board" />
             <Select label="Controller Type" value={controllerType} onChange={e => setControllerType(e.target.value as ControllerType)} options={controllerTypeOptions} />
@@ -302,12 +333,35 @@ const ControlStructureBuilder: React.FC = () => {
 
         {/* Control Paths Section */}
         <section>
-          <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">3. Control Paths (Controller → Target)</h3>
+          <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">3. Control Paths (Instructions and Commands)</h3>
+          <div className="text-sm text-slate-600 space-y-2 mb-4">
+            <p>
+              Start at the bottom and define the control relationships between the controllers and the components (or other controllers) you have listed. Think about how commands and instructions flow downwards in the hierarchy.
+            </p>
+          </div>
           <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 space-y-4">
-            <Select label="Source Controller" value={cpSourceCtrlId} onChange={e => setCpSourceCtrlId(e.target.value)} options={[{value: '', label: 'Select Source Controller'}, ...controllerOptions]} placeholder="Select Source Controller" />
-            <Select label="Target (Component or Controller)" value={cpTargetId} onChange={e => setCpTargetId(e.target.value)} options={[{value: '', label: 'Select Target'}, ...pathTargetOptions]} placeholder="Select Target" />
-            <Textarea label="Controls (comma-separated list of control actions)" value={cpControls} onChange={e => setCpControls(e.target.value)} placeholder="e.g., SET_SPEED, TOGGLE_POWER, SEND_DATA" />
-            <Checkbox label="Target controller has higher authority?" checked={cpHigherAuth} onChange={e => setCpHigherAuth(e.target.checked)} />
+            <p className="text-md font-semibold text-slate-700">Define a new control path:</p>
+            <Select
+                label="1. First, select the item that is being controlled:"
+                value={cpTargetId}
+                onChange={e => setCpTargetId(e.target.value)}
+                options={[{value: '', label: 'Select a controlled item...'}, ...pathTargetOptions]}
+            />
+            <Select
+                label="2. Next, select the controller that provides the control action:"
+                value={cpSourceCtrlId}
+                onChange={e => setCpSourceCtrlId(e.target.value)}
+                options={[{value: '', label: 'Select a source controller...'}, ...controllerOptions]}
+                disabled={!cpTargetId}
+            />
+            <Textarea
+                label="3. Describe the control action(s) available to that controller:"
+                value={cpControls}
+                onChange={e => setCpControls(e.target.value)}
+                placeholder="e.g., INCREASE_PITCH, DECREASE_POWER"
+                disabled={!cpSourceCtrlId}
+            />
+            <Checkbox label="Does the item being controlled have higher authority than the controller? (This is rare and usually applies to oversight relationships)" checked={cpHigherAuth} onChange={e => setCpHigherAuth(e.target.checked)} />
             <Button onClick={handleSaveControlPath} leftIcon={<PlaceholderPlusIcon />}>
               {editingCpId ? 'Update Control Path' : 'Add Control Path'}
             </Button>
