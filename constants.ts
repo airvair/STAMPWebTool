@@ -131,24 +131,22 @@ export const START_STEP: StepDefinition = {
 };
 
 export const STEPS_BASE: StepDefinition[] = [
-  // Step 2 is specific (CAST or STPA)
-  { path: 'step3', title: 'Control Structure', shortTitle: 'Structure' }, // OCR Step 3
-  { path: 'step4', title: 'Control Actions', shortTitle: 'Actions' }, // OCR Step 4
-  { path: 'step5', title: 'Unsafe Control Actions (UCAs & UCCAs)', shortTitle: 'UCAs/UCCAs' }, // OCR Step 5
-  { path: 'step6', title: 'Causal Scenarios', shortTitle: 'Scenarios' }, // OCR Step 6
-  { path: 'step7', title: 'Requirements / Mitigations', shortTitle: 'Reqs/Mitigs' }, // OCR Step 7
+  { path: 'step3', title: 'Control Structure & Actions', shortTitle: 'Structure & Actions' },
+  { path: 'step5', title: 'Unsafe Control Actions (UCAs & UCCAs)', shortTitle: 'UCAs/UCCAs' },
+  { path: 'step6', title: 'Causal Scenarios', shortTitle: 'Scenarios' },
+  { path: 'step7', title: 'Requirements / Mitigations', shortTitle: 'Reqs/Mitigs' },
   { path: 'step8', title: 'Report & Export', shortTitle: 'Report' },
 ];
 
 export const CAST_STEPS: StepDefinition[] = [
   START_STEP,
-  { path: '/cast/step2', title: 'CAST: Scope, Events, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses (CAST)' }, // OCR Step 2 CAST
+  { path: '/cast/step2', title: 'CAST: Scope, Events, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses (CAST)' },
   ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}`}))
 ];
 
 export const STPA_STEPS: StepDefinition[] = [
   START_STEP,
-  { path: '/stpa/step2', title: 'STPA: Scope, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses (STPA)' }, // OCR Step 2 STPA
+  { path: '/stpa/step2', title: 'STPA: Scope, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses (STPA)' },
   ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}`}))
 ];
 
@@ -161,17 +159,6 @@ export const FIVE_FACTOR_ARCHETYPES: Record<FiveFactorArchetype, FiveFactorScore
   CommercialPilot: {
     label: "Commercial Pilot (Typical Profile from OCR)",
     neuroticism: 1.5, extraversion: -2.0, openness: 2.0, agreeableness: 2.5, conscientiousness: 3.5
-    // Note: OCR Extraversion for Commercial Pilot is -2.0, which is unusual for a 0-5 scale. Assuming it means 2.0 or typo and using 2.0. If scale can be negative, then -2.0.
-    // The OCR states "0 through +5 with 2.5 = average". -2.0 is outside this. I will interpret it as 2.0 or 0.5 if it means "low".
-    // For now, I'll use values that fit the 0-5 scale interpretation.
-    // Corrected based on OCR image: Extraversion -2.0. This seems to imply a deviation from average rather than absolute score on 0-5.
-    // The provided scale is 0 to +5 with 2.5 average.  I will adjust extraversion to be on this scale or note it.
-    // Given the context of "tool enters all 2.5 for behind the scenes weighting", and then provides specific values,
-    // these specific values likely *are* the scores. The -2.0 for Extraversion is problematic with a 0-5 scale.
-    // I will cap it at 0 for now or assume it's a relative score from 2.5.
-    // Re-evaluating: The prompt might imply these are *modifiers* or pre-set values directly.
-    // I'll use them as given, assuming the tool internally knows how to interpret them (even if -2.0 seems off for 0-5 scale).
-    // Let's assume the values are as written and the downstream logic handles their meaning.
   },
   MilitaryPilot: {
     label: "Military Pilot (Typical Profile from OCR)",

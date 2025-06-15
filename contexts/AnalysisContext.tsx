@@ -51,7 +51,7 @@ interface AnalysisContextState {
   updateController: (id: string, updates: Partial<Controller>) => void;
   deleteController: (id: string) => void;
 
-  addControlPath: (path: Omit<ControlPath, 'id'>) => void;
+  addControlPath: (path: Omit<ControlPath, 'id'> & { id?: string }) => void;
   updateControlPath: (id: string, updates: Partial<ControlPath>) => void;
   deleteControlPath: (id: string) => void;
 
@@ -195,8 +195,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
       list: T[],
       codePrefix?: string
   ) => ({
-    add: (item: Omit<T, 'id' | 'code'> | Omit<T, 'id'>) => { // Allow items without 'code' property
-      const newItemData: any = { ...item, id: uuidv4() };
+    add: (item: Omit<T, 'id' | 'code'> & { id?: string }) => {
+      const newItemData: any = { ...item, id: (item as any).id || uuidv4() };
       if (codePrefix) {
         newItemData.code = `${codePrefix}-${list.length + 1}`;
       }
@@ -251,7 +251,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const controllerOps = createCrudOperations(setControllers, controllers);
   const controlPathOps = createCrudOperations(setControlPaths, controlPaths);
   const feedbackPathOps = createCrudOperations(setFeedbackPaths, feedbackPaths);
-  const communicationPathOps = createCrudOperations(setCommunicationPaths, communicationPaths); // Added
+  const communicationPathOps = createCrudOperations(setCommunicationPaths, communicationPaths);
   const actionOps = createCrudOperations(setControlActions, controlActions);
   const scenarioOps = createCrudOperations(setScenarios, scenarios);
   const requirementOps = createCrudOperations(setRequirements, requirements);

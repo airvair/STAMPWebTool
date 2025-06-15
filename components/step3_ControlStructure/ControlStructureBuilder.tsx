@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useAnalysis } from '../../hooks/useAnalysis';
-import { SystemComponent, Controller, ControlPath, FeedbackPath, ComponentType, ControllerType, Hazard, CommunicationPath, AnalysisType } from '../../types';
+import { SystemComponent, Controller, ControlPath, FeedbackPath, ComponentType, ControllerType, CommunicationPath, AnalysisType, ControlAction } from '../../types';
 import { CONTROLLER_TYPE_COLORS, MISSING_FEEDBACK_COLOR } from '../../constants';
 import Input from '../shared/Input';
 import Select from '../shared/Select';
@@ -64,6 +65,7 @@ const ControlStructureBuilder: React.FC = () => {
     systemComponents, addSystemComponent, updateSystemComponent, deleteSystemComponent,
     controllers, addController, updateController, deleteController,
     controlPaths, addControlPath, updateControlPath, deleteControlPath,
+    controlActions, addControlAction, deleteControlAction, // Added controlActions context
     feedbackPaths, addFeedbackPath, updateFeedbackPath, deleteFeedbackPath,
     communicationPaths, addCommunicationPath, updateCommunicationPath, deleteCommunicationPath,
     hazards,
@@ -111,6 +113,8 @@ const ControlStructureBuilder: React.FC = () => {
   const controllerOptions = controllers.map(c => ({ value: c.id, label: c.name }));
   const componentOptions = systemComponents.map(sc => ({ value: sc.id, label: sc.name }));
   const pathTargetOptions = [...controllerOptions, ...componentOptions];
+
+  const selectedControllerForCP = controllers.find(c => c.id === cpSourceCtrlId);
 
   // Auto-import system components from hazards on first render
   useEffect(() => {
@@ -160,19 +164,69 @@ const ControlStructureBuilder: React.FC = () => {
     setEditingControllerId(ctrl.id); setControllerName(ctrl.name); setControllerType(ctrl.ctrlType);
   };
 
-  // Control Path Handlers
+  // Control Path & Control Action Handlers
   const handleSaveControlPath = () => {
     if (!cpSourceCtrlId || !cpTargetId || !cpControls) return;
+
+    // Parse the control actions string into individual action objects
+    const parsedActions = cpControls
+        .split(',')
+        .map(actionStr => actionStr.trim())
+        .filter(actionStr => actionStr.length > 0)
+        .map(actionStr => {
+          const parts = actionStr.split(/\s+/);
+          const verb = parts[0] || '';
+          const object = parts.slice(1).join(' ');
+          return { verb, object };
+        });
+
     if (editingCpId) {
+      // Update the existing ControlPath
       updateControlPath(editingCpId, { sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: cpControls, higherAuthority: cpHigherAuth });
+
+      // Find and delete all old ControlActions linked to this ControlPath
+      const oldActions = controlActions.filter(ca => ca.controlPathId === editingCpId);
+      oldActions.forEach(ca => deleteControlAction(ca.id));
+
+      // Add the new/updated ControlActions
+      parsedActions.forEach(action => {
+        addControlAction({
+          ...action,
+          controllerId: cpSourceCtrlId,
+          controlPathId: editingCpId,
+          description: '',
+          isOutOfScope: false,
+        });
+      });
     } else {
-      addControlPath({ sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: cpControls, higherAuthority: cpHigherAuth });
+      // Add a new ControlPath and its associated ControlActions
+      const newCpId = uuidv4();
+      addControlPath({ id: newCpId, sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: cpControls, higherAuthority: cpHigherAuth });
+
+      parsedActions.forEach(action => {
+        addControlAction({
+          ...action,
+          controllerId: cpSourceCtrlId,
+          controlPathId: newCpId,
+          description: '',
+          isOutOfScope: false,
+        });
+      });
     }
     setCpSourceCtrlId(''); setCpTargetId(''); setCpControls(''); setCpHigherAuth(false); setEditingCpId(null);
   };
+
   const editControlPath = (cp: ControlPath) => {
     setEditingCpId(cp.id); setCpSourceCtrlId(cp.sourceControllerId); setCpTargetId(cp.targetId); setCpControls(cp.controls); setCpHigherAuth(!!cp.higherAuthority);
   };
+
+  const handleDeleteControlPath = (pathId: string) => {
+    // Cascade delete: also remove linked control actions
+    const actionsToDelete = controlActions.filter(ca => ca.controlPathId === pathId);
+    actionsToDelete.forEach(ca => deleteControlAction(ca.id));
+    deleteControlPath(pathId);
+  };
+
 
   // Feedback Path Handlers
   const handleSaveFeedbackPath = () => {
@@ -212,6 +266,61 @@ const ControlStructureBuilder: React.FC = () => {
     const comp = systemComponents.find(sc=>sc.id === id);
     if(comp) return `${comp.name} (Component)`;
     return 'Unknown';
+  };
+
+  const renderControlActionExamples = (type: ControllerType | undefined) => {
+    if (!type) return null;
+
+    let examples: string[] = [];
+    let title = '';
+
+    switch (type) {
+      case ControllerType.Human:
+        title = 'Human Controller Examples:';
+        examples = [
+          'Physical actions: Apply brakes, Steer left, Increase throttle',
+          'Verbal commands: "Request higher altitude", "Confirm system status"',
+          'System interaction: Set autopilot mode, Enter data into FMS',
+        ];
+        break;
+      case ControllerType.Software:
+        title = 'Software Controller Examples:';
+        examples = [
+          'Commands to actuators: SEND_BRAKE_COMMAND(pressure: 50%)',
+          'State changes: SET_MODE("standby")',
+          'Data output: DISPLAY_WARNING("Engine Overheat")',
+          'Calculations: CALCULATE_TRAJECTORY',
+        ];
+        break;
+      case ControllerType.Organisation:
+        title = 'Organization Controller Examples:';
+        examples = [
+          'Policies & Procedures: ISSUE_SAFETY_DIRECTIVE_123, UPDATE_MAINTENANCE_PROCEDURE_4.1',
+          'Resource allocation: ALLOCATE_BUDGET_FOR_TRAINING',
+          'Personnel actions: HIRE_QUALIFIED_PERSONNEL',
+        ];
+        break;
+      case ControllerType.Team:
+        title = 'Team Controller Examples:';
+        examples = [
+          'Coordinated procedures: EXECUTE_EMERGENCY_SHUTDOWN_CHECKLIST',
+          'Formal communication: COMMUNICATE_SYSTEM_STATUS_TO_ATC',
+          'Collective decisions: VOTE_TO_DIVERT_FLIGHT',
+        ];
+        break;
+      default:
+        return null;
+    }
+
+    return (
+        <div className="text-xs text-slate-500 mt-1 pl-1">
+          <p className="font-semibold">{title}</p>
+          <p className="italic">Separate multiple actions with a comma.</p>
+          <ul className="list-disc list-inside ml-2">
+            {examples.map((ex, i) => <li key={i}>{ex}</li>)}
+          </ul>
+        </div>
+    );
   };
 
 
@@ -333,10 +442,10 @@ const ControlStructureBuilder: React.FC = () => {
 
         {/* Control Paths Section */}
         <section>
-          <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">3. Control Paths (Instructions and Commands)</h3>
+          <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">3. Control Paths & Actions</h3>
           <div className="text-sm text-slate-600 space-y-2 mb-4">
             <p>
-              Start at the bottom and define the control relationships between the controllers and the components (or other controllers) you have listed. Think about how commands and instructions flow downwards in the hierarchy.
+              Define the control relationships between controllers and the components (or other controllers). Think about how commands flow downwards. For each path, list all control actions the controller can provide.
             </p>
           </div>
           <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 space-y-4">
@@ -355,15 +464,16 @@ const ControlStructureBuilder: React.FC = () => {
                 disabled={!cpTargetId}
             />
             <Textarea
-                label="3. Describe the control action(s) available to that controller:"
+                label="3. Describe the control action(s) available to that controller (comma-separated):"
                 value={cpControls}
                 onChange={e => setCpControls(e.target.value)}
-                placeholder="e.g., INCREASE_PITCH, DECREASE_POWER"
+                placeholder="e.g., INCREASE PITCH, SET ALTITUDE, DECREASE POWER"
                 disabled={!cpSourceCtrlId}
             />
+            {renderControlActionExamples(selectedControllerForCP?.ctrlType)}
             <Checkbox label="Does the item being controlled have higher authority than the controller? (This is rare and usually applies to oversight relationships)" checked={cpHigherAuth} onChange={e => setCpHigherAuth(e.target.checked)} />
             <Button onClick={handleSaveControlPath} leftIcon={<PlaceholderPlusIcon />}>
-              {editingCpId ? 'Update Control Path' : 'Add Control Path'}
+              {editingCpId ? 'Update Control Path & Actions' : 'Add Control Path & Actions'}
             </Button>
           </div>
           <ul className="space-y-2">
@@ -374,7 +484,7 @@ const ControlStructureBuilder: React.FC = () => {
                   {cp.higherAuthority && <p className="text-xs text-slate-500">Target has higher authority</p>}
                   <div className="mt-1 space-x-2">
                     <Button onClick={() => editControlPath(cp)} size="sm" variant="ghost" className="p-1" aria-label="Edit">Edit</Button>
-                    <Button onClick={() => deleteControlPath(cp.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 p-1" aria-label="Delete"><PlaceholderTrashIcon /></Button>
+                    <Button onClick={() => handleDeleteControlPath(cp.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 p-1" aria-label="Delete"><PlaceholderTrashIcon /></Button>
                   </div>
                 </li>
             ))}

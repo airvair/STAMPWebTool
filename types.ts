@@ -135,6 +135,7 @@ export interface FeedbackPath extends Identifiable {
 
 export interface ControlAction extends Identifiable {
   controllerId: string;
+  controlPathId?: string; // Link to the ControlPath
   verb: string;
   object: string;
   description: string;
