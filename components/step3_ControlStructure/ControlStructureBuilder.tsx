@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { SystemComponent, Controller, ControlPath, FeedbackPath, ComponentType, ControllerType, CommunicationPath, AnalysisType, ControlAction } from '../../types';
 import { CONTROLLER_TYPE_COLORS, MISSING_FEEDBACK_COLOR } from '../../constants';
+import { GLOSSARY } from '../../constants';
+import Tooltip from '../shared/Tooltip';
 import Input from '../shared/Input';
 import Select from '../shared/Select';
 import Button from '../shared/Button';
@@ -457,19 +459,28 @@ const ControlStructureBuilder: React.FC = () => {
                 options={[{value: '', label: 'Select a controlled item...'}, ...pathTargetOptions]}
             />
             <Select
-                label="2. Next, select the controller that provides the control action:"
+                label={
+                  <>
+                    2. Next, select the <Tooltip content={GLOSSARY['Controller']}>controller</Tooltip> that provides the control action:
+                  </>
+                }
                 value={cpSourceCtrlId}
                 onChange={e => setCpSourceCtrlId(e.target.value)}
                 options={[{value: '', label: 'Select a source controller...'}, ...controllerOptions]}
                 disabled={!cpTargetId}
             />
-            <Textarea
-                label="3. Describe the control action(s) available to that controller (comma-separated):"
-                value={cpControls}
-                onChange={e => setCpControls(e.target.value)}
-                placeholder="e.g., INCREASE PITCH, SET ALTITUDE, DECREASE POWER"
-                disabled={!cpSourceCtrlId}
-            />
+            <div>
+              <label htmlFor="cp-controls-input" className="block text-sm font-medium text-slate-700 mb-1">
+                3. Describe all the <Tooltip content={GLOSSARY['Control Action']}>control action(s)</Tooltip> available to that controller (comma-separated):
+              </label>
+              <Textarea
+                  id="cp-controls-input"
+                  value={cpControls}
+                  onChange={e => setCpControls(e.target.value)}
+                  placeholder="e.g., INCREASE PITCH, SET ALTITUDE, DECREASE POWER"
+                  disabled={!cpSourceCtrlId}
+              />
+            </div>
             {renderControlActionExamples(selectedControllerForCP?.ctrlType)}
             <Checkbox label="Does the item being controlled have higher authority than the controller? (This is rare and usually applies to oversight relationships)" checked={cpHigherAuth} onChange={e => setCpHigherAuth(e.target.checked)} />
             <Button onClick={handleSaveControlPath} leftIcon={<PlaceholderPlusIcon />}>

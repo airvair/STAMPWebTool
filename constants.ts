@@ -193,3 +193,18 @@ export const PERSONALITY_TRAIT_DESCRIPTIONS: Record<keyof FiveFactorScores, { hi
     low: "May neglect details, attentional bias, less reliable in decisions/adherence to procedures." // OCR pg 38, 39, 40
   }
 };
+
+// NEW GLOSSARY
+export const GLOSSARY: Record<string, string> = {
+  'Accident': 'An undesired, unacceptable, and unplanned event that results in a loss. ',
+  'Hazard': 'A system state or set of conditions that, together with specific environmental conditions, can lead to an accident or loss. ',
+  'System': 'A set of interdependent parts sharing a common purpose. The performance of the whole is affected by each and every one of its parts. ',
+  'Safety Control Structure': 'The set of controls and controllers that enforce safety constraints on the system. It includes technical and social components, from physical interlocks to management policies and regulatory oversight. ',
+  'Controller': 'A component (human, software, organization, or team) that issues control actions to manage a process or another component. ',
+  'Control Action': 'An action taken by a controller to influence the state of a controlled process. ',
+  'Controlled Process': 'The physical system or process whose behavior is being managed by a controller. ',
+  'Feedback': 'Information about the state of the controlled process that is provided back to the controller. It is used to determine what control actions are necessary. ',
+  'Unsafe Control Action (UCA)': 'A control action that, within a particular context and worst-case environment, will lead to a hazard. ',
+  'Process Model': 'The model a controller (especially automated) uses to understand the state of the controlled process and make decisions. Accidents often result when this model is inconsistent with the actual state of the process. ',
+  'Mental Model': 'A human controller\'s internal understanding of how a system works and its current state. It is the human equivalent of a process model. ',
+};

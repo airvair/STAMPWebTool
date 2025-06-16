@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, ChangeEvent, ReactNode } from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { Loss, Hazard, SystemConstraint, EventDetail, AnalysisType } from '../../types';
-import { STANDARD_LOSSES } from '../../constants';
+import { STANDARD_LOSSES, GLOSSARY } from '../../constants';
+import Tooltip from '../shared/Tooltip';
 import Input from '../shared/Input';
 import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
