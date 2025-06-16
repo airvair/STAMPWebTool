@@ -67,7 +67,7 @@ const ControlStructureBuilder: React.FC = () => {
     systemComponents, addSystemComponent, updateSystemComponent, deleteSystemComponent,
     controllers, addController, updateController, deleteController,
     controlPaths, addControlPath, updateControlPath, deleteControlPath,
-    controlActions, addControlAction, deleteControlAction, // Added controlActions context
+    controlActions, addControlAction, deleteControlAction,
     feedbackPaths, addFeedbackPath, updateFeedbackPath, deleteFeedbackPath,
     communicationPaths, addCommunicationPath, updateCommunicationPath, deleteCommunicationPath,
     hazards,
@@ -90,9 +90,14 @@ const ControlStructureBuilder: React.FC = () => {
   // Control Path Form
   const [cpSourceCtrlId, setCpSourceCtrlId] = useState('');
   const [cpTargetId, setCpTargetId] = useState('');
-  const [cpControls, setCpControls] = useState('');
   const [cpHigherAuth, setCpHigherAuth] = useState(false);
   const [editingCpId, setEditingCpId] = useState<string | null>(null);
+
+  // NEW: State for individual and lists of control actions
+  const [currentActions, setCurrentActions] = useState<Omit<ControlAction, 'id' | 'controllerId' | 'controlPathId' | 'description' | 'isOutOfScope'>[]>([]);
+  const [actionVerb, setActionVerb] = useState('');
+  const [actionObject, setActionObject] = useState('');
+
 
   // Feedback Path Form
   const [fpSourceId, setFpSourceId] = useState('');
@@ -166,32 +171,36 @@ const ControlStructureBuilder: React.FC = () => {
     setEditingControllerId(ctrl.id); setControllerName(ctrl.name); setControllerType(ctrl.ctrlType);
   };
 
-  // Control Path & Control Action Handlers
-  const handleSaveControlPath = () => {
-    if (!cpSourceCtrlId || !cpTargetId || !cpControls) return;
+  // NEW: Handler to add a single control action to the temporary list
+  const handleAddAction = () => {
+    if (!actionVerb.trim() || !actionObject.trim()) return;
+    setCurrentActions([...currentActions, { verb: actionVerb, object: actionObject }]);
+    setActionVerb('');
+    setActionObject('');
+  };
 
-    // Parse the control actions string into individual action objects
-    const parsedActions = cpControls
-        .split(',')
-        .map(actionStr => actionStr.trim())
-        .filter(actionStr => actionStr.length > 0)
-        .map(actionStr => {
-          const parts = actionStr.split(/\s+/);
-          const verb = parts[0] || '';
-          const object = parts.slice(1).join(' ');
-          return { verb, object };
-        });
+  // NEW: Handler to remove a control action from the temporary list
+  const handleDeleteAction = (index: number) => {
+    setCurrentActions(currentActions.filter((_, i) => i !== index));
+  };
+
+
+  // MODIFIED: Control Path & Control Action Handlers
+  const handleSaveControlPath = () => {
+    if (!cpSourceCtrlId || !cpTargetId || currentActions.length === 0) {
+      alert("Please define a source, target, and at least one control action.");
+      return;
+    }
+
+    const controlsString = currentActions.map(a => `${a.verb} ${a.object}`).join(', ');
 
     if (editingCpId) {
-      // Update the existing ControlPath
-      updateControlPath(editingCpId, { sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: cpControls, higherAuthority: cpHigherAuth });
+      updateControlPath(editingCpId, { sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: controlsString, higherAuthority: cpHigherAuth });
 
-      // Find and delete all old ControlActions linked to this ControlPath
       const oldActions = controlActions.filter(ca => ca.controlPathId === editingCpId);
       oldActions.forEach(ca => deleteControlAction(ca.id));
 
-      // Add the new/updated ControlActions
-      parsedActions.forEach(action => {
+      currentActions.forEach(action => {
         addControlAction({
           ...action,
           controllerId: cpSourceCtrlId,
@@ -201,11 +210,10 @@ const ControlStructureBuilder: React.FC = () => {
         });
       });
     } else {
-      // Add a new ControlPath and its associated ControlActions
       const newCpId = uuidv4();
-      addControlPath({ id: newCpId, sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: cpControls, higherAuthority: cpHigherAuth });
+      addControlPath({ id: newCpId, sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: controlsString, higherAuthority: cpHigherAuth });
 
-      parsedActions.forEach(action => {
+      currentActions.forEach(action => {
         addControlAction({
           ...action,
           controllerId: cpSourceCtrlId,
@@ -215,11 +223,25 @@ const ControlStructureBuilder: React.FC = () => {
         });
       });
     }
-    setCpSourceCtrlId(''); setCpTargetId(''); setCpControls(''); setCpHigherAuth(false); setEditingCpId(null);
+
+    // Reset form state
+    setCpSourceCtrlId('');
+    setCpTargetId('');
+    setCpHigherAuth(false);
+    setEditingCpId(null);
+    setCurrentActions([]);
   };
 
   const editControlPath = (cp: ControlPath) => {
-    setEditingCpId(cp.id); setCpSourceCtrlId(cp.sourceControllerId); setCpTargetId(cp.targetId); setCpControls(cp.controls); setCpHigherAuth(!!cp.higherAuthority);
+    setEditingCpId(cp.id);
+    setCpSourceCtrlId(cp.sourceControllerId);
+    setCpTargetId(cp.targetId);
+    setCpHigherAuth(!!cp.higherAuthority);
+
+    const relatedActions = controlActions
+        .filter(ca => ca.controlPathId === cp.id)
+        .map(({ verb, object }) => ({ verb, object }));
+    setCurrentActions(relatedActions);
   };
 
   const handleDeleteControlPath = (pathId: string) => {
@@ -280,34 +302,31 @@ const ControlStructureBuilder: React.FC = () => {
       case ControllerType.Human:
         title = 'Human Controller Examples:';
         examples = [
-          'Physical actions: Apply brakes, Steer left, Increase throttle',
-          'Verbal commands: "Request higher altitude", "Confirm system status"',
-          'System interaction: Set autopilot mode, Enter data into FMS',
+          'Verb: "Apply", Object: "brakes"',
+          'Verb: "Steer", Object: "left"',
+          'Verb: "Request", Object: "higher altitude"',
         ];
         break;
       case ControllerType.Software:
         title = 'Software Controller Examples:';
         examples = [
-          'Commands to actuators: SEND_BRAKE_COMMAND(pressure: 50%)',
-          'State changes: SET_MODE("standby")',
-          'Data output: DISPLAY_WARNING("Engine Overheat")',
-          'Calculations: CALCULATE_TRAJECTORY',
+          'Verb: "SEND_BRAKE_COMMAND", Object: "pressure: 50%"',
+          'Verb: "SET_MODE", Object: "standby"',
+          'Verb: "DISPLAY_WARNING", Object: "Engine Overheat"',
         ];
         break;
       case ControllerType.Organisation:
         title = 'Organization Controller Examples:';
         examples = [
-          'Policies & Procedures: ISSUE_SAFETY_DIRECTIVE_123, UPDATE_MAINTENANCE_PROCEDURE_4.1',
-          'Resource allocation: ALLOCATE_BUDGET_FOR_TRAINING',
-          'Personnel actions: HIRE_QUALIFIED_PERSONNEL',
+          'Verb: "ISSUE", Object: "SAFETY_DIRECTIVE_123"',
+          'Verb: "UPDATE", Object: "MAINTENANCE_PROCEDURE_4.1"',
         ];
         break;
       case ControllerType.Team:
         title = 'Team Controller Examples:';
         examples = [
-          'Coordinated procedures: EXECUTE_EMERGENCY_SHUTDOWN_CHECKLIST',
-          'Formal communication: COMMUNICATE_SYSTEM_STATUS_TO_ATC',
-          'Collective decisions: VOTE_TO_DIVERT_FLIGHT',
+          'Verb: "EXECUTE", Object: "EMERGENCY_SHUTDOWN_CHECKLIST"',
+          'Verb: "COMMUNICATE", Object: "SYSTEM_STATUS_TO_ATC"',
         ];
         break;
       default:
@@ -317,7 +336,6 @@ const ControlStructureBuilder: React.FC = () => {
     return (
         <div className="text-xs text-slate-500 mt-1 pl-1">
           <p className="font-semibold">{title}</p>
-          <p className="italic">Separate multiple actions with a comma.</p>
           <ul className="list-disc list-inside ml-2">
             {examples.map((ex, i) => <li key={i}>{ex}</li>)}
           </ul>
@@ -391,8 +409,8 @@ const ControlStructureBuilder: React.FC = () => {
         {/* Controllers Section */}
         <section>
           <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">2. Controllers (Software, Human, Team, Organization)</h3>
-          <div className="bg-blue-50 border border-blue-200 text-blue-900 rounded-lg p-4 mb-4 text-sm space-y-2">
-            <h4 className="font-bold text-md">Building Your Control Ladder</h4>
+          <div className="p-4 bg-sky-50 border-l-4 border-sky-400 text-sky-800 rounded-r-lg mb-4 space-y-2 text-sm">
+            <p className="font-semibold">Building Your Control Ladder</p>
             <p>Think of your analysis like building a ladder. The <strong>System Components</strong> you listed in Step 1 are the ground floor. Now, you need to add the rungs of control that lead to the top.</p>
             <ol className="list-decimal list-inside space-y-1 pl-2">
               <li>
@@ -406,6 +424,7 @@ const ControlStructureBuilder: React.FC = () => {
               Keep asking the question, <em>"What controls this new controller?"</em> and add layers until you reach the top level or the boundary of your analysis.
             </p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4">
             <Input label="Controller Name" value={controllerName} onChange={e => setControllerName(e.target.value)} placeholder="e.g., Pilot, ECU, Safety Board" />
             <Select label="Controller Type" value={controllerType} onChange={e => setControllerType(e.target.value as ControllerType)} options={controllerTypeOptions} />
@@ -442,13 +461,11 @@ const ControlStructureBuilder: React.FC = () => {
           </ul>
         </section>
 
-        {/* Control Paths Section */}
+        {/* MODIFIED Control Paths Section */}
         <section>
           <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">3. Control Paths & Actions</h3>
           <div className="text-sm text-slate-600 space-y-2 mb-4">
-            <p>
-              Define the control relationships between controllers and the components (or other controllers). Think about how commands flow downwards. For each path, list all control actions the controller can provide.
-            </p>
+            <p>Define the control relationships between controllers and the components (or other controllers). Think about how commands flow downwards. For each path, list all control actions the controller can provide.</p>
           </div>
           <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 space-y-4">
             <p className="text-md font-semibold text-slate-700">Define a new control path:</p>
@@ -459,34 +476,48 @@ const ControlStructureBuilder: React.FC = () => {
                 options={[{value: '', label: 'Select a controlled item...'}, ...pathTargetOptions]}
             />
             <Select
-                label={
-                  <>
-                    2. Next, select the <Tooltip content={GLOSSARY['Controller']}>controller</Tooltip> that provides the control action:
-                  </>
-                }
+                label={<>2. Next, select the <Tooltip content={GLOSSARY['Controller']}>controller</Tooltip> that provides the control action:</>}
                 value={cpSourceCtrlId}
                 onChange={e => setCpSourceCtrlId(e.target.value)}
                 options={[{value: '', label: 'Select a source controller...'}, ...controllerOptions]}
                 disabled={!cpTargetId}
             />
-            <div>
-              <label htmlFor="cp-controls-input" className="block text-sm font-medium text-slate-700 mb-1">
-                3. Describe all the <Tooltip content={GLOSSARY['Control Action']}>control action(s)</Tooltip> available to that controller (comma-separated):
+
+            {/* NEW: Control Action Input Area */}
+            <div className={`pl-4 border-l-4 border-slate-300 ${!cpSourceCtrlId ? 'opacity-50' : ''}`}>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                3. Describe all the <Tooltip content={GLOSSARY['Control Action']}>control action(s)</Tooltip> available to that controller:
               </label>
-              <Textarea
-                  id="cp-controls-input"
-                  value={cpControls}
-                  onChange={e => setCpControls(e.target.value)}
-                  placeholder="e.g., INCREASE PITCH, SET ALTITUDE, DECREASE POWER"
-                  disabled={!cpSourceCtrlId}
-              />
+              <div className="flex items-end space-x-2">
+                <Input label="Action Verb" value={actionVerb} onChange={e => setActionVerb(e.target.value)} placeholder="e.g., INCREASE, MAINTAIN" disabled={!cpSourceCtrlId} containerClassName="flex-grow"/>
+                <Input label="Action Object" value={actionObject} onChange={e => setActionObject(e.target.value)} placeholder="e.g., PITCH" disabled={!cpSourceCtrlId} containerClassName="flex-grow"/>
+                <Button onClick={handleAddAction} leftIcon={<PlaceholderPlusIcon/>} disabled={!cpSourceCtrlId || !actionVerb || !actionObject} className="mb-4 h-10">Add Action</Button>
+              </div>
+              {renderControlActionExamples(selectedControllerForCP?.ctrlType)}
+
+              {/* NEW: List of actions added so far */}
+              {currentActions.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <h4 className="text-sm font-medium text-slate-600">Actions for this path:</h4>
+                    <ul className="list-disc list-inside bg-white p-2 rounded-md border border-slate-200">
+                      {currentActions.map((action, index) => (
+                          <li key={index} className="flex justify-between items-center text-sm p-1">
+                            <span>{action.verb} {action.object}</span>
+                            <Button onClick={() => handleDeleteAction(index)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 p-0"><PlaceholderTrashIcon /></Button>
+                          </li>
+                      ))}
+                    </ul>
+                  </div>
+              )}
             </div>
-            {renderControlActionExamples(selectedControllerForCP?.ctrlType)}
+
             <Checkbox label="Does the item being controlled have higher authority than the controller? (This is rare and usually applies to oversight relationships)" checked={cpHigherAuth} onChange={e => setCpHigherAuth(e.target.checked)} />
+
             <Button onClick={handleSaveControlPath} leftIcon={<PlaceholderPlusIcon />}>
               {editingCpId ? 'Update Control Path & Actions' : 'Add Control Path & Actions'}
             </Button>
           </div>
+
           <ul className="space-y-2">
             {controlPaths.map(cp => (
                 <li key={cp.id} className="p-3 border border-slate-300 rounded-md bg-white shadow-sm">
