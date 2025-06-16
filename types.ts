@@ -1,3 +1,5 @@
+// types.ts
+
 export enum AnalysisType {
   CAST = 'CAST',
   STPA = 'STPA',
@@ -102,12 +104,43 @@ export interface FiveFactorScores {
   conscientiousness: number;
 }
 
+// Interfaces for detailed team structures
+export interface TeamMember extends Identifiable {
+  name: string;
+  commandRank: string; // e.g., 'CM-1', 'CM-2', 'GR'
+}
+
+export interface TeamRole extends Identifiable {
+  name: string; // e.g., 'Pilot Flying', 'Pilot Monitoring'
+  description?: string;
+}
+
+export interface RoleAssignment {
+  memberId: string;
+  roleId: string;
+}
+
+export interface OperationalContext extends Identifiable {
+  name: string; // e.g., "Autopilot ON, Captain is PF"
+  description?: string;
+  assignments: RoleAssignment[];
+}
+
+export interface TeamDetails {
+  isSingleUnit?: boolean;
+  isHierarchical?: boolean;
+  members: TeamMember[];
+  roles: TeamRole[];
+  contexts: OperationalContext[];
+}
+
+
 export interface Controller extends Identifiable {
   name: string;
   ctrlType: ControllerType;
   description?: string;
   responsibilities?: string;
-  teamDetails?: string;
+  teamDetails?: TeamDetails;
   orgDetails?: string;
   fiveFactorArchetype?: FiveFactorArchetype;
   customFiveFactorScores?: FiveFactorScores;
