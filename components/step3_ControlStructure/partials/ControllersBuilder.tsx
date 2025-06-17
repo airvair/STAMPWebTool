@@ -31,6 +31,8 @@ const TeamStructureEditor: React.FC<{
 
     // Role State
     const [newRoleName, setNewRoleName] = useState('');
+    const [newRoleAuthLevel, setNewRoleAuthLevel] = useState(10);
+
 
     // Context State
     const [newContextName, setNewContextName] = useState('');
@@ -82,9 +84,10 @@ const TeamStructureEditor: React.FC<{
     // Role Functions
     const addRole = () => {
         if (!newRoleName) return;
-        const newRole: TeamRole = { id: uuidv4(), name: newRoleName };
+        const newRole: TeamRole = { id: uuidv4(), name: newRoleName, authorityLevel: newRoleAuthLevel };
         onTeamDetailsChange({ ...teamDetails, roles: [...teamDetails.roles, newRole] });
         setNewRoleName('');
+        setNewRoleAuthLevel(10);
     };
 
     const deleteRole = (id: string) => {
@@ -176,17 +179,19 @@ const TeamStructureEditor: React.FC<{
             <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">2. Define Team Roles</label>
                 <div className="p-3 bg-slate-200/50 rounded-md">
-                    <p className="text-xs text-slate-600 mb-2">Define the operational roles members can take, e.g., "Operator", "Monitor", "Supervisor".</p>
+                    <p className="text-xs text-slate-600 mb-2">Define operational roles (e.g., "Operator", "Monitor") and their authority level for the diagram (lower number is higher).</p>
                     <ul className="my-2 space-y-1">
                         {teamDetails.roles.map(r => (
                             <li key={r.id} className="flex justify-between items-center bg-white p-2 rounded border border-slate-300">
-                                <span>{r.name}</span>
+                                <span>{r.name} (Auth: {r.authorityLevel ?? 'N/A'})</span>
                                 <Button onClick={() => deleteRole(r.id)} variant="ghost" size="sm" className="text-red-600 hover:bg-red-100" aria-label="Delete Role"><PlaceholderTrashIcon/></Button>
                             </li>
                         ))}
                     </ul>
                     <div className="flex items-end space-x-2 mt-3">
                         <Input label="New Role Name" value={newRoleName} onChange={e => setNewRoleName(e.target.value)} placeholder="e.g., Pilot Flying" containerClassName="!mb-0 flex-grow" />
+                        <Input label="Authority Level" type="number" value={newRoleAuthLevel} onChange={e => setNewRoleAuthLevel(parseInt(e.target.value))} placeholder="e.g., 10" containerClassName="!mb-0 w-32" />
+
                         <Button onClick={addRole} className="h-10">Add Role</Button>
                     </div>
                 </div>

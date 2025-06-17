@@ -3,7 +3,8 @@ import { EdgeProps, getBezierPath, EdgeLabelRenderer, BaseEdge, Handle, Position
 
 interface CustomNodeData {
     label: string;
-    // This is the total number of communication links attached to this node
+    role?: string;
+    rank?: string;
     commCount: number;
 }
 
@@ -42,8 +43,16 @@ export const CustomNode: React.FC<{ data: CustomNodeData }> = ({ data }) => {
                 </React.Fragment>
             ))}
 
-
-            <div>{data.label}</div>
+            <div style={{ padding: '5px', textAlign: 'center' }}>
+                <div style={{ fontWeight: 'bold' }}>
+                    {data.label} {data.rank && data.rank !== 'GR' && `(${data.rank})`}
+                </div>
+                {data.role && (
+                    <div style={{ fontSize: '12px', fontStyle: 'italic', marginTop: '2px' }}>
+                        {data.role}
+                    </div>
+                )}
+            </div>
         </>
     );
 };

@@ -1,4 +1,4 @@
-// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/types.ts
+// airvair/stampwebtool/STAMPWebTool-f5c1dab5c5a55a938ebbcbf8004fb874ef32635f/types.ts
 // types.ts
 
 export enum AnalysisType {
@@ -116,6 +116,7 @@ export interface TeamMember extends Identifiable {
 export interface TeamRole extends Identifiable {
   name: string; // e.g., 'Pilot Flying', 'Pilot Monitoring'
   description?: string;
+  authorityLevel?: number; // Lower number = higher authority in diagram
 }
 
 export interface RoleAssignment {

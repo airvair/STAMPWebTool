@@ -14,6 +14,7 @@ const LayoutIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" v
 const NODE_WIDTH = 180;
 const BASE_NODE_HEIGHT = 60;
 const TEAM_CONTAINER_PADDING = 20;
+const TEAM_HEADER_HEIGHT = 40; // Added for top padding inside container
 
 interface TransformedData {
     nodes: Node[];
@@ -36,13 +37,15 @@ const transformAnalysisData = (
             const teamContainerId = `team-container-${controller.id}`;
             const memberNodes: Node[] = [];
 
-            // Sort assignments to ensure PM is on top
+            // Sort assignments by role authority level (lower is higher)
             const sortedAssignments = [...activeContext.assignments].sort((a, b) => {
-                const roleA = controller.teamDetails?.roles.find(r => r.id === a.roleId)?.name.toLowerCase() || '';
-                const roleB = controller.teamDetails?.roles.find(r => r.id === b.roleId)?.name.toLowerCase() || '';
-                if (roleA.includes('monitor')) return -1;
-                if (roleB.includes('monitor')) return 1;
-                return 0;
+                const roleA = controller.teamDetails?.roles.find(r => r.id === a.roleId);
+                const roleB = controller.teamDetails?.roles.find(r => r.id === b.roleId);
+
+                const authorityA = roleA?.authorityLevel ?? 99;
+                const authorityB = roleB?.authorityLevel ?? 99;
+
+                return authorityA - authorityB;
             });
 
             sortedAssignments.forEach((assignment, index) => {
@@ -52,8 +55,12 @@ const transformAnalysisData = (
                     memberNodes.push({
                         id: `${controller.id}-${member.id}`,
                         type: 'custom',
-                        position: { x: TEAM_CONTAINER_PADDING, y: TEAM_CONTAINER_PADDING + (index * (BASE_NODE_HEIGHT + 15)) },
-                        data: { label: `${member.name}\n(${role.name})` },
+                        position: { x: TEAM_CONTAINER_PADDING, y: TEAM_HEADER_HEIGHT + (index * (BASE_NODE_HEIGHT + 15)) },
+                        data: {
+                            label: member.name,
+                            role: role.name,
+                            rank: member.commandRank
+                        },
                         style: { backgroundColor: '#fff', width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #333' },
                         parentNode: teamContainerId,
                         extent: 'parent',
@@ -71,7 +78,7 @@ const transformAnalysisData = (
                     border: '2px dashed #555',
                     backgroundColor: 'rgba(200, 200, 200, 0.05)',
                     width: NODE_WIDTH + (TEAM_CONTAINER_PADDING * 2),
-                    height: (memberNodes.length * (BASE_NODE_HEIGHT + 15)) - 10 + (TEAM_CONTAINER_PADDING * 2)
+                    height: TEAM_HEADER_HEIGHT + (memberNodes.length * (BASE_NODE_HEIGHT + 15)) - 10 + TEAM_CONTAINER_PADDING
                 },
             });
 
