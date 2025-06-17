@@ -1,7 +1,7 @@
 // airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/components/step3_ControlStructure/partials/CommunicationLinksBuilder.tsx
 import React, { useState } from 'react';
 import { useAnalysis } from '../../../hooks/useAnalysis';
-import { Controller, SystemComponent, CommunicationPath } from '../../../types';
+import { Controller, SystemComponent, CommunicationPath, ControllerType } from '../../../types';
 import Select from '../../shared/Select';
 import Button from '../../shared/Button';
 import Textarea from '../../shared/Textarea';
@@ -30,29 +30,56 @@ const CommunicationLinksBuilder: React.FC = () => {
     const [editingCommId, setEditingCommId] = useState<string | null>(null);
 
     const controllerOptions = controllers.map(c => ({ value: c.id, label: c.name }));
+    const selectedSourceController = controllers.find(c => c.id === commSourceId);
+
+    // For intra-team communication
+    const isIntraTeam = commSourceId && commSourceId === commTargetId && selectedSourceController?.ctrlType === ControllerType.Team;
+    const memberOptions = selectedSourceController?.teamDetails?.members.map(m => ({ value: m.id, label: m.name })) || [];
+    const [sourceMemberId, setSourceMemberId] = useState('');
+    const [targetMemberId, setTargetMemberId] = useState('');
+
 
     const handleSaveCommunicationPath = () => {
-        if (!commSourceId || !commTargetId || !commDescription) return;
-        if (commSourceId === commTargetId) {
-            alert("A controller cannot communicate with itself.");
-            return;
+        let finalSourceId = commSourceId;
+        let finalTargetId = commTargetId;
+
+        if (isIntraTeam) {
+            if (!sourceMemberId || !targetMemberId || sourceMemberId === targetMemberId) {
+                alert("Please select two different members for intra-team communication.");
+                return;
+            }
+            finalSourceId = sourceMemberId;
+            finalTargetId = targetMemberId;
         }
+
+        if (!finalSourceId || !finalTargetId || !commDescription) return;
+
         if (editingCommId) {
-            updateCommunicationPath(editingCommId, { sourceControllerId: commSourceId, targetControllerId: commTargetId, description: commDescription });
+            updateCommunicationPath(editingCommId, { sourceControllerId: finalSourceId, targetControllerId: finalTargetId, description: commDescription });
         } else {
-            addCommunicationPath({ sourceControllerId: commSourceId, targetControllerId: commTargetId, description: commDescription });
+            // Note: For visualization, we'll need to know these are virtual nodes. This ID structure helps.
+            const sourcePrefix = isIntraTeam ? `${commSourceId}-` : '';
+            const targetPrefix = isIntraTeam ? `${commTargetId}-` : '';
+            addCommunicationPath({
+                sourceControllerId: `${sourcePrefix}${finalSourceId}`,
+                targetControllerId: `${targetPrefix}${finalTargetId}`,
+                description: commDescription
+            });
         }
         setCommSourceId(''); setCommTargetId(''); setCommDescription(''); setEditingCommId(null);
+        setSourceMemberId(''); setTargetMemberId('');
     };
 
     const editCommunicationPath = (comm: CommunicationPath) => {
         setEditingCommId(comm.id);
+        // This logic would need to be enhanced to handle editing of intra-team links
         setCommSourceId(comm.sourceControllerId);
         setCommTargetId(comm.targetControllerId);
         setCommDescription(comm.description);
     };
 
     const getItemName = (id: string) => {
+        // This function will need to be updated to resolve member names for intra-team links
         const ctrl = controllers.find(c => c.id === id);
         if (ctrl) return `${ctrl.name} (Controller)`;
         const comp = systemComponents.find(sc => sc.id === id);
@@ -64,9 +91,18 @@ const CommunicationLinksBuilder: React.FC = () => {
         <section>
             <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">5. Communication Links (Controller ↔ Controller)</h3>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 space-y-4">
-                <Select label="Controller One" value={commSourceId} onChange={e => setCommSourceId(e.target.value)} options={[{value: '', label: 'Select Controller'}, ...controllerOptions]} />
+                <Select label="Controller One" value={commSourceId} onChange={e => {setCommSourceId(e.target.value); setCommTargetId(e.target.value)}} options={[{value: '', label: 'Select Controller'}, ...controllerOptions]} />
                 <Select label="Controller Two" value={commTargetId} onChange={e => setCommTargetId(e.target.value)} options={[{value: '', label: 'Select Controller'}, ...controllerOptions]} />
-                <Textarea label="Description of Communication" value={commDescription} onChange={e => setCommDescription(e.target.value)} placeholder="e.g., Shared status reports, coordination meetings" />
+
+                {isIntraTeam && (
+                    <div className="p-3 border-t border-dashed border-slate-400 mt-4 space-y-4">
+                        <h4 className="text-sm font-semibold text-slate-700">Define Intra-Team Communication:</h4>
+                        <Select label="Source Member" value={sourceMemberId} onChange={e => setSourceMemberId(e.target.value)} options={[{value: '', label: 'Select Member'}, ...memberOptions]} />
+                        <Select label="Target Member" value={targetMemberId} onChange={e => setTargetMemberId(e.target.value)} options={[{value: '', label: 'Select Member'}, ...memberOptions]} />
+                    </div>
+                )}
+
+                <Textarea label="Description of Communication / Control" value={commDescription} onChange={e => setCommDescription(e.target.value)} placeholder="e.g., Monitoring and callouts, Shared status reports" />
                 <Button onClick={handleSaveCommunicationPath} leftIcon={<PlaceholderPlusIcon />}>
                     {editingCommId ? 'Update Communication Link' : 'Add Communication Link'}
                 </Button>

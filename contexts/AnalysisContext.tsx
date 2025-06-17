@@ -1,3 +1,4 @@
+// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/contexts/AnalysisContext.tsx
 import React, { createContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import {
   AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent,
@@ -22,6 +23,7 @@ interface AnalysisContextState {
   scenarios: CausalScenario[];
   requirements: Requirement[];
   sequenceOfEvents: EventDetail[]; // CAST specific
+  activeContexts: { [key: string]: string }; // NEW: To track active context for team controllers
 
   setAnalysisType: (type: AnalysisType, initialStep: string) => void;
   updateAnalysisSession: (data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => void;
@@ -85,6 +87,7 @@ interface AnalysisContextState {
   deleteRequirement: (id: string) => void;
 
   setCurrentStep: (stepPath: string) => void;
+  setActiveContext: (controllerId: string, contextId: string) => void; // NEW
   resetAnalysis: () => void;
 }
 
@@ -92,6 +95,7 @@ const initialState: AnalysisContextState = {
   analysisSession: null,
   losses: [], hazards: [], systemConstraints: [], systemComponents: [], controllers: [],
   controlPaths: [], feedbackPaths: [], communicationPaths: [], controlActions: [], ucas: [], uccas: [], scenarios: [], requirements: [], sequenceOfEvents: [],
+  activeContexts: {},
   setAnalysisType: () => {}, updateAnalysisSession: () => {},
   addLoss: () => {}, updateLoss: () => {}, deleteLoss: () => {},
   addHazard: () => {}, updateHazard: () => {}, deleteHazard: () => {},
@@ -108,6 +112,7 @@ const initialState: AnalysisContextState = {
   addScenario: () => {}, updateScenario: () => {}, deleteScenario: () => {},
   addRequirement: () => {}, updateRequirement: () => {}, deleteRequirement: () => {},
   setCurrentStep: () => {},
+  setActiveContext: () => {},
   resetAnalysis: () => {},
 };
 
@@ -133,6 +138,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const [uccas, setUccas] = useState<UCCA[]>(() => JSON.parse(localStorage.getItem('uccas') || '[]'));
   const [scenarios, setScenarios] = useState<CausalScenario[]>(() => JSON.parse(localStorage.getItem('scenarios') || '[]'));
   const [requirements, setRequirements] = useState<Requirement[]>(() => JSON.parse(localStorage.getItem('requirements') || '[]'));
+  const [activeContexts, setActiveContexts] = useState<{ [key: string]: string; }>(() => JSON.parse(localStorage.getItem('activeContexts') || '{}'));
+
 
   useEffect(() => { if (analysisSession) localStorage.setItem('analysisSession', JSON.stringify(analysisSession)); else localStorage.removeItem('analysisSession'); }, [analysisSession]);
   useEffect(() => { localStorage.setItem('losses', JSON.stringify(losses)); }, [losses]);
@@ -149,6 +156,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   useEffect(() => { localStorage.setItem('uccas', JSON.stringify(uccas)); }, [uccas]);
   useEffect(() => { localStorage.setItem('scenarios', JSON.stringify(scenarios)); }, [scenarios]);
   useEffect(() => { localStorage.setItem('requirements', JSON.stringify(requirements)); }, [requirements]);
+  useEffect(() => { localStorage.setItem('activeContexts', JSON.stringify(activeContexts)); }, [activeContexts]);
+
 
   const setAnalysisType = useCallback((type: AnalysisType, initialStep: string) => {
     const now = new Date().toISOString();
@@ -161,6 +170,10 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
       updatedAt: now,
       currentStep: initialStep,
     });
+  }, []);
+
+  const setActiveContext = useCallback((controllerId: string, contextId: string) => {
+    setActiveContexts(prev => ({...prev, [controllerId]: contextId}));
   }, []);
 
   const updateAnalysisSession = useCallback((data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => {
@@ -187,6 +200,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     setUccas([]); // Reset UCCAs
     setScenarios([]);
     setRequirements([]);
+    setActiveContexts({});
     localStorage.clear();
   }, []);
 
@@ -275,8 +289,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   return (
       <AnalysisContext.Provider value={{
         analysisSession, losses, hazards, systemConstraints, systemComponents, controllers, controlPaths, feedbackPaths,
-        communicationPaths, controlActions, ucas, uccas, scenarios, requirements, sequenceOfEvents,
-        setAnalysisType, updateAnalysisSession, setCurrentStep, resetAnalysis,
+        communicationPaths, controlActions, ucas, uccas, scenarios, requirements, sequenceOfEvents, activeContexts,
+        setAnalysisType, updateAnalysisSession, setCurrentStep, resetAnalysis, setActiveContext,
         addLoss: lossOps.add, updateLoss: lossOps.update, deleteLoss: lossOps.delete,
         addHazard: addHazard,
         updateHazard: updateHazard,

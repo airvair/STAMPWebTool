@@ -6,6 +6,7 @@ import ControlPathsBuilder from './partials/ControlPathsBuilder';
 import FeedbackPathsBuilder from './partials/FeedbackPathsBuilder';
 import CommunicationLinksBuilder from './partials/CommunicationLinksBuilder';
 import ControlStructureVisualization from './partials/ControlStructureVisualization';
+import VisualizationControlPanel from './partials/VisualizationControlPanel';
 
 const ControlStructureBuilder: React.FC = () => {
   return (
@@ -19,7 +20,7 @@ const ControlStructureBuilder: React.FC = () => {
         <SystemComponentsBuilder />
 
         <div className="p-4 bg-sky-50 border-l-4 border-sky-400 text-sky-800 rounded-r-lg">
-          <p className="font-semibold">Next Step: Controllers</p>
+          <h4 className="font-semibold text-base">Next Step: Controllers</h4>
           <p className="text-sm mt-1">
             Before adding controllers, please take a moment to ensure all the basic physical and process components of your system have been defined above. A complete foundation of controlled items will make defining the controllers and their relationships more straightforward and accurate. You can return later if you need to add more components.
           </p>
@@ -29,6 +30,7 @@ const ControlStructureBuilder: React.FC = () => {
         <ControlPathsBuilder />
         <FeedbackPathsBuilder />
         <CommunicationLinksBuilder />
+        <VisualizationControlPanel />
         <ControlStructureVisualization />
 
       </div>

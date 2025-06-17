@@ -35,13 +35,18 @@ const ControlPathsBuilder: React.FC = () => {
     const [cpHigherAuth, setCpHigherAuth] = useState(false);
     const [editingCpId, setEditingCpId] = useState<string | null>(null);
     const [currentActions, setCurrentActions] = useState<Omit<ControlAction, 'id' | 'controllerId' | 'controlPathId' | 'description' | 'isOutOfScope'>[]>([]);
+
+    // Updated Action state to include roleId
     const [actionVerb, setActionVerb] = useState('');
     const [actionObject, setActionObject] = useState('');
+    const [actionRoleId, setActionRoleId] = useState<string | undefined>(undefined);
 
     const controllerOptions = controllers.map(c => ({ value: c.id, label: c.name }));
     const componentOptions = systemComponents.map(sc => ({ value: sc.id, label: sc.name }));
     const pathTargetOptions = [...controllerOptions, ...componentOptions];
     const selectedControllerForCP = controllers.find(c => c.id === cpSourceCtrlId);
+
+    const roleOptions = selectedControllerForCP?.teamDetails?.roles.map(r => ({ value: r.id, label: r.name })) || [];
 
     const getItemName = (id: string) => {
         const ctrl = controllers.find(c => c.id === id);
@@ -53,9 +58,11 @@ const ControlPathsBuilder: React.FC = () => {
 
     const handleAddAction = () => {
         if (!actionVerb.trim() || !actionObject.trim()) return;
-        setCurrentActions([...currentActions, { verb: actionVerb, object: actionObject }]);
+        const newAction = { verb: actionVerb, object: actionObject, roleId: actionRoleId };
+        setCurrentActions([...currentActions, newAction]);
         setActionVerb('');
         setActionObject('');
+        setActionRoleId(undefined);
     };
 
     const handleDeleteAction = (index: number) => {
@@ -96,7 +103,7 @@ const ControlPathsBuilder: React.FC = () => {
         setCpSourceCtrlId(cp.sourceControllerId);
         setCpTargetId(cp.targetId);
         setCpHigherAuth(!!cp.higherAuthority);
-        const relatedActions = controlActions.filter(ca => ca.controlPathId === cp.id).map(({ verb, object }) => ({ verb, object }));
+        const relatedActions = controlActions.filter(ca => ca.controlPathId === cp.id).map(({ verb, object, roleId }) => ({ verb, object, roleId }));
         setCurrentActions(relatedActions);
     };
 
@@ -104,39 +111,6 @@ const ControlPathsBuilder: React.FC = () => {
         const actionsToDelete = controlActions.filter(ca => ca.controlPathId === pathId);
         actionsToDelete.forEach(ca => deleteControlAction(ca.id));
         deleteControlPath(pathId);
-    };
-
-    const renderControlActionExamples = (type: ControllerType | undefined) => {
-        if (!type) return null;
-        let examples: string[] = [];
-        let title = '';
-        switch (type) {
-            case ControllerType.Human:
-                title = 'Human Controller Examples:';
-                examples = ['Verb: "Apply", Object: "brakes"', 'Verb: "Steer", Object: "left"', 'Verb: "Request", Object: "higher altitude"'];
-                break;
-            case ControllerType.Software:
-                title = 'Software Controller Examples:';
-                examples = ['Verb: "SEND_BRAKE_COMMAND", Object: "pressure: 50%"', 'Verb: "SET_MODE", Object: "standby"', 'Verb: "DISPLAY_WARNING", Object: "Engine Overheat"'];
-                break;
-            case ControllerType.Organisation:
-                title = 'Organization Controller Examples:';
-                examples = ['Verb: "ISSUE", Object: "SAFETY_DIRECTIVE_123"', 'Verb: "UPDATE", Object: "MAINTENANCE_PROCEDURE_4.1"'];
-                break;
-            case ControllerType.Team:
-                title = 'Team Controller Examples:';
-                examples = ['Verb: "EXECUTE", Object: "EMERGENCY_SHUTDOWN_CHECKLIST"', 'Verb: "COMMUNICATE", Object: "SYSTEM_STATUS_TO_ATC"'];
-                break;
-            default: return null;
-        }
-        return (
-            <div className="text-xs text-slate-500 mt-1 pl-1">
-                <p className="font-semibold">{title}</p>
-                <ul className="list-disc list-inside ml-2">
-                    {examples.map((ex, i) => <li key={i}>{ex}</li>)}
-                </ul>
-            </div>
-        );
     };
 
     return (
@@ -165,18 +139,23 @@ const ControlPathsBuilder: React.FC = () => {
                         3. Describe all the <Tooltip content={GLOSSARY['Control Action']}>control action(s)</Tooltip> available to that controller:
                     </label>
                     <div className="flex items-end space-x-2">
-                        <Input label="Action Verb" value={actionVerb} onChange={e => setActionVerb(e.target.value)} placeholder="e.g., INCREASE, MAINTAIN" disabled={!cpSourceCtrlId} containerClassName="flex-grow !mb-0"/>
+                        <Input label="Action Verb" value={actionVerb} onChange={e => setActionVerb(e.target.value)} placeholder="e.g., INCREASE" disabled={!cpSourceCtrlId} containerClassName="flex-grow !mb-0"/>
                         <Input label="Action Object" value={actionObject} onChange={e => setActionObject(e.target.value)} placeholder="e.g., PITCH" disabled={!cpSourceCtrlId} containerClassName="flex-grow !mb-0"/>
+                        {selectedControllerForCP?.ctrlType === ControllerType.Team && roleOptions.length > 0 && (
+                            <Select label="Associated Role" value={actionRoleId || ''} onChange={e => setActionRoleId(e.target.value)} options={[{label: 'N/A', value:''}, ...roleOptions]} containerClassName="flex-grow !mb-0" />
+                        )}
                         <Button onClick={handleAddAction} leftIcon={<PlaceholderPlusIcon/>} disabled={!cpSourceCtrlId || !actionVerb || !actionObject} className="h-10">Add Action</Button>
                     </div>
-                    {renderControlActionExamples(selectedControllerForCP?.ctrlType)}
+
                     {currentActions.length > 0 && (
                         <div className="mt-2 space-y-1">
                             <h4 className="text-sm font-medium text-slate-600">Actions for this path:</h4>
                             <ul className="bg-white p-2 rounded-md border border-slate-200 divide-y divide-slate-200">
                                 {currentActions.map((action, index) => (
                                     <li key={index} className="flex justify-between items-center text-sm py-2">
-                                        <span>{action.verb} {action.object}</span>
+                                        <span>{action.verb} {action.object}
+                                            {action.roleId && <em className="text-slate-500 ml-2">({roleOptions.find(r => r.value === action.roleId)?.label || '...'})</em>}
+                                        </span>
                                         <Button onClick={() => handleDeleteAction(index)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete Action"><PlaceholderTrashIcon /></Button>
                                     </li>
                                 ))}
@@ -184,7 +163,9 @@ const ControlPathsBuilder: React.FC = () => {
                         </div>
                     )}
                 </div>
-                <Checkbox label="Does the item being controlled have higher authority than the controller? (This is rare and usually applies to oversight relationships)" checked={cpHigherAuth} onChange={e => setCpHigherAuth(e.target.checked)} />
+                {selectedControllerForCP?.ctrlType === ControllerType.Team && (
+                    <Checkbox label="Does the item being controlled have higher authority than the controller? (This is rare and usually applies to oversight relationships)" checked={cpHigherAuth} onChange={e => setCpHigherAuth(e.target.checked)} />
+                )}
                 <Button onClick={handleSaveControlPath} leftIcon={<PlaceholderPlusIcon />}>
                     {editingCpId ? 'Update Control Path & Actions' : 'Add Control Path & Actions'}
                 </Button>
