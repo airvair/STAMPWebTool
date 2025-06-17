@@ -20,7 +20,6 @@ const PlaceholderTrashIcon = () => (
 const CommunicationLinksBuilder: React.FC = () => {
     const {
         controllers,
-        systemComponents,
         communicationPaths, addCommunicationPath, updateCommunicationPath, deleteCommunicationPath,
     } = useAnalysis();
 
@@ -40,58 +39,64 @@ const CommunicationLinksBuilder: React.FC = () => {
 
 
     const handleSaveCommunicationPath = () => {
-        let finalSourceId = commSourceId;
-        let finalTargetId = commTargetId;
+        if (!commSourceId || !commTargetId || !commDescription) return;
+
+        let pathData: Omit<CommunicationPath, 'id'> = {
+            sourceControllerId: commSourceId,
+            targetControllerId: commTargetId,
+            description: commDescription,
+        };
 
         if (isIntraTeam) {
             if (!sourceMemberId || !targetMemberId || sourceMemberId === targetMemberId) {
                 alert("Please select two different members for intra-team communication.");
                 return;
             }
-            finalSourceId = sourceMemberId;
-            finalTargetId = targetMemberId;
+            pathData.sourceMemberId = sourceMemberId;
+            pathData.targetMemberId = targetMemberId;
         }
-
-        if (!finalSourceId || !finalTargetId || !commDescription) return;
 
         if (editingCommId) {
-            updateCommunicationPath(editingCommId, { sourceControllerId: finalSourceId, targetControllerId: finalTargetId, description: commDescription });
+            updateCommunicationPath(editingCommId, pathData);
         } else {
-            // Note: For visualization, we'll need to know these are virtual nodes. This ID structure helps.
-            const sourcePrefix = isIntraTeam ? `${commSourceId}-` : '';
-            const targetPrefix = isIntraTeam ? `${commTargetId}-` : '';
-            addCommunicationPath({
-                sourceControllerId: `${sourcePrefix}${finalSourceId}`,
-                targetControllerId: `${targetPrefix}${finalTargetId}`,
-                description: commDescription
-            });
+            addCommunicationPath(pathData);
         }
+
+        // Reset form
         setCommSourceId(''); setCommTargetId(''); setCommDescription(''); setEditingCommId(null);
         setSourceMemberId(''); setTargetMemberId('');
     };
 
     const editCommunicationPath = (comm: CommunicationPath) => {
         setEditingCommId(comm.id);
-        // This logic would need to be enhanced to handle editing of intra-team links
         setCommSourceId(comm.sourceControllerId);
         setCommTargetId(comm.targetControllerId);
         setCommDescription(comm.description);
+        setSourceMemberId(comm.sourceMemberId || '');
+        setTargetMemberId(comm.targetMemberId || '');
     };
 
-    const getItemName = (id: string) => {
-        // This function will need to be updated to resolve member names for intra-team links
-        const ctrl = controllers.find(c => c.id === id);
-        if (ctrl) return `${ctrl.name} (Controller)`;
-        const comp = systemComponents.find(sc => sc.id === id);
-        if (comp) return `${comp.name} (Component)`;
-        return 'Unknown';
+    const getItemName = (comm: CommunicationPath, type: 'source' | 'target'): string => {
+        const id = type === 'source' ? comm.sourceControllerId : comm.targetControllerId;
+        const memberId = type === 'source' ? comm.sourceMemberId : comm.targetMemberId;
+
+        const controller = controllers.find(c => c.id === id);
+        if (!controller) return 'Unknown';
+
+        if (memberId && controller.teamDetails) {
+            const member = controller.teamDetails.members.find(m => m.id === memberId);
+            return member ? `${member.name} (in ${controller.name})` : `Unknown Member (in ${controller.name})`;
+        }
+
+        return `${controller.name} (Controller)`;
     };
+
 
     return (
         <section>
             <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">5. Communication Links (Controller ↔ Controller)</h3>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 space-y-4">
-                <Select label="Controller One" value={commSourceId} onChange={e => {setCommSourceId(e.target.value); setCommTargetId(e.target.value)}} options={[{value: '', label: 'Select Controller'}, ...controllerOptions]} />
+                <Select label="Controller One" value={commSourceId} onChange={e => {setCommSourceId(e.target.value);}} options={[{value: '', label: 'Select Controller'}, ...controllerOptions]} />
                 <Select label="Controller Two" value={commTargetId} onChange={e => setCommTargetId(e.target.value)} options={[{value: '', label: 'Select Controller'}, ...controllerOptions]} />
 
                 {isIntraTeam && (
@@ -111,7 +116,7 @@ const CommunicationLinksBuilder: React.FC = () => {
                 {communicationPaths.map(comm => (
                     <li key={comm.id} className="flex justify-between items-center p-3 border border-slate-300 rounded-md bg-white shadow-sm">
                         <div>
-                            <p><span className="font-semibold">{getItemName(comm.sourceControllerId)}</span> ↔ <span className="font-semibold">{getItemName(comm.targetControllerId)}</span></p>
+                            <p><span className="font-semibold">{getItemName(comm, 'source')}</span> ↔ <span className="font-semibold">{getItemName(comm, 'target')}</span></p>
                             <p className="text-sm text-slate-600">Communication: {comm.description}</p>
                         </div>
                         <div className="flex items-center space-x-1 ml-4">
