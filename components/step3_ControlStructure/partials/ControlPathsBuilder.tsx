@@ -1,4 +1,3 @@
-// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/components/step3_ControlStructure/partials/ControlPathsBuilder.tsx
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAnalysis } from '../../../hooks/useAnalysis';
@@ -36,10 +35,11 @@ const ControlPathsBuilder: React.FC = () => {
     const [editingCpId, setEditingCpId] = useState<string | null>(null);
     const [currentActions, setCurrentActions] = useState<Omit<ControlAction, 'id' | 'controllerId' | 'controlPathId' | 'description' | 'isOutOfScope'>[]>([]);
 
-    // Updated Action state to include roleId
+    // Updated Action state to include both roleId and memberId
     const [actionVerb, setActionVerb] = useState('');
     const [actionObject, setActionObject] = useState('');
     const [actionRoleId, setActionRoleId] = useState<string | undefined>(undefined);
+    const [actionMemberId, setActionMemberId] = useState<string | undefined>(undefined);
 
     const controllerOptions = controllers.map(c => ({ value: c.id, label: c.name }));
     const componentOptions = systemComponents.map(sc => ({ value: sc.id, label: sc.name }));
@@ -47,6 +47,10 @@ const ControlPathsBuilder: React.FC = () => {
     const selectedControllerForCP = controllers.find(c => c.id === cpSourceCtrlId);
 
     const roleOptions = selectedControllerForCP?.teamDetails?.roles.map(r => ({ value: r.id, label: r.name })) || [];
+    const memberOptions = selectedControllerForCP?.teamDetails?.members.map(m => ({ 
+        value: m.id, 
+        label: `${m.name}${m.commandRank ? ` (${m.commandRank})` : ''}`
+    })) || [];
 
     const getItemName = (id: string) => {
         const ctrl = controllers.find(c => c.id === id);
@@ -58,11 +62,17 @@ const ControlPathsBuilder: React.FC = () => {
 
     const handleAddAction = () => {
         if (!actionVerb.trim() || !actionObject.trim()) return;
-        const newAction = { verb: actionVerb, object: actionObject, roleId: actionRoleId };
+        const newAction = { 
+            verb: actionVerb, 
+            object: actionObject, 
+            roleId: actionRoleId,
+            memberId: actionMemberId
+        };
         setCurrentActions([...currentActions, newAction]);
         setActionVerb('');
         setActionObject('');
         setActionRoleId(undefined);
+        setActionMemberId(undefined);
     };
 
     const handleDeleteAction = (index: number) => {
@@ -103,7 +113,7 @@ const ControlPathsBuilder: React.FC = () => {
         setCpSourceCtrlId(cp.sourceControllerId);
         setCpTargetId(cp.targetId);
         setCpHigherAuth(!!cp.higherAuthority);
-        const relatedActions = controlActions.filter(ca => ca.controlPathId === cp.id).map(({ verb, object, roleId }) => ({ verb, object, roleId }));
+        const relatedActions = controlActions.filter(ca => ca.controlPathId === cp.id).map(({ verb, object, roleId, memberId }) => ({ verb, object, roleId, memberId }));
         setCurrentActions(relatedActions);
     };
 
@@ -111,6 +121,16 @@ const ControlPathsBuilder: React.FC = () => {
         const actionsToDelete = controlActions.filter(ca => ca.controlPathId === pathId);
         actionsToDelete.forEach(ca => deleteControlAction(ca.id));
         deleteControlPath(pathId);
+    };
+
+    const getMemberName = (memberId: string) => {
+        const member = selectedControllerForCP?.teamDetails?.members.find(m => m.id === memberId);
+        return member ? `${member.name}${member.commandRank ? ` (${member.commandRank})` : ''}` : 'Unknown Member';
+    };
+
+    const getRoleName = (roleId: string) => {
+        const role = selectedControllerForCP?.teamDetails?.roles.find(r => r.id === roleId);
+        return role ? role.name : 'Unknown Role';
     };
 
     return (
@@ -141,8 +161,23 @@ const ControlPathsBuilder: React.FC = () => {
                     <div className="flex items-end space-x-2">
                         <Input label="Action Verb" value={actionVerb} onChange={e => setActionVerb(e.target.value)} placeholder="e.g., INCREASE" disabled={!cpSourceCtrlId} containerClassName="flex-grow !mb-0"/>
                         <Input label="Action Object" value={actionObject} onChange={e => setActionObject(e.target.value)} placeholder="e.g., PITCH" disabled={!cpSourceCtrlId} containerClassName="flex-grow !mb-0"/>
+                        {selectedControllerForCP?.ctrlType === ControllerType.Team && memberOptions.length > 0 && (
+                            <Select 
+                                label="Team Member" 
+                                value={actionMemberId || ''} 
+                                onChange={e => setActionMemberId(e.target.value || undefined)} 
+                                options={[{label: 'Any Member', value: ''}, ...memberOptions]} 
+                                containerClassName="flex-grow !mb-0" 
+                            />
+                        )}
                         {selectedControllerForCP?.ctrlType === ControllerType.Team && roleOptions.length > 0 && (
-                            <Select label="Associated Role" value={actionRoleId || ''} onChange={e => setActionRoleId(e.target.value)} options={[{label: 'N/A', value:''}, ...roleOptions]} containerClassName="flex-grow !mb-0" />
+                            <Select 
+                                label="Associated Role" 
+                                value={actionRoleId || ''} 
+                                onChange={e => setActionRoleId(e.target.value || undefined)} 
+                                options={[{label: 'No Role', value: ''}, ...roleOptions]} 
+                                containerClassName="flex-grow !mb-0" 
+                            />
                         )}
                         <Button onClick={handleAddAction} leftIcon={<PlaceholderPlusIcon/>} disabled={!cpSourceCtrlId || !actionVerb || !actionObject} className="h-10">Add Action</Button>
                     </div>
@@ -153,9 +188,15 @@ const ControlPathsBuilder: React.FC = () => {
                             <ul className="bg-white p-2 rounded-md border border-slate-200 divide-y divide-slate-200">
                                 {currentActions.map((action, index) => (
                                     <li key={index} className="flex justify-between items-center text-sm py-2">
-                                        <span>{action.verb} {action.object}
-                                            {action.roleId && <em className="text-slate-500 ml-2">({roleOptions.find(r => r.value === action.roleId)?.label || '...'})</em>}
-                                        </span>
+                                        <div>
+                                            <span className="font-medium">{action.verb} {action.object}</span>
+                                            <div className="text-slate-500 text-xs mt-1">
+                                                {action.memberId && <span>Member: {getMemberName(action.memberId)}</span>}
+                                                {action.memberId && action.roleId && <span> • </span>}
+                                                {action.roleId && <span>Role: {getRoleName(action.roleId)}</span>}
+                                                {!action.memberId && !action.roleId && selectedControllerForCP?.ctrlType === ControllerType.Team && <span>Any team member</span>}
+                                            </div>
+                                        </div>
                                         <Button onClick={() => handleDeleteAction(index)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete Action"><PlaceholderTrashIcon /></Button>
                                     </li>
                                 ))}
