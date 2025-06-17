@@ -30,76 +30,90 @@ const transformAnalysisData = (
 
     controllers.forEach(controller => {
         const isComplexTeam = controller.ctrlType === ControllerType.Team && !controller.teamDetails?.isSingleUnit;
-        const activeContextId = activeContexts?.[controller.id];
-        const activeContext = controller.teamDetails?.contexts.find(c => c.id === activeContextId);
 
-        if (isComplexTeam && activeContext && controller.teamDetails) {
+        if (isComplexTeam) {
             const teamContainerId = `team-container-${controller.id}`;
-            const memberNodes: Node[] = [];
+            const activeContextId = activeContexts?.[controller.id];
+            const activeContext = controller.teamDetails?.contexts.find(c => c.id === activeContextId);
 
-            const highestRank = controller.teamDetails.members
-                .map(m => m.commandRank)
-                .sort()[0];
+            if (activeContext && controller.teamDetails) {
+                // Case: Complex team WITH an active context
+                const memberNodes: Node[] = [];
+                const highestRank = controller.teamDetails.members.map(m => m.commandRank).sort()[0];
+                const sortedAssignments = [...activeContext.assignments].sort((a, b) => {
+                    const roleA = controller.teamDetails?.roles.find(r => r.id === a.roleId);
+                    const roleB = controller.teamDetails?.roles.find(r => r.id === b.roleId);
+                    const authorityA = roleA?.authorityLevel ?? 99;
+                    const authorityB = roleB?.authorityLevel ?? 99;
+                    return authorityA - authorityB;
+                });
 
-            const sortedAssignments = [...activeContext.assignments].sort((a, b) => {
-                const roleA = controller.teamDetails?.roles.find(r => r.id === a.roleId);
-                const roleB = controller.teamDetails?.roles.find(r => r.id === b.roleId);
+                sortedAssignments.forEach((assignment, index) => {
+                    const member = controller.teamDetails?.members.find(m => m.id === assignment.memberId);
+                    const role = controller.teamDetails?.roles.find(r => r.id === assignment.roleId);
+                    if (member && role) {
+                        const isCommander = member.commandRank === highestRank;
+                        memberNodes.push({
+                            id: `${controller.id}-${member.id}`,
+                            type: 'custom',
+                            position: { x: TEAM_CONTAINER_PADDING, y: TEAM_HEADER_HEIGHT + (index * (BASE_NODE_HEIGHT + 15)) },
+                            data: { label: member.name, role: role.name, rank: member.commandRank, isCommander: isCommander },
+                            style: { backgroundColor: '#fff', width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: isCommander ? '2.5px solid #DAA520' : '1px solid #333' },
+                            parentNode: teamContainerId,
+                            extent: 'parent',
+                            draggable: false,
+                        });
+                    }
+                });
 
-                const authorityA = roleA?.authorityLevel ?? 99;
-                const authorityB = roleB?.authorityLevel ?? 99;
+                nodes.push({
+                    id: teamContainerId,
+                    type: 'default',
+                    position: { x: 0, y: 0 },
+                    data: { label: <strong>{controller.name}</strong> },
+                    style: {
+                        border: '2px dashed #555',
+                        backgroundColor: CONTROLLER_TYPE_FILL_COLORS[ControllerType.Team],
+                        width: NODE_WIDTH + (TEAM_CONTAINER_PADDING * 2),
+                        height: TEAM_HEADER_HEIGHT + (memberNodes.length * (BASE_NODE_HEIGHT + 15)) - 10 + TEAM_CONTAINER_PADDING
+                    },
+                });
+                nodes.push(...memberNodes);
 
-                return authorityA - authorityB;
-            });
-
-            sortedAssignments.forEach((assignment, index) => {
-                const member = controller.teamDetails?.members.find(m => m.id === assignment.memberId);
-                const role = controller.teamDetails?.roles.find(r => r.id === assignment.roleId);
-                if (member && role) {
-                    const isCommander = member.commandRank === highestRank;
-                    memberNodes.push({
-                        id: `${controller.id}-${member.id}`,
-                        type: 'custom',
-                        position: { x: TEAM_CONTAINER_PADDING, y: TEAM_HEADER_HEIGHT + (index * (BASE_NODE_HEIGHT + 15)) },
-                        data: {
-                            label: member.name,
-                            role: role.name,
-                            rank: member.commandRank,
-                            isCommander: isCommander
-                        },
-                        style: {
-                            backgroundColor: '#fff',
-                            width: NODE_WIDTH,
-                            height: BASE_NODE_HEIGHT,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            textAlign: 'center',
-                            border: isCommander ? '2.5px solid #DAA520' : '1px solid #333'
-                        },
-                        parentNode: teamContainerId,
-                        extent: 'parent',
-                        draggable: false,
-                    });
-                }
-            });
-
-            nodes.push({
-                id: teamContainerId,
-                type: 'default',
-                position: { x: 0, y: 0 },
-                data: { label: <strong>{controller.name}</strong> },
-                style: {
-                    border: '2px dashed #555',
-                    backgroundColor: 'rgba(200, 200, 200, 0.05)',
-                    width: NODE_WIDTH + (TEAM_CONTAINER_PADDING * 2),
-                    height: TEAM_HEADER_HEIGHT + (memberNodes.length * (BASE_NODE_HEIGHT + 15)) - 10 + TEAM_CONTAINER_PADDING
-                },
-            });
-
-            nodes.push(...memberNodes);
+            } else {
+                // Case: Complex team WITHOUT an active context
+                nodes.push({
+                    id: `team-container-${controller.id}`,
+                    type: 'default',
+                    position: { x: 0, y: 0 },
+                    data: {
+                        label: (
+                            <div style={{ textAlign: 'center' }}>
+                                <strong>{controller.name}</strong>
+                                <div style={{ fontSize: '10px', marginTop: '4px', color: '#666' }}>
+                                    Select a context to view members
+                                </div>
+                            </div>
+                        ),
+                    },
+                    style: {
+                        border: '2px dashed #555',
+                        backgroundColor: CONTROLLER_TYPE_FILL_COLORS[ControllerType.Team], // ← changed line
+                        width: NODE_WIDTH + TEAM_CONTAINER_PADDING * 2,
+                        height: BASE_NODE_HEIGHT + TEAM_CONTAINER_PADDING,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    },
+                });
+            }
         } else {
+            // Case: Simple team or non-team controller
             nodes.push({
-                id: controller.id, type: 'custom', position: { x: 0, y: 0 }, data: { label: controller.name },
+                id: controller.id,
+                type: 'custom',
+                position: { x: 0, y: 0 },
+                data: { label: controller.name },
                 style: { backgroundColor: CONTROLLER_TYPE_FILL_COLORS[controller.ctrlType], width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000' },
             });
         }
