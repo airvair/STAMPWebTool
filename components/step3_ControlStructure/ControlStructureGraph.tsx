@@ -1,4 +1,4 @@
-// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/components/step3_ControlStructure/ControlStructureGraph.tsx
+// airvair/stampwebtool/STAMPWebTool-f5c1dab5c5a55a938ebbcbf8004fb874ef32635f/components/step3_ControlStructure/ControlStructureGraph.tsx
 import React, { useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, { Background, Controls, Node, Edge, useNodesState, useEdgesState, Panel, useReactFlow, ReactFlowProvider, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -14,7 +14,7 @@ const LayoutIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" v
 const NODE_WIDTH = 180;
 const BASE_NODE_HEIGHT = 60;
 const TEAM_CONTAINER_PADDING = 20;
-const TEAM_HEADER_HEIGHT = 40; // Added for top padding inside container
+const TEAM_HEADER_HEIGHT = 40;
 
 interface TransformedData {
     nodes: Node[];
@@ -33,11 +33,14 @@ const transformAnalysisData = (
         const activeContextId = activeContexts?.[controller.id];
         const activeContext = controller.teamDetails?.contexts.find(c => c.id === activeContextId);
 
-        if (isComplexTeam && activeContext) {
+        if (isComplexTeam && activeContext && controller.teamDetails) {
             const teamContainerId = `team-container-${controller.id}`;
             const memberNodes: Node[] = [];
 
-            // Sort assignments by role authority level (lower is higher)
+            const highestRank = controller.teamDetails.members
+                .map(m => m.commandRank)
+                .sort()[0];
+
             const sortedAssignments = [...activeContext.assignments].sort((a, b) => {
                 const roleA = controller.teamDetails?.roles.find(r => r.id === a.roleId);
                 const roleB = controller.teamDetails?.roles.find(r => r.id === b.roleId);
@@ -52,6 +55,7 @@ const transformAnalysisData = (
                 const member = controller.teamDetails?.members.find(m => m.id === assignment.memberId);
                 const role = controller.teamDetails?.roles.find(r => r.id === assignment.roleId);
                 if (member && role) {
+                    const isCommander = member.commandRank === highestRank;
                     memberNodes.push({
                         id: `${controller.id}-${member.id}`,
                         type: 'custom',
@@ -59,12 +63,22 @@ const transformAnalysisData = (
                         data: {
                             label: member.name,
                             role: role.name,
-                            rank: member.commandRank
+                            rank: member.commandRank,
+                            isCommander: isCommander
                         },
-                        style: { backgroundColor: '#fff', width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #333' },
+                        style: {
+                            backgroundColor: '#fff',
+                            width: NODE_WIDTH,
+                            height: BASE_NODE_HEIGHT,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: 'center',
+                            border: isCommander ? '2.5px solid #DAA520' : '1px solid #333'
+                        },
                         parentNode: teamContainerId,
                         extent: 'parent',
-                        draggable: false, // Make member nodes non-draggable
+                        draggable: false,
                     });
                 }
             });
@@ -84,7 +98,6 @@ const transformAnalysisData = (
 
             nodes.push(...memberNodes);
         } else {
-            // STANDARD CONTROLLER NODE
             nodes.push({
                 id: controller.id, type: 'custom', position: { x: 0, y: 0 }, data: { label: controller.name },
                 style: { backgroundColor: CONTROLLER_TYPE_FILL_COLORS[controller.ctrlType], width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000' },
@@ -93,7 +106,7 @@ const transformAnalysisData = (
     });
 
     systemComponents.forEach(component => {
-        nodes.push({ id: component.id, type: 'default', position: { x: 0, y: 0 }, data: { label: component.name }, style: { width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000', backgroundColor: '#fff' } });
+        nodes.push({ id: component.id, type: 'custom', position: { x: 0, y: 0 }, data: { label: component.name }, style: { width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000', backgroundColor: '#fff' } });
     });
 
     controlPaths.forEach(path => {
@@ -115,24 +128,24 @@ const transformAnalysisData = (
                 const memberAssignment = activeContext.assignments.find(a => a.roleId === roleId);
                 const memberId = memberAssignment?.memberId;
                 if(memberId) {
-                    edges.push({ id: `cp-${path.id}-${roleId}`, source: `${sourceController.id}-${memberId}`, target: path.targetId, type: 'custom', label: actions.map(a => a.verb).join(', '), markerEnd: { type: 'arrowclosed', color: '#000' }, style: { stroke: '#000' } });
+                    edges.push({ id: `cp-${path.id}-${roleId}`, source: `${sourceController.id}-${memberId}`, target: path.targetId, type: 'custom', label: actions.map(a => a.verb).join(', '), markerEnd: { type: 'arrowclosed', color: '#000' }, style: { stroke: '#000' }, sourcePosition: Position.Bottom, targetPosition: Position.Top, sourceHandle: 'bottom_left', targetHandle: 'top_left' });
                 }
             });
         } else {
-            edges.push({ id: `cp-${path.id}`, source: path.sourceControllerId, target: path.targetId, type: 'custom', label: path.controls, markerEnd: { type: 'arrowclosed', color: '#000' }, style: { stroke: '#000' } });
+            edges.push({ id: `cp-${path.id}`, source: path.sourceControllerId, target: path.targetId, type: 'custom', label: path.controls, markerEnd: { type: 'arrowclosed', color: '#000' }, style: { stroke: '#000' }, sourcePosition: Position.Bottom, targetPosition: Position.Top, sourceHandle: 'bottom_left', targetHandle: 'top_left' });
         }
     });
 
-    feedbackPaths.forEach(path => edges.push({ id: `fp-${path.id}`, source: path.sourceId, target: path.targetControllerId, type: 'custom', label: path.feedback, markerEnd: { type: 'arrowclosed', color: '#000' }, style: { stroke: '#16a34a' }, animated: !path.isMissing }));
+    feedbackPaths.forEach(path => edges.push({ id: `fp-${path.id}`, source: path.sourceId, target: path.targetControllerId, type: 'custom', label: path.feedback, markerEnd: { type: 'arrowclosed', color: '#16a34a' }, style: { stroke: '#16a34a' }, animated: !path.isMissing, sourcePosition: Position.Top, targetPosition: Position.Bottom, sourceHandle: 'top_right', targetHandle: 'bottom_right' }));
 
     communicationPaths.forEach(path => {
         if(path.sourceMemberId && path.targetMemberId && path.sourceControllerId === path.targetControllerId) {
             edges.push({
                 id: path.id, source: `${path.sourceControllerId}-${path.sourceMemberId}`, target: `${path.targetControllerId}-${path.targetMemberId}`, type: 'custom', label: path.description,
-                style: { stroke: '#5a5a5a', strokeDasharray: '5 5' }, markerEnd: { type: 'arrowclosed', color: '#5a5a5a' }
+                style: { stroke: '#5a5a5a', strokeDasharray: '5 5' }, markerEnd: { type: 'arrowclosed', color: '#5a5a5a' }, sourcePosition: Position.Right, targetPosition: Position.Left
             });
         } else {
-            edges.push({ id: path.id, source: path.sourceControllerId, target: path.targetControllerId, type: 'custom', label: path.description, style: { stroke: '#888', strokeDasharray: '5 5' } });
+            edges.push({ id: path.id, source: path.sourceControllerId, target: path.targetControllerId, type: 'custom', label: path.description, style: { stroke: '#888', strokeDasharray: '5 5' }, sourcePosition: Position.Right, targetPosition: Position.Left });
         }
     });
 
