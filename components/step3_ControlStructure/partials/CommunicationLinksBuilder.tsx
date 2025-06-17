@@ -1,3 +1,4 @@
+// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/components/step3_ControlStructure/partials/CommunicationLinksBuilder.tsx
 import React, { useState } from 'react';
 import { useAnalysis } from '../../../hooks/useAnalysis';
 import { Controller, SystemComponent, CommunicationPath } from '../../../types';
@@ -72,12 +73,14 @@ const CommunicationLinksBuilder: React.FC = () => {
             </div>
             <ul className="space-y-2">
                 {communicationPaths.map(comm => (
-                    <li key={comm.id} className="p-3 border border-slate-300 rounded-md bg-white shadow-sm">
-                        <p><span className="font-semibold">{getItemName(comm.sourceControllerId)}</span> ↔ <span className="font-semibold">{getItemName(comm.targetControllerId)}</span></p>
-                        <p className="text-sm text-slate-600">Communication: {comm.description}</p>
-                        <div className="mt-1 space-x-2">
-                            <Button onClick={() => editCommunicationPath(comm)} size="sm" variant="ghost" className="p-1" aria-label="Edit">Edit</Button>
-                            <Button onClick={() => deleteCommunicationPath(comm.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 p-1" aria-label="Delete"><PlaceholderTrashIcon /></Button>
+                    <li key={comm.id} className="flex justify-between items-center p-3 border border-slate-300 rounded-md bg-white shadow-sm">
+                        <div>
+                            <p><span className="font-semibold">{getItemName(comm.sourceControllerId)}</span> ↔ <span className="font-semibold">{getItemName(comm.targetControllerId)}</span></p>
+                            <p className="text-sm text-slate-600">Communication: {comm.description}</p>
+                        </div>
+                        <div className="flex items-center space-x-1 ml-4">
+                            <Button onClick={() => editCommunicationPath(comm)} size="sm" variant="ghost" className="text-slate-600 hover:bg-slate-100">Edit</Button>
+                            <Button onClick={() => deleteCommunicationPath(comm.id)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete"><PlaceholderTrashIcon /></Button>
                         </div>
                     </li>
                 ))}

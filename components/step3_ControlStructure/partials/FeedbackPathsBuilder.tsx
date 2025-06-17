@@ -1,3 +1,4 @@
+// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/components/step3_ControlStructure/partials/FeedbackPathsBuilder.tsx
 import React, { useState } from 'react';
 import { useAnalysis } from '../../../hooks/useAnalysis';
 import { Controller, FeedbackPath, SystemComponent } from '../../../types';
@@ -78,13 +79,15 @@ const FeedbackPathsBuilder: React.FC = () => {
             </div>
             <ul className="space-y-2">
                 {feedbackPaths.map(fp => (
-                    <li key={fp.id} className={`p-3 border rounded-md bg-white shadow-sm ${fp.isMissing ? `${MISSING_FEEDBACK_COLOR} border-dashed` : 'border-slate-300'}`}>
-                        <p><span className="font-semibold">{getItemName(fp.sourceId)}</span> → <span className="font-semibold">{getItemName(fp.targetControllerId)}</span> {fp.isMissing && <span className="text-sm font-bold">(MISSING/INADEQUATE)</span>}</p>
-                        <p className="text-sm">Feedback: {fp.feedback}</p>
-                        {fp.indirect && <p className="text-xs text-slate-500">Indirect feedback</p>}
-                        <div className="mt-1 space-x-2">
-                            <Button onClick={() => editFeedbackPath(fp)} size="sm" variant="ghost" className="p-1" aria-label="Edit">Edit</Button>
-                            <Button onClick={() => deleteFeedbackPath(fp.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 p-1" aria-label="Delete"><PlaceholderTrashIcon /></Button>
+                    <li key={fp.id} className={`flex justify-between items-center p-3 border rounded-md bg-white shadow-sm ${fp.isMissing ? `${MISSING_FEEDBACK_COLOR} border-dashed` : 'border-slate-300'}`}>
+                        <div>
+                            <p><span className="font-semibold">{getItemName(fp.sourceId)}</span> → <span className="font-semibold">{getItemName(fp.targetControllerId)}</span> {fp.isMissing && <span className="text-sm font-bold">(MISSING/INADEQUATE)</span>}</p>
+                            <p className="text-sm">Feedback: {fp.feedback}</p>
+                            {fp.indirect && <p className="text-xs text-slate-500">Indirect feedback</p>}
+                        </div>
+                        <div className="flex items-center space-x-1 ml-4">
+                            <Button onClick={() => editFeedbackPath(fp)} size="sm" variant="ghost" className="text-slate-600 hover:bg-slate-100">Edit</Button>
+                            <Button onClick={() => deleteFeedbackPath(fp.id)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete"><PlaceholderTrashIcon /></Button>
                         </div>
                     </li>
                 ))}

@@ -1,3 +1,4 @@
+// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/components/step3_ControlStructure/partials/ControlPathsBuilder.tsx
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAnalysis } from '../../../hooks/useAnalysis';
@@ -141,7 +142,7 @@ const ControlPathsBuilder: React.FC = () => {
     return (
         <section>
             <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">3. Control Paths & Actions</h3>
-            <div className="text-sm text-slate-600 space-y-2 mb-4">
+            <div className="p-4 bg-sky-50 border-l-4 border-sky-400 text-sky-800 rounded-r-lg text-sm space-y-2 mb-4">
                 <p>Define the control relationships between controllers and the components (or other controllers). Think about how commands flow downwards. For each path, list all control actions the controller can provide.</p>
             </div>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 space-y-4">
@@ -164,19 +165,19 @@ const ControlPathsBuilder: React.FC = () => {
                         3. Describe all the <Tooltip content={GLOSSARY['Control Action']}>control action(s)</Tooltip> available to that controller:
                     </label>
                     <div className="flex items-end space-x-2">
-                        <Input label="Action Verb" value={actionVerb} onChange={e => setActionVerb(e.target.value)} placeholder="e.g., INCREASE, MAINTAIN" disabled={!cpSourceCtrlId} containerClassName="flex-grow"/>
-                        <Input label="Action Object" value={actionObject} onChange={e => setActionObject(e.target.value)} placeholder="e.g., PITCH" disabled={!cpSourceCtrlId} containerClassName="flex-grow"/>
-                        <Button onClick={handleAddAction} leftIcon={<PlaceholderPlusIcon/>} disabled={!cpSourceCtrlId || !actionVerb || !actionObject} className="mb-4 h-10">Add Action</Button>
+                        <Input label="Action Verb" value={actionVerb} onChange={e => setActionVerb(e.target.value)} placeholder="e.g., INCREASE, MAINTAIN" disabled={!cpSourceCtrlId} containerClassName="flex-grow !mb-0"/>
+                        <Input label="Action Object" value={actionObject} onChange={e => setActionObject(e.target.value)} placeholder="e.g., PITCH" disabled={!cpSourceCtrlId} containerClassName="flex-grow !mb-0"/>
+                        <Button onClick={handleAddAction} leftIcon={<PlaceholderPlusIcon/>} disabled={!cpSourceCtrlId || !actionVerb || !actionObject} className="h-10">Add Action</Button>
                     </div>
                     {renderControlActionExamples(selectedControllerForCP?.ctrlType)}
                     {currentActions.length > 0 && (
                         <div className="mt-2 space-y-1">
                             <h4 className="text-sm font-medium text-slate-600">Actions for this path:</h4>
-                            <ul className="list-disc list-inside bg-white p-2 rounded-md border border-slate-200">
+                            <ul className="bg-white p-2 rounded-md border border-slate-200 divide-y divide-slate-200">
                                 {currentActions.map((action, index) => (
-                                    <li key={index} className="flex justify-between items-center text-sm p-1">
+                                    <li key={index} className="flex justify-between items-center text-sm py-2">
                                         <span>{action.verb} {action.object}</span>
-                                        <Button onClick={() => handleDeleteAction(index)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 p-0"><PlaceholderTrashIcon /></Button>
+                                        <Button onClick={() => handleDeleteAction(index)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete Action"><PlaceholderTrashIcon /></Button>
                                     </li>
                                 ))}
                             </ul>
@@ -190,13 +191,15 @@ const ControlPathsBuilder: React.FC = () => {
             </div>
             <ul className="space-y-2">
                 {controlPaths.map(cp => (
-                    <li key={cp.id} className="p-3 border border-slate-300 rounded-md bg-white shadow-sm">
-                        <p><span className="font-semibold">{getItemName(cp.sourceControllerId)}</span> → <span className="font-semibold">{getItemName(cp.targetId)}</span></p>
-                        <p className="text-sm text-slate-600">Controls: {cp.controls}</p>
-                        {cp.higherAuthority && <p className="text-xs text-slate-500">Target has higher authority</p>}
-                        <div className="mt-1 space-x-2">
-                            <Button onClick={() => editControlPath(cp)} size="sm" variant="ghost" className="p-1" aria-label="Edit">Edit</Button>
-                            <Button onClick={() => handleDeleteControlPath(cp.id)} size="sm" variant="ghost" className="text-red-500 hover:text-red-700 p-1" aria-label="Delete"><PlaceholderTrashIcon /></Button>
+                    <li key={cp.id} className="flex justify-between items-center p-3 border border-slate-300 rounded-md bg-white shadow-sm">
+                        <div>
+                            <p><span className="font-semibold">{getItemName(cp.sourceControllerId)}</span> → <span className="font-semibold">{getItemName(cp.targetId)}</span></p>
+                            <p className="text-sm text-slate-600">Controls: {cp.controls}</p>
+                            {cp.higherAuthority && <p className="text-xs text-slate-500">Target has higher authority</p>}
+                        </div>
+                        <div className="flex items-center space-x-1 ml-4">
+                            <Button onClick={() => editControlPath(cp)} size="sm" variant="ghost" className="text-slate-600 hover:bg-slate-100">Edit</Button>
+                            <Button onClick={() => handleDeleteControlPath(cp.id)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete"><PlaceholderTrashIcon /></Button>
                         </div>
                     </li>
                 ))}

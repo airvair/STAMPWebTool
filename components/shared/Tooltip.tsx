@@ -26,7 +26,7 @@ const Tooltip: React.FC<TooltipProps> = ({
             <QuestionMarkCircleIcon className="w-4 h-4 ml-1 opacity-70" />
             {isVisible && (
                 <div
-                    className={`absolute bottom-full left-1/2 z-20 mb-2 w-64 -translate-x-1/2 transform rounded-lg bg-slate-800 p-3 text-sm text-white shadow-lg ${tooltipClassName}`}
+                    className={`absolute bottom-full left-1/2 z-20 mb-2 w-64 -translate-x-1/2 transform rounded-lg bg-slate-800/90 p-3 text-sm text-white shadow-lg ${tooltipClassName}`}
                 >
                     {content}
                     <div className="absolute left-1/2 top-full -translate-x-1/2" style={{
@@ -34,7 +34,7 @@ const Tooltip: React.FC<TooltipProps> = ({
                         height: 0,
                         borderLeft: '8px solid transparent',
                         borderRight: '8px solid transparent',
-                        borderTop: '8px solid #1e293b' // slate-800
+                        borderTop: '8px solid rgba(30, 41, 59, 0.9)' // slate-800 with transparency
                     }} />
                 </div>
             )}

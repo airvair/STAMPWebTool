@@ -1,3 +1,4 @@
+// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/components/step3_ControlStructure/partials/SystemComponentsBuilder.tsx
 import React, { useState, useEffect } from 'react';
 import { useAnalysis } from '../../../hooks/useAnalysis';
 import { SystemComponent, ComponentType } from '../../../types';
@@ -82,7 +83,7 @@ const SystemComponentsBuilder: React.FC = () => {
     return (
         <section>
             <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">1. System Components (Physical/Process)</h3>
-            <div className="text-sm text-slate-600 space-y-2 mb-4">
+            <div className="p-4 bg-sky-50 border-l-4 border-sky-400 text-sky-800 rounded-r-lg text-sm space-y-2 mb-4">
                 <p>
                     Start at the most basic component in the system you intend to control. In most systems this is the physical system, such as a vehicle, an aircraft, a satellite or similar. If you are analyzing just a component that that is the most basic, which could be something like the brakes, a steering wheel, the engine, or perhaps even a door. It can also be a process if you are analyzing an organization on how it manages a department or even a person, such as the case in health care where the patient might be the most basic process. Regardless, it is the lowest level you are analyzing.
                 </p>
@@ -90,34 +91,27 @@ const SystemComponentsBuilder: React.FC = () => {
                     Think about your system. What is the most basic component in your system?
                 </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4">
-                <Input label="Component Name" value={componentName} onChange={e => setComponentName(e.target.value)} placeholder="e.g., Engine, Database" />
-                <Select label="Component Type" value={componentType} onChange={e => setComponentType(e.target.value as ComponentType)} options={componentTypeOptions} />
-                <Button onClick={handleSaveComponent} leftIcon={<PlaceholderPlusIcon />} className="self-end mb-4 h-10">
-                    {editingComponentId ? 'Update Component' : 'Add Component'}
-                </Button>
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4">
+                <div className="flex flex-wrap md:flex-nowrap items-end gap-4">
+                    <Input label="Component Name" value={componentName} onChange={e => setComponentName(e.target.value)} placeholder="e.g., Engine, Database" containerClassName="w-full md:w-auto flex-grow !mb-0"/>
+                    <Select label="Component Type" value={componentType} onChange={e => setComponentType(e.target.value as ComponentType)} options={componentTypeOptions} containerClassName="w-full md:w-auto flex-grow !mb-0" />
+                    <Button onClick={handleSaveComponent} leftIcon={<PlaceholderPlusIcon />} className="h-10 w-full md:w-auto">
+                        {editingComponentId ? 'Update Component' : 'Add Component'}
+                    </Button>
+                </div>
             </div>
             <ul className="space-y-2">
                 {systemComponents.map(comp => (
-                    <li key={comp.id} className="p-3 border border-slate-300 rounded-md bg-white shadow-sm flex justify-between items-center">
-                        <div><span className="font-medium">{comp.name}</span> <span className="text-sm text-slate-500">({comp.type})</span></div>
-                        <div className="space-x-2">
-                            <Button
-                                onClick={() => editComponent(comp)}
-                                size="sm"
-                                variant="ghost"
-                                className="p-1"
-                                aria-label="Edit"
-                            >
+                    <li key={comp.id} className="flex justify-between items-center p-3 border border-slate-300 rounded-md bg-white shadow-sm">
+                        <div>
+                            <span className="font-medium">{comp.name}</span>
+                            <span className="text-sm text-slate-500"> ({comp.type})</span>
+                        </div>
+                        <div className="flex items-center space-x-1 ml-4">
+                            <Button onClick={() => editComponent(comp)} size="sm" variant="ghost" className="text-slate-600 hover:bg-slate-100">
                                 Edit
                             </Button>
-                            <Button
-                                onClick={() => deleteSystemComponent(comp.id)}
-                                size="sm"
-                                variant="ghost"
-                                className="text-red-500 hover:text-red-700 p-1"
-                                aria-label="Delete"
-                            >
+                            <Button onClick={() => deleteSystemComponent(comp.id)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete">
                                 <PlaceholderTrashIcon />
                             </Button>
                         </div>

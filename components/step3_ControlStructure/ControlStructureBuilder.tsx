@@ -1,3 +1,4 @@
+// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/components/step3_ControlStructure/ControlStructureBuilder.tsx
 import React from 'react';
 import SystemComponentsBuilder from './partials/SystemComponentsBuilder';
 import ControllersBuilder from './partials/ControllersBuilder';
@@ -9,7 +10,7 @@ import ControlStructureVisualization from './partials/ControlStructureVisualizat
 const ControlStructureBuilder: React.FC = () => {
   return (
       <div className="space-y-10">
-        <div className="text-sm text-slate-600 space-y-2">
+        <div className="p-4 bg-sky-50 border-l-4 border-sky-400 text-sky-800 rounded-r-lg text-sm space-y-2">
           <p>
             The goal of this analysis is to control or constrain the behavior of the system to prevent an accident or any unwanted behavior. To model this you will be creating a hierarchical control structure. This is not a schematic or organizational chart. Instead, the items on this structure are either something that is controlling something else (a controller), which can be software, human or organization, or a controlled process/item. This tool will guide you through this process.
           </p>
