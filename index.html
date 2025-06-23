@@ -1,6 +1,5 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -29,24 +28,33 @@
     body {
       font-family: 'Inter', sans-serif; /* A nice sans-serif font */
     }
+    .dark ::-webkit-scrollbar-track {
+      background: #111;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #444;
+    }
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: #666;
+    }
   </style>
-<script type="importmap">
-{
-  "imports": {
-    "react-router-dom": "https://esm.sh/react-router-dom@6.25.1",
-    "react": "https://esm.sh/react@19.1.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.1.0/client",
-    "uuid": "https://esm.sh/uuid@9.0.1",
-    "@heroicons/react/24/outline": "https://esm.sh/@heroicons/react@2.0.18/24/outline",
-    "@heroicons/react/24/solid": "https://esm.sh/@heroicons/react@2.0.18/24/solid",
-    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
-    "react/": "https://esm.sh/react@^19.1.0/"
-  }
-}
-</script>
+  <script type="importmap">
+    {
+      "imports": {
+        "react-router-dom": "https://esm.sh/react-router-dom@6.25.1",
+        "react": "https://esm.sh/react@19.1.0",
+        "react-dom/client": "https://esm.sh/react-dom@19.1.0/client",
+        "uuid": "https://esm.sh/uuid@9.0.1",
+        "@heroicons/react/24/outline": "https://esm.sh/@heroicons/react@2.0.18/24/outline",
+        "@heroicons/react/24/solid": "https://esm.sh/@heroicons/react@2.0.18/24/solid",
+        "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+        "react/": "https://esm.sh/react@^19.1.0/"
+      }
+    }
+  </script>
 </head>
-<body class="bg-slate-50 text-slate-800">
-  <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+<body class="bg-slate-100 text-slate-900 dark:bg-black dark:text-slate-200">
+<div id="root"></div>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAnalysis } from '../../hooks/useAnalysis';
@@ -20,8 +19,7 @@ const MainLayout: React.FC = () => {
   }, [analysisSession, navigate]);
 
   if (!analysisSession || !analysisSession.analysisType) {
-     // This case should ideally be handled by App.tsx redirecting or showing StartupModal
-    return <div className="p-8 text-center text-slate-700">Loading analysis session...</div>;
+    return <div className="p-8 text-center text-slate-700 dark:text-slate-300">Loading analysis session...</div>;
   }
 
   const steps = analysisSession.analysisType === AnalysisType.CAST ? CAST_STEPS : STPA_STEPS;
@@ -42,76 +40,58 @@ const MainLayout: React.FC = () => {
       navigate(prevStepPath);
     }
   };
-  
+
   const handleReset = () => {
     if (window.confirm("Are you sure you want to reset all analysis data and start over? This action cannot be undone.")) {
       resetAnalysis();
-      navigate('/'); 
+      navigate('/');
     }
   };
 
   const currentStepDefinition = steps[currentStepIndex];
 
-  const headerRef = React.useRef<HTMLElement>(null);
-  const [headerHeight, setHeaderHeight] = React.useState(0);
-
-  React.useLayoutEffect(() => {
-    if (!headerRef.current) return;
-
-    const updateHeight = () => setHeaderHeight(headerRef.current?.offsetHeight ?? 0);
-
-    const resizeObserver = new ResizeObserver(updateHeight);
-    resizeObserver.observe(headerRef.current);
-    updateHeight();
-
-    window.addEventListener('resize', updateHeight);
-    return () => {
-      window.removeEventListener('resize', updateHeight);
-      resizeObserver.disconnect();
-    };
-  }, []);
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <header ref={headerRef} className="bg-sky-700 text-white shadow-md sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="text-xl font-semibold">{APP_TITLE} - {analysisSession.analysisType}</h1>
-          <Button onClick={handleReset} variant="danger" size="sm">Reset Analysis</Button>
-        </div>
-      </header>
-
-      <Stepper steps={steps} currentPath={location.pathname} headerHeight={headerHeight} />
-      
-      <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-        {currentStepDefinition && (
-             <h2 className="text-2xl font-semibold text-slate-700 mb-6">{currentStepDefinition.title}</h2>
-        )}
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <Outlet />
-        </div>
-      </main>
-
-      <footer className="bg-white border-t border-slate-200 p-4 sticky bottom-0 z-30 shadow-top">
-        <div className="container mx-auto flex justify-between items-center">
-          <Button onClick={handlePrevious} disabled={currentStepIndex <= 0} variant="secondary">
-            Previous
-          </Button>
-          <div className="text-sm text-slate-500">
-            Step {currentStepIndex + 1} of {steps.length}
+      <div className="min-h-screen flex flex-col">
+        <header className="bg-neutral-950/80 backdrop-blur-sm text-white shadow-md border-b border-white/10">
+          <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} / <span className="font-normal opacity-80">{analysisSession.analysisType}</span></h1>
+            <Button onClick={handleReset} variant="danger" size="sm">Reset Analysis</Button>
           </div>
-          <Button onClick={handleNext} disabled={currentStepIndex >= steps.length - 1}>
-            Next
-          </Button>
-        </div>
-      </footer>
-       <style>{`
+        </header>
+
+        <Stepper steps={steps} currentPath={location.pathname} />
+
+        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
+          {currentStepDefinition && (
+              <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-6">{currentStepDefinition.title}</h2>
+          )}
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-neutral-800">
+            <div className="p-6 md:p-8">
+              <Outlet />
+            </div>
+          </div>
+        </main>
+
+        <footer className="bg-white/80 dark:bg-black/80 backdrop-blur-sm border-t border-slate-200 dark:border-white/10 p-4 sticky bottom-0 z-30 shadow-top">
+          <div className="container mx-auto flex justify-between items-center">
+            <Button onClick={handlePrevious} disabled={currentStepIndex <= 0} variant="secondary">
+              Previous Step
+            </Button>
+            <div className="text-sm text-slate-500 dark:text-slate-400">
+              Step {currentStepIndex + 1} of {steps.length}: <span className="font-semibold">{currentStepDefinition?.shortTitle}</span>
+            </div>
+            <Button onClick={handleNext} disabled={currentStepIndex >= steps.length - 1}>
+              Next Step
+            </Button>
+          </div>
+        </footer>
+        <style>{`
         .shadow-top {
           box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
         }
       `}</style>
-    </div>
+      </div>
   );
 };
 
 export default MainLayout;
-    

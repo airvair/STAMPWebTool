@@ -1,16 +1,41 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { AnalysisType } from '../../types';
 import Button from '../shared/Button';
-import Modal from '../shared/Modal';
 import { CAST_STEPS, STPA_STEPS, APP_TITLE } from '../../constants';
-import { ExclamationTriangleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
-import Stepper from '../layout/Stepper';
+import { ClipboardDocumentCheckIcon, CubeTransparentIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
-const StartupModal: React.FC = () => {
-  const { setAnalysisType, analysisSession, resetAnalysis } = useAnalysis();
+// A dedicated component for the choice cards to keep the code clean.
+const ChoiceCard: React.FC<{
+  icon: React.ReactNode;
+  question: string;
+  title: string;
+  description: string;
+  onClick: () => void;
+}> = ({ icon, question, title, description, onClick }) => (
+    <button
+        onClick={onClick}
+        className="group bg-white dark:bg-neutral-900/60 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl hover:shadow-2xl dark:hover:border-sky-500 p-8 flex flex-col items-center text-center space-y-4 transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-sky-500"
+    >
+      <div className="w-16 h-16 text-sky-500 dark:text-sky-400 transition-colors duration-300">
+        {icon}
+      </div>
+      <p className="text-slate-700 dark:text-slate-300 font-medium text-lg">
+        {question}
+      </p>
+      <span className="text-2xl font-bold text-slate-900 dark:text-white">
+      {title}
+    </span>
+      <p className="text-sm text-slate-500 dark:text-slate-400 opacity-80 pt-2">
+        {description}
+      </p>
+    </button>
+);
+
+
+const StartupPage: React.FC = () => {
+  const { analysisSession, setAnalysisType, resetAnalysis } = useAnalysis();
   const navigate = useNavigate();
 
   const handleSelectType = (type: AnalysisType) => {
@@ -19,100 +44,69 @@ const StartupModal: React.FC = () => {
     navigate(initialStep);
   };
 
-  const isOpen = !analysisSession || !analysisSession.analysisType;
+  const handleContinueSession = () => {
+    if (analysisSession?.currentStep) {
+      navigate(analysisSession.currentStep);
+    }
+  };
 
-  if (!isOpen && analysisSession) {
-    const continueTo =
-      analysisSession.currentStep ||
-      (analysisSession.analysisType === AnalysisType.CAST
-        ? CAST_STEPS[1].path
-        : STPA_STEPS[1].path);
-    const steps =
-      analysisSession.analysisType === AnalysisType.CAST ? CAST_STEPS : STPA_STEPS;
+  const handleReset = () => {
+    if (window.confirm("Are you sure you want to discard your previous session and start a new one? This action cannot be undone.")) {
+      resetAnalysis();
+      // The component will re-render to show the choice cards
+    }
+  };
 
-    const headerRef = React.useRef<HTMLElement>(null);
-    const [headerHeight, setHeaderHeight] = React.useState(0);
-
-    React.useLayoutEffect(() => {
-      const updateHeight = () => setHeaderHeight(headerRef.current?.offsetHeight ?? 0);
-      updateHeight();
-      window.addEventListener('resize', updateHeight);
-      return () => window.removeEventListener('resize', updateHeight);
-    }, []);
-
+  // If a session exists, show the "Welcome Back" screen.
+  if (analysisSession && analysisSession.analysisType) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <header
-          ref={headerRef}
-          className="bg-sky-700 text-white shadow-md sticky top-0 z-40"
-        >
-          <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 className="text-xl font-semibold">
-              {APP_TITLE} - {analysisSession.analysisType}
-            </h1>
-            <Button
-              onClick={() => {
-                if (
-                  window.confirm(
-                    'Are you sure you want to reset all analysis data and start over? This action cannot be undone.'
-                  )
-                ) {
-                  resetAnalysis();
-                  navigate('/');
-                }
-              }}
-              variant="danger"
-              size="sm"
-            >
-              Reset Analysis
+        <div className="min-h-screen bg-white dark:bg-black flex flex-col items-center justify-center p-4 text-center">
+          <h1 className="text-5xl font-bold text-slate-900 dark:text-white">Welcome Back</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-4 text-lg">
+            You have an existing <span className="font-bold text-sky-500">{analysisSession.analysisType}</span> analysis in progress.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row items-center gap-4">
+            <Button onClick={handleContinueSession} size="lg" variant="primary">
+              Continue Analysis
+            </Button>
+            <Button onClick={handleReset} size="lg" variant="ghost" leftIcon={<ArrowPathIcon className="w-5 h-5"/>}>
+              Start New Analysis
             </Button>
           </div>
-        </header>
-
-        <Stepper steps={steps} currentPath="/start" headerHeight={headerHeight} />
-
-        <main className="flex-grow container mx-auto flex flex-col justify-center items-center p-8 space-y-4 text-center">
-          <h2 className="text-2xl font-semibold text-slate-700">{APP_TITLE}</h2>
-          <p className="text-slate-700">
-            You already have a {analysisSession.analysisType} session in progress.
-          </p>
-          <Button onClick={() => navigate(continueTo)}>Continue Analysis</Button>
-        </main>
-      </div>
+        </div>
     );
   }
 
+  // Otherwise, show the new analysis choice screen.
   return (
-    <Modal isOpen={isOpen} title={APP_TITLE} persistent={true} size="lg">
-      <div className="mx-auto max-w-xl">
-        <div className="grid gap-6 md:grid-cols-2">
-          <button
-            onClick={() => handleSelectType(AnalysisType.CAST)}
-            className="bg-white border rounded-lg shadow p-8 flex flex-col items-center text-center space-y-4 hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          >
-            <ExclamationTriangleIcon className="h-12 w-12 text-sky-600" />
-            <p className="text-slate-700">
-              Are you investigating an incident or accident or something that has already occurred?
-            </p>
-            <span className="text-lg font-semibold text-sky-600">CAST Analysis</span>
-          </button>
-          <button
-            onClick={() => handleSelectType(AnalysisType.STPA)}
-            className="bg-white border rounded-lg shadow p-8 flex flex-col items-center text-center space-y-4 hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          >
-            <LightBulbIcon className="h-12 w-12 text-sky-600" />
-            <p className="text-slate-700">
-              Are you designing something new (physical system, training, procedure, organization or other)?
-            </p>
-            <span className="text-lg font-semibold text-sky-600">STPA Analysis</span>
-            <p className="text-xs text-slate-500 italic">
-              A system is a set of interdependent parts sharing a common purpose. The performance of the whole is affected by each and every one of its parts.
-            </p>
-          </button>
+      <div className="min-h-screen bg-white dark:bg-black flex flex-col items-center justify-center p-4">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-slate-900 dark:text-white">{APP_TITLE}</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">Select an analysis method to begin.</p>
+        </div>
+        <div className="mx-auto max-w-4xl w-full">
+          <div className="grid gap-8 md:grid-cols-2">
+
+            <ChoiceCard
+                onClick={() => handleSelectType(AnalysisType.CAST)}
+                icon={<ClipboardDocumentCheckIcon />}
+                question="Investigating an incident or accident that has already occurred?"
+                title="CAST Analysis"
+                description="Use Causal Analysis based on STAMP (CAST) to analyze past events and identify systemic causal factors."
+            />
+
+            <ChoiceCard
+                onClick={() => handleSelectType(AnalysisType.STPA)}
+                icon={<CubeTransparentIcon />}
+                question="Designing or analyzing a new or existing system?"
+                title="STPA Analysis"
+                description="Use System-Theoretic Process Analysis (STPA) to proactively identify hazards and specify safety constraints."
+            />
+
+          </div>
         </div>
       </div>
-    </Modal>
   );
 };
 
-export default StartupModal;
+export default StartupPage;

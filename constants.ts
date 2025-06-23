@@ -3,10 +3,10 @@ import { ControllerType, UCAType, ScenarioClass, StepDefinition, FiveFactorArche
 export const APP_TITLE = "STAMP Tool"; // Updated title
 
 export const CONTROLLER_TYPE_COLORS: Record<ControllerType, string> = {
-  [ControllerType.Software]: 'bg-teal-100 text-teal-800 border-teal-300',
-  [ControllerType.Human]: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  [ControllerType.Team]: 'bg-amber-100 text-amber-800 border-amber-300',
-  [ControllerType.Organisation]: 'bg-purple-100 text-purple-800 border-purple-300',
+  [ControllerType.Software]: 'bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-900/50 dark:text-teal-200 dark:border-teal-500/30',
+  [ControllerType.Human]: 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-200 dark:border-yellow-500/30',
+  [ControllerType.Team]: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-500/30',
+  [ControllerType.Organisation]: 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/50 dark:text-purple-200 dark:border-purple-500/30',
 };
 // Colors for SVG elements in the control structure diagram
 // UPDATED: These hex values now match the Tailwind classes above
