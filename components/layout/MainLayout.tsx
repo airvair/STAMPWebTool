@@ -77,7 +77,7 @@ const MainLayout: React.FC = () => {
             <Button onClick={handlePrevious} disabled={currentStepIndex <= 0} variant="secondary">
               Previous Step
             </Button>
-            <div className="text-sm text-slate-500 dark:text-slate-400">
+            <div className="text-sm text-slate-500 dark:text-slate-100">
               Step {currentStepIndex + 1} of {steps.length}: <span className="font-semibold">{currentStepDefinition?.shortTitle}</span>
             </div>
             <Button onClick={handleNext} disabled={currentStepIndex >= steps.length - 1}>
