@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { AnalysisType } from '../../types';
 import Button from '../shared/Button';
-import { CAST_STEPS, STPA_STEPS, APP_TITLE } from '../../constants';
+import Tooltip from '../shared/Tooltip';
+import { CAST_STEPS, STPA_STEPS, APP_TITLE, GLOSSARY } from '../../constants';
 import { ClipboardDocumentCheckIcon, CubeTransparentIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 // A dedicated component for the choice cards to keep the code clean.
 const ChoiceCard: React.FC<{
     icon: React.ReactNode;
-    question: string;
+    question: React.ReactNode;
     title: string;
     description: string;
     onClick: () => void;
@@ -105,7 +106,7 @@ const StartupPage: React.FC = () => {
                     <ChoiceCard
                         onClick={() => handleSelectType(AnalysisType.STPA)}
                         icon={<CubeTransparentIcon />}
-                        question="Designing or analyzing a new or existing system?"
+                        question={<>Designing or analyzing a new or existing <Tooltip content={GLOSSARY['System']}>system</Tooltip>?</>}
                         title="STPA Analysis"
                         description="Use System-Theoretic Process Analysis (STPA) to proactively identify hazards and specify safety constraints."
                     />

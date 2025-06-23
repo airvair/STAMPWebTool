@@ -18,7 +18,7 @@ const Tooltip: React.FC<TooltipProps> = ({
 
     return (
         <span
-            className={`relative inline-flex items-center cursor-help rounded bg-sky-100 text-sky-800 px-1 py-0.5 font-semibold align-middle ${className}`}
+            className={`relative inline-flex items-center cursor-help rounded bg-sky-100 text-sky-800 px-1 py-0.5 font-semibold align-middle dark:bg-sky-900 dark:text-sky-200 ${className}`}
             onMouseEnter={() => setIsVisible(true)}
             onMouseLeave={() => setIsVisible(false)}
         >
