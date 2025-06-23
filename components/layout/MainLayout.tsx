@@ -6,7 +6,7 @@ import { APP_TITLE, APP_VERSION, CAST_STEPS, STPA_STEPS } from '../../constants'
 import { AnalysisType } from '../../types';
 import Button from '../shared/Button';
 import Stepper from './Stepper';
-
+import webLogo from '../../public/weblogo.webp';
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -56,7 +56,7 @@ const MainLayout: React.FC = () => {
         <header className="bg-neutral-950/80 backdrop-blur-sm text-white shadow-md border-b border-white/10">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
             <div className="flex items-center">
-              <img src="/weblogo.webp" alt="App Logo" className="h-8 w-auto mr-3" />
+              <img src={webLogo} alt="Logo" className="h-8 w-auto mr-3" />
               <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} {APP_VERSION} / <span className="font-normal opacity-80">{analysisSession.analysisType}</span></h1>
             </div>
             <Button onClick={handleReset} variant="danger" size="sm">Reset Analysis</Button>
