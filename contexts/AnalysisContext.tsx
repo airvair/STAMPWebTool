@@ -1,14 +1,16 @@
-// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/contexts/AnalysisContext.tsx
+// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/contexts/AnalysisContext.tsx
 import React, { createContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import {
   AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent,
   Controller, ControlAction, UnsafeControlAction, CausalScenario, Requirement, EventDetail,
   ControlPath, FeedbackPath, UCCA, CommunicationPath
 } from '../types';
-import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs
+import { v4 as uuidv4 } from 'uuid';
 
 interface AnalysisContextState {
   analysisSession: AnalysisSession | null;
+  castStep2SubStep: number;
+  castStep2MaxReachedSubStep: number; // New state for furthest progress
   losses: Loss[];
   hazards: Hazard[];
   systemConstraints: SystemConstraint[];
@@ -16,17 +18,18 @@ interface AnalysisContextState {
   controllers: Controller[];
   controlPaths: ControlPath[];
   feedbackPaths: FeedbackPath[];
-  communicationPaths: CommunicationPath[]; // Added for Peer-to-Peer
+  communicationPaths: CommunicationPath[];
   controlActions: ControlAction[];
   ucas: UnsafeControlAction[];
-  uccas: UCCA[]; // Added for Unsafe Combinations of Control Actions
+  uccas: UCCA[];
   scenarios: CausalScenario[];
   requirements: Requirement[];
-  sequenceOfEvents: EventDetail[]; // CAST specific
-  activeContexts: { [key: string]: string }; // NEW: To track active context for team controllers
+  sequenceOfEvents: EventDetail[];
+  activeContexts: { [key: string]: string };
 
   setAnalysisType: (type: AnalysisType, initialStep: string) => void;
   updateAnalysisSession: (data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => void;
+  setCastStep2SubStep: (step: number | ((prevStep: number) => number)) => void; // Allow function form
 
   addLoss: (loss: Omit<Loss, 'id' | 'code'>) => void;
   updateLoss: (id: string, updates: Partial<Loss>) => void;
@@ -61,7 +64,6 @@ interface AnalysisContextState {
   updateFeedbackPath: (id: string, updates: Partial<FeedbackPath>) => void;
   deleteFeedbackPath: (id: string) => void;
 
-  // Added for Peer-to-Peer
   addCommunicationPath: (path: Omit<CommunicationPath, 'id'>) => void;
   updateCommunicationPath: (id: string, updates: Partial<CommunicationPath>) => void;
   deleteCommunicationPath: (id: string) => void;
@@ -87,16 +89,18 @@ interface AnalysisContextState {
   deleteRequirement: (id: string) => void;
 
   setCurrentStep: (stepPath: string) => void;
-  setActiveContext: (controllerId: string, contextId: string) => void; // NEW
+  setActiveContext: (controllerId: string, contextId: string) => void;
   resetAnalysis: () => void;
 }
 
 const initialState: AnalysisContextState = {
   analysisSession: null,
+  castStep2SubStep: 0,
+  castStep2MaxReachedSubStep: 0,
   losses: [], hazards: [], systemConstraints: [], systemComponents: [], controllers: [],
   controlPaths: [], feedbackPaths: [], communicationPaths: [], controlActions: [], ucas: [], uccas: [], scenarios: [], requirements: [], sequenceOfEvents: [],
   activeContexts: {},
-  setAnalysisType: () => {}, updateAnalysisSession: () => {},
+  setAnalysisType: () => {}, updateAnalysisSession: () => {}, setCastStep2SubStep: () => {},
   addLoss: () => {}, updateLoss: () => {}, deleteLoss: () => {},
   addHazard: () => {}, updateHazard: () => {}, deleteHazard: () => {},
   addSystemConstraint: () => {}, updateSystemConstraint: () => {}, deleteSystemConstraint: () => {},
@@ -119,10 +123,9 @@ const initialState: AnalysisContextState = {
 export const AnalysisContext = createContext<AnalysisContextState>(initialState);
 
 export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [analysisSession, setAnalysisSession] = useState<AnalysisSession | null>(() => {
-    const saved = localStorage.getItem('analysisSession');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [analysisSession, setAnalysisSession] = useState<AnalysisSession | null>(() => JSON.parse(localStorage.getItem('analysisSession') || 'null'));
+  const [castStep2SubStep, _setCastStep2SubStep] = useState<number>(() => parseInt(localStorage.getItem('castStep2SubStep') || '0', 10));
+  const [castStep2MaxReachedSubStep, setCastStep2MaxReachedSubStep] = useState<number>(() => parseInt(localStorage.getItem('castStep2MaxReachedSubStep') || '0', 10));
 
   const [losses, setLosses] = useState<Loss[]>(() => JSON.parse(localStorage.getItem('losses') || '[]'));
   const [hazards, setHazards] = useState<Hazard[]>(() => JSON.parse(localStorage.getItem('hazards') || '[]'));
@@ -142,6 +145,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
 
 
   useEffect(() => { if (analysisSession) localStorage.setItem('analysisSession', JSON.stringify(analysisSession)); else localStorage.removeItem('analysisSession'); }, [analysisSession]);
+  useEffect(() => { localStorage.setItem('castStep2SubStep', castStep2SubStep.toString()); }, [castStep2SubStep]);
+  useEffect(() => { localStorage.setItem('castStep2MaxReachedSubStep', castStep2MaxReachedSubStep.toString()); }, [castStep2MaxReachedSubStep]);
   useEffect(() => { localStorage.setItem('losses', JSON.stringify(losses)); }, [losses]);
   useEffect(() => { localStorage.setItem('hazards', JSON.stringify(hazards)); }, [hazards]);
   useEffect(() => { localStorage.setItem('systemConstraints', JSON.stringify(systemConstraints)); }, [systemConstraints]);
@@ -158,8 +163,16 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   useEffect(() => { localStorage.setItem('requirements', JSON.stringify(requirements)); }, [requirements]);
   useEffect(() => { localStorage.setItem('activeContexts', JSON.stringify(activeContexts)); }, [activeContexts]);
 
+  const setCastStep2SubStep = useCallback((stepUpdater: number | ((prevStep: number) => number)) => {
+    _setCastStep2SubStep(prevStep => {
+      const newStep = typeof stepUpdater === 'function' ? stepUpdater(prevStep) : stepUpdater;
+      setCastStep2MaxReachedSubStep(prevMax => Math.max(prevMax, newStep));
+      return newStep;
+    });
+  }, []);
 
   const setAnalysisType = useCallback((type: AnalysisType, initialStep: string) => {
+    // Keep resetAnalysis separate to be called explicitly
     const now = new Date().toISOString();
     setAnalysisSession({
       id: uuidv4(),
@@ -170,10 +183,9 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
       updatedAt: now,
       currentStep: initialStep,
     });
-  }, []);
-
-  const setActiveContext = useCallback((controllerId: string, contextId: string) => {
-    setActiveContexts(prev => ({...prev, [controllerId]: contextId}));
+    // Reset progress for the specific step
+    setCastStep2SubStep(0);
+    setCastStep2MaxReachedSubStep(0);
   }, []);
 
   const updateAnalysisSession = useCallback((data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => {
@@ -184,8 +196,14 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     setAnalysisSession(prev => prev ? ({ ...prev, currentStep: stepPath, updatedAt: new Date().toISOString() }) : null);
   }, []);
 
+  const setActiveContext = useCallback((controllerId: string, contextId: string) => {
+    setActiveContexts(prev => ({...prev, [controllerId]: contextId}));
+  }, []);
+
   const resetAnalysis = useCallback(() => {
     setAnalysisSession(null);
+    setCastStep2SubStep(0);
+    setCastStep2MaxReachedSubStep(0);
     setLosses([]);
     setHazards([]);
     setSystemConstraints([]);
@@ -197,7 +215,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     setCommunicationPaths([]);
     setControlActions([]);
     setUcas([]);
-    setUccas([]); // Reset UCCAs
+    setUccas([]);
     setScenarios([]);
     setRequirements([]);
     setActiveContexts({});
@@ -288,13 +306,11 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
 
   return (
       <AnalysisContext.Provider value={{
-        analysisSession, losses, hazards, systemConstraints, systemComponents, controllers, controlPaths, feedbackPaths,
+        analysisSession, castStep2SubStep, castStep2MaxReachedSubStep, losses, hazards, systemConstraints, systemComponents, controllers, controlPaths, feedbackPaths,
         communicationPaths, controlActions, ucas, uccas, scenarios, requirements, sequenceOfEvents, activeContexts,
-        setAnalysisType, updateAnalysisSession, setCurrentStep, resetAnalysis, setActiveContext,
+        setAnalysisType, updateAnalysisSession, setCastStep2SubStep, setCurrentStep, resetAnalysis, setActiveContext,
         addLoss: lossOps.add, updateLoss: lossOps.update, deleteLoss: lossOps.delete,
-        addHazard: addHazard,
-        updateHazard: updateHazard,
-        deleteHazard: deleteHazard,
+        addHazard, updateHazard, deleteHazard,
         addSystemConstraint: constraintOps.add as (item: Omit<SystemConstraint, 'id' | 'code'>) => void,
         updateSystemConstraint: constraintOps.update,
         deleteSystemConstraint: constraintOps.delete,

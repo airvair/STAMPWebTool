@@ -1,4 +1,4 @@
-
+// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/shared/Button.tsx
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -9,40 +9,40 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const Button: React.FC<ButtonProps> = ({
-  children,
-  variant = 'primary',
-  size = 'md',
-  leftIcon,
-  rightIcon,
-  className = '',
-  ...props
-}) => {
-  const baseStyles = 'font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed';
+                                         children,
+                                         variant = 'primary',
+                                         size = 'md',
+                                         leftIcon,
+                                         rightIcon,
+                                         className = '',
+                                         ...props
+                                       }) => {
+  const baseStyles = 'font-semibold rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:ring-sky-500 transition-all duration-200 ease-in-out flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shadow-sm';
 
+  // Always-dark styles
   const variantStyles = {
-    primary: 'bg-sky-600 text-white hover:bg-sky-700 focus:ring-sky-500',
-    secondary: 'bg-slate-200 text-slate-700 hover:bg-slate-300 focus:ring-slate-400',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    ghost: 'bg-transparent text-sky-600 hover:bg-sky-100 focus:ring-sky-500',
+    primary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300',
+    secondary: 'bg-neutral-800 text-neutral-300 border border-neutral-700 hover:bg-neutral-700 active:bg-neutral-600',
+    danger: 'bg-red-900/50 text-red-300 border border-red-800/80 hover:bg-red-900/80 active:bg-red-900',
+    ghost: 'bg-transparent text-slate-400 hover:bg-neutral-800 hover:text-slate-200 active:bg-neutral-700 shadow-none',
   };
 
   const sizeStyles = {
     sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    md: 'px-5 py-2 text-base',
+    lg: 'px-7 py-3 text-lg',
   };
 
   return (
-    <button
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
-      {...props}
-    >
-      {leftIcon && <span className="mr-2">{leftIcon}</span>}
-      {children}
-      {rightIcon && <span className="ml-2">{rightIcon}</span>}
-    </button>
+      <button
+          className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+          {...props}
+      >
+        {leftIcon && <span className="mr-2 -ml-1">{leftIcon}</span>}
+        {children}
+        {rightIcon && <span className="ml-2 -mr-1">{rightIcon}</span>}
+      </button>
   );
 };
 
 export default Button;
-    
