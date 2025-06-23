@@ -1,7 +1,8 @@
+// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/layout/MainLayout.tsx
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAnalysis } from '../../hooks/useAnalysis';
-import { APP_TITLE, CAST_STEPS, STPA_STEPS } from '../../constants';
+import { APP_TITLE, APP_VERSION, CAST_STEPS, STPA_STEPS } from '../../constants';
 import { AnalysisType } from '../../types';
 import Button from '../shared/Button';
 import Stepper from './Stepper';
@@ -54,7 +55,10 @@ const MainLayout: React.FC = () => {
       <div className="min-h-screen flex flex-col">
         <header className="bg-neutral-950/80 backdrop-blur-sm text-white shadow-md border-b border-white/10">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} / <span className="font-normal opacity-80">{analysisSession.analysisType}</span></h1>
+            <div className="flex items-center">
+              <img src="/weblogo.webp" alt="App Logo" className="h-8 w-auto mr-3" />
+              <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} {APP_VERSION} / <span className="font-normal opacity-80">{analysisSession.analysisType}</span></h1>
+            </div>
             <Button onClick={handleReset} variant="danger" size="sm">Reset Analysis</Button>
           </div>
         </header>

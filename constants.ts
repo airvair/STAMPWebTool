@@ -1,6 +1,7 @@
 import { ControllerType, UCAType, ScenarioClass, StepDefinition, FiveFactorArchetype, FiveFactorScores } from './types';
 
 export const APP_TITLE = "STAMP Tool"; // Updated title
+export const APP_VERSION = "Alpha";
 
 export const CONTROLLER_TYPE_COLORS: Record<ControllerType, string> = {
   [ControllerType.Software]: 'bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-900/50 dark:text-teal-200 dark:border-teal-500/30',
