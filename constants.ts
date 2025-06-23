@@ -1,6 +1,7 @@
 import { ControllerType, UCAType, ScenarioClass, StepDefinition, FiveFactorArchetype, FiveFactorScores } from './types';
+import React from 'react';
 
-export const APP_TITLE = "STAMP Tool"; // Updated title
+export const APP_TITLE = "STAMP Tool";
 export const APP_VERSION = "Alpha";
 
 export const CONTROLLER_TYPE_COLORS: Record<ControllerType, string> = {
@@ -9,20 +10,49 @@ export const CONTROLLER_TYPE_COLORS: Record<ControllerType, string> = {
   [ControllerType.Team]: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-500/30',
   [ControllerType.Organisation]: 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/50 dark:text-purple-200 dark:border-purple-500/30',
 };
-// Colors for SVG elements in the control structure diagram
-// UPDATED: These hex values now match the Tailwind classes above
-export const CONTROLLER_TYPE_FILL_COLORS: Record<ControllerType, string> = {
-  [ControllerType.Software]: "#CCFBF1",     // Tailwind teal-100
-  [ControllerType.Human]: "#FEF9C3",         // Tailwind yellow-100
-  [ControllerType.Team]: "#FEF3C7",         // Tailwind amber-100
-  [ControllerType.Organisation]: "#F3E8FF", // Tailwind purple-100
+
+// NEW: Style object for ReactFlow nodes to match the dark theme list items
+export const CONTROLLER_NODE_STYLE: Record<ControllerType, React.CSSProperties> = {
+  [ControllerType.Software]: {
+    backgroundColor: 'rgba(13, 74, 80, 0.5)', // bg-teal-900/50
+    color: '#a7f3d0', // text-teal-200
+    borderColor: 'rgba(45, 212, 191, 0.3)', // border-teal-500/30
+    borderWidth: 1,
+    borderStyle: 'solid',
+    backdropFilter: 'blur(4px)',
+  },
+  [ControllerType.Human]: {
+    backgroundColor: 'rgba(113, 113, 14, 0.5)', // bg-yellow-900/50
+    color: '#fef08a', // text-yellow-200
+    borderColor: 'rgba(234, 179, 8, 0.3)', // border-yellow-500/30
+    borderWidth: 1,
+    borderStyle: 'solid',
+    backdropFilter: 'blur(4px)',
+  },
+  [ControllerType.Team]: {
+    backgroundColor: 'rgba(120, 53, 15, 0.5)', // bg-amber-900/50
+    color: '#fde68a', // text-amber-200
+    borderColor: 'rgba(245, 158, 11, 0.3)', // border-amber-500/30
+    borderWidth: 1,
+    borderStyle: 'solid',
+    backdropFilter: 'blur(4px)',
+  },
+  [ControllerType.Organisation]: {
+    backgroundColor: 'rgba(88, 28, 135, 0.5)', // bg-purple-900/50
+    color: '#e9d5ff', // text-purple-200
+    borderColor: 'rgba(168, 85, 247, 0.3)', // border-purple-500/30
+    borderWidth: 1,
+    borderStyle: 'solid',
+    backdropFilter: 'blur(4px)',
+  },
 };
 
+// ... (rest of the file remains the same)
 
-export const MISSING_FEEDBACK_COLOR = 'border-red-500 text-red-700'; // Dashed property handled by border-style
+export const MISSING_FEEDBACK_COLOR = 'border-red-500 text-red-700';
 
-export const CONTROL_LINE_COLOR = '#2563eb'; // blue-600
-export const FEEDBACK_LINE_COLOR = '#16a34a'; // green-600
+export const CONTROL_LINE_COLOR = '#2563eb';
+export const FEEDBACK_LINE_COLOR = '#16a34a';
 export const MISSING_LINE_COLOR = 'red';
 
 export const STANDARD_LOSSES: { id: string; title: string; description: string }[] = [
@@ -47,12 +77,10 @@ export const UCA_QUESTIONS_MAP: { type: UCAType; question: string }[] = [
   { type: UCAType.TooShort, question: 'Is a hazard caused if a continuous control action is APPLIED TOO SHORT (stopped too soon)?' },
 ];
 
-// As per "Gmail - text for hazard section.pdf"
 export const SYSTEM_COMPONENT_EXAMPLES: string[] = [
   "Aircraft", "Ship", "Spacecraft", "Satellite", "Powerplant", "Vehicle", "Patient", "Software system"
 ];
 
-// As per "Gmail - text for hazard section.pdf"
 export const SYSTEM_STATE_CONDITION_EXAMPLES: { category: string, examples: string[] }[] = [
   {
     category: "Inflight Conditions / States",
@@ -96,8 +124,6 @@ export const SYSTEM_STATE_CONDITION_EXAMPLES: { category: string, examples: stri
   }
 ];
 
-
-// Based on OCR pg 29, 31 for Causal Scenarios
 export const SCENARIO_CLASSES_BY_CONTROLLER: Record<ControllerType, { classType: ScenarioClass, label: string, description: string }[]> = {
   [ControllerType.Software]: [
     { classType: ScenarioClass.Class1, label: 'Incorrect Algorithm/Logic or Data leads to UCA', description: 'Software provides UCA due to flaws in its design, implementation, or the data it uses for its process model.' },
@@ -151,7 +177,6 @@ export const STPA_STEPS: StepDefinition[] = [
   ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}`}))
 ];
 
-// OCR pg 34
 export const FIVE_FACTOR_ARCHETYPES: Record<FiveFactorArchetype, FiveFactorScores & { label: string }> = {
   GeneralPopulation: {
     label: "General Population (Average)",
@@ -166,36 +191,35 @@ export const FIVE_FACTOR_ARCHETYPES: Record<FiveFactorArchetype, FiveFactorScore
     neuroticism: 0.7, extraversion: 4.7, openness: 2.75, agreeableness: 1.1, conscientiousness: 3.5
   },
   Custom: {
-    label: "Custom Input", // User will fill these
+    label: "Custom Input",
     neuroticism: 2.5, extraversion: 2.5, openness: 2.5, agreeableness: 2.5, conscientiousness: 2.5
   }
 };
 
 export const PERSONALITY_TRAIT_DESCRIPTIONS: Record<keyof FiveFactorScores, { high: string, low: string, average?:string }> = {
   neuroticism: {
-    high: "Hyper-alert, concerned, potential distraction, overestimates threats. Less systematic scanning.", // OCR pg 37
-    low: "Likely calmer, less prone to worry-driven decisions.", // Inferred
-    average: "Average emotional stability." // OCR pg 37 "Lower than average: no effect" implies average is baseline
+    high: "Hyper-alert, concerned, potential distraction, overestimates threats. Less systematic scanning.",
+    low: "Likely calmer, less prone to worry-driven decisions.",
+    average: "Average emotional stability."
   },
   extraversion: {
-    high: "More reliant on socially reinforced cues, potentially less methodological evaluation.", // OCR pg 37
-    low: "More reserved, potentially more independent in evaluation." // Inferred
+    high: "More reliant on socially reinforced cues, potentially less methodological evaluation.",
+    low: "More reserved, potentially more independent in evaluation."
   },
   openness: {
-    high: "Broader information gathering, curious, considers alternatives, systematic analysis. More likely to change direction.", // OCR pg 37, 39
-    low: "May miss novel cues, overlook new patterns, anchor on familiar. Closed to alternatives." // OCR pg 37, 39
+    high: "Broader information gathering, curious, considers alternatives, systematic analysis. More likely to change direction.",
+    low: "May miss novel cues, overlook new patterns, anchor on familiar. Closed to alternatives."
   },
   agreeableness: {
-    high: "Tends to follow group flow, conflict-avoidant, biases towards social cues or group consensus.", // OCR pg 37, 39
-    low: "More independent, may challenge consensus, less swayed by group pressure." // OCR pg 39 "may bias against group consensus"
+    high: "Tends to follow group flow, conflict-avoidant, biases towards social cues or group consensus.",
+    low: "More independent, may challenge consensus, less swayed by group pressure."
   },
   conscientiousness: {
-    high: "Thorough, organized, habit-driven attention, diligent systematic monitoring and analysis. Adherence to procedures.", // OCR pg 38, 39, 40
-    low: "May neglect details, attentional bias, less reliable in decisions/adherence to procedures." // OCR pg 38, 39, 40
+    high: "Thorough, organized, habit-driven attention, diligent systematic monitoring and analysis. Adherence to procedures.",
+    low: "May neglect details, attentional bias, less reliable in decisions/adherence to procedures."
   }
 };
 
-// NEW GLOSSARY
 export const GLOSSARY: Record<string, string> = {
   'Accident': 'An undesired, unacceptable, and unplanned event that results in a loss. ',
   'Hazard': 'A system state or set of conditions that, together with specific environmental conditions, can lead to an accident or loss. ',

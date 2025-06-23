@@ -35,7 +35,7 @@ export const CustomNode: React.FC<{ data: CustomNodeData }> = ({ data }) => {
                     <Handle type="target" position={Position.Right} id={`comm_right_T_${index}`} style={{ ...handleStyle, top }} />
                 </React.Fragment>
             ))}
-            <div style={{ padding: '5px', textAlign: 'center', color: '#000000' }}>
+            <div style={{ padding: '5px', textAlign: 'center' }}>
                 <div style={{ fontWeight: 'bold' }}>{data.label} {data.rank && data.rank !== 'GR' && `(${data.rank})`}</div>
                 {data.role && (<div style={{ fontSize: '12px', fontStyle: 'italic', marginTop: '2px' }}>{data.role}</div>)}
             </div>

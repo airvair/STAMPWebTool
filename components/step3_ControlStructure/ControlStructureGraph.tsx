@@ -7,7 +7,7 @@ import dagre from 'dagre';
 import { CustomEdge, CustomNode } from '@/components/step3_ControlStructure/CustomGraphElements';
 import { Controller, SystemComponent, ControllerType } from '@/types';
 import { useAnalysis } from '@/hooks/useAnalysis';
-import { CONTROLLER_TYPE_FILL_COLORS } from '@/constants';
+import { CONTROLLER_NODE_STYLE } from '@/constants';
 
 const LayoutIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5" > <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /> </svg> );
 
@@ -42,13 +42,22 @@ const transformAnalysisData = (
                 type: 'custom',
                 position: { x: 0, y: 0 },
                 data: { label: controller.name, commCount: getCommCount(controller.id) },
-                style: { backgroundColor: CONTROLLER_TYPE_FILL_COLORS[controller.ctrlType], width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000' },
+                style: {
+                    ...CONTROLLER_NODE_STYLE[controller.ctrlType],
+                    width: NODE_WIDTH,
+                    height: BASE_NODE_HEIGHT,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    borderRadius: '0.375rem',
+                },
             });
         }
     });
 
     systemComponents.forEach(component => {
-        nodes.push({ id: component.id, type: 'custom', position: { x: 0, y: 0 }, data: { label: component.name, commCount: getCommCount(component.id) }, style: { width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000', backgroundColor: '#fff' } });
+        nodes.push({ id: component.id, type: 'custom', position: { x: 0, y: 0 }, data: { label: component.name, commCount: getCommCount(component.id) }, style: { width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000', backgroundColor: '#fff', color: '#000' } });
     });
 
     controlPaths.forEach(path => {
@@ -58,8 +67,8 @@ const transformAnalysisData = (
             target: path.targetId,
             type: 'custom',
             label: path.controls,
-            markerEnd: { type: 'arrowclosed', color: '#FFFFFF' }, // White arrow head
-            style: { stroke: '#FFFFFF' }, // White line
+            markerEnd: { type: 'arrowclosed', color: '#FFFFFF' },
+            style: { stroke: '#FFFFFF' },
             sourcePosition: Position.Bottom,
             targetPosition: Position.Top,
             sourceHandle: 'bottom_left',
@@ -73,9 +82,6 @@ const transformAnalysisData = (
 
     return { nodes, edges };
 };
-
-// The rest of the file (getLayoutedElements, GraphCanvas, etc.) remains unchanged.
-// For brevity, I am only showing the changed `transformAnalysisData` function. The full file content would be updated accordingly.
 
 const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
     const dagreGraph = new dagre.graphlib.Graph({ compound: true });
