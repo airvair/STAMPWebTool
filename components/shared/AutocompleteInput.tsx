@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/shared/AutocompleteInput.tsx
+import React, { useState, useRef, useEffect } from 'react';
 
 interface Option {
   value: string | number;
@@ -10,103 +11,96 @@ interface AutocompleteInputProps extends React.InputHTMLAttributes<HTMLInputElem
   error?: string;
   options: Option[];
   containerClassName?: string;
+  onValueChange?: (value: string) => void;
 }
 
 const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
-  label,
-  id,
-  error,
-  options,
-  className = '',
-  containerClassName = '',
-  onChange,
-  value = '',
-  ...props
-}) => {
+                                                               label,
+                                                               id,
+                                                               error,
+                                                               options,
+                                                               className = '',
+                                                               containerClassName = '',
+                                                               onChange,
+                                                               onValueChange,
+                                                               value = '',
+                                                               ...props
+                                                             }) => {
+  const [inputValue, setInputValue] = useState(value);
   const [showOptions, setShowOptions] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const stringValue = typeof value === 'string' || typeof value === 'number' ? value.toString() : '';
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
 
   const filteredOptions = options.filter(opt =>
-    opt.label.toLowerCase().includes(stringValue.toLowerCase())
+      opt.label.toLowerCase().includes(inputValue.toString().toLowerCase())
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHighlightIndex(-1);
+    setInputValue(e.target.value);
     setShowOptions(true);
-    onChange?.(e);
+    if(onValueChange) onValueChange(e.target.value);
+    if(onChange) onChange(e);
   };
 
   const handleSelect = (option: Option) => {
-    const event = {
-      ...(
-        typeof Event === 'function' ? new Event('change', { bubbles: true }) : { }
-      ),
-      target: { value: option.value.toString() } as HTMLInputElement,
-    } as React.ChangeEvent<HTMLInputElement>;
-    onChange?.(event);
+    setInputValue(option.label); // Show label in input
+    if (onValueChange) onValueChange(option.value.toString()); // Pass value back
     setShowOptions(false);
-    inputRef.current?.focus();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showOptions) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setHighlightIndex(i => (i + 1) % filteredOptions.length);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHighlightIndex(i => (i - 1 + filteredOptions.length) % filteredOptions.length);
-    } else if (e.key === 'Enter') {
-      if (highlightIndex >= 0 && highlightIndex < filteredOptions.length) {
-        e.preventDefault();
-        handleSelect(filteredOptions[highlightIndex]);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowOptions(false);
       }
-    }
-  };
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [containerRef]);
 
   return (
-    <div className={`mb-4 ${containerClassName} relative`}>
-      {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
-          {label}
-        </label>
-      )}
-      <input
-        ref={inputRef}
-        id={id}
-        value={stringValue}
-        onChange={handleChange}
-        onFocus={() => setShowOptions(true)}
-        onBlur={() => setTimeout(() => setShowOptions(false), 100)}
-        onKeyDown={handleKeyDown}
-        className={`block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm disabled:bg-slate-50 disabled:text-slate-500 ${
-          error ? 'border-red-500' : ''
-        } ${className}`}
-        {...props}
-      />
-      {showOptions && filteredOptions.length > 0 && (
-        <ul className="absolute z-10 w-full bg-white border border-slate-200 rounded-md mt-1 max-h-40 overflow-auto text-sm">
-          {filteredOptions.map((opt, idx) => (
-            <li
-              key={opt.value}
-              className={`px-3 py-1 cursor-pointer hover:bg-slate-100 ${
-                highlightIndex === idx ? 'bg-slate-100' : ''
-              }`}
-              onMouseDown={e => {
-                e.preventDefault();
-                handleSelect(opt);
-              }}
-            >
-              {opt.label}
-            </li>
-          ))}
-        </ul>
-      )}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </div>
+      <div className={`mb-4 ${containerClassName} relative`} ref={containerRef}>
+        {label && (
+            <label htmlFor={id} className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              {label}
+            </label>
+        )}
+        <input
+            ref={inputRef}
+            id={id}
+            value={inputValue}
+            onChange={handleChange}
+            onFocus={() => setShowOptions(true)}
+            className={`block w-full px-3 py-2 border rounded-lg shadow-sm
+                   border-slate-300 dark:border-neutral-700 
+                   bg-white dark:bg-neutral-800 
+                   text-slate-900 dark:text-slate-200
+                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-black focus:ring-sky-500
+                   ${error ? 'border-red-500' : ''} ${className}`}
+            {...props}
+        />
+        {showOptions && filteredOptions.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 rounded-md mt-1 max-h-60 overflow-auto text-sm shadow-lg">
+              {filteredOptions.map((opt, idx) => (
+                  <li
+                      key={opt.value}
+                      className={`px-3 py-2 cursor-pointer text-slate-700 dark:text-slate-300 ${
+                          highlightIndex === idx ? 'bg-sky-500 text-white' : 'hover:bg-slate-100 dark:hover:bg-neutral-700'
+                      }`}
+                      onMouseDown={() => handleSelect(opt)}
+                  >
+                    {opt.label}
+                  </li>
+              ))}
+            </ul>
+        )}
+        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      </div>
   );
 };
 

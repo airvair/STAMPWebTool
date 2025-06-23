@@ -1,14 +1,13 @@
+// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step3_ControlStructure/StpaControlStructureDiagram.tsx
 import React from 'react';
-// We only need this one line to import the default export from our graph component file.
 import ControlStructureGraph from './ControlStructureGraph';
 
-const CastControlStructureDiagram: React.FC = () => {
-  return (
-      <div style={{ height: 'calc(100vh - 100px)', width: '100%' }}>
-        {/* We render the component we imported. */}
-        <ControlStructureGraph />
-      </div>
-  );
+const StpaControlStructureDiagram: React.FC = () => {
+    return (
+        <div style={{ height: '100%', width: '100%' }}>
+            <ControlStructureGraph />
+        </div>
+    );
 };
 
-export default CastControlStructureDiagram;
+export default StpaControlStructureDiagram;

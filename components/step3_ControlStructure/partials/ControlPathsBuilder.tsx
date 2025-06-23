@@ -1,3 +1,4 @@
+// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step3_ControlStructure/partials/ControlPathsBuilder.tsx
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAnalysis } from '../../../hooks/useAnalysis';
@@ -7,19 +8,7 @@ import Tooltip from '../../shared/Tooltip';
 import Input from '../../shared/Input';
 import Select from '../../shared/Select';
 import Button from '../../shared/Button';
-import Textarea from '../../shared/Textarea';
-import Checkbox from '../../shared/Checkbox';
-
-const PlaceholderPlusIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-    </svg>
-);
-const PlaceholderTrashIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-    </svg>
-);
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 const ControlPathsBuilder: React.FC = () => {
     const {
@@ -31,26 +20,13 @@ const ControlPathsBuilder: React.FC = () => {
 
     const [cpSourceCtrlId, setCpSourceCtrlId] = useState('');
     const [cpTargetId, setCpTargetId] = useState('');
-    const [cpHigherAuth, setCpHigherAuth] = useState(false);
     const [editingCpId, setEditingCpId] = useState<string | null>(null);
-    const [currentActions, setCurrentActions] = useState<Omit<ControlAction, 'id' | 'controllerId' | 'controlPathId' | 'description' | 'isOutOfScope'>[]>([]);
-
-    // Updated Action state to include both roleId and memberId
     const [actionVerb, setActionVerb] = useState('');
     const [actionObject, setActionObject] = useState('');
-    const [actionRoleId, setActionRoleId] = useState<string | undefined>(undefined);
-    const [actionMemberId, setActionMemberId] = useState<string | undefined>(undefined);
 
     const controllerOptions = controllers.map(c => ({ value: c.id, label: c.name }));
     const componentOptions = systemComponents.map(sc => ({ value: sc.id, label: sc.name }));
     const pathTargetOptions = [...controllerOptions, ...componentOptions];
-    const selectedControllerForCP = controllers.find(c => c.id === cpSourceCtrlId);
-
-    const roleOptions = selectedControllerForCP?.teamDetails?.roles.map(r => ({ value: r.id, label: r.name })) || [];
-    const memberOptions = selectedControllerForCP?.teamDetails?.members.map(m => ({ 
-        value: m.id, 
-        label: `${m.name}${m.commandRank ? ` (${m.commandRank})` : ''}`
-    })) || [];
 
     const getItemName = (id: string) => {
         const ctrl = controllers.find(c => c.id === id);
@@ -60,61 +36,44 @@ const ControlPathsBuilder: React.FC = () => {
         return 'Unknown';
     };
 
-    const handleAddAction = () => {
-        if (!actionVerb.trim() || !actionObject.trim()) return;
-        const newAction = { 
-            verb: actionVerb, 
-            object: actionObject, 
-            roleId: actionRoleId,
-            memberId: actionMemberId
-        };
-        setCurrentActions([...currentActions, newAction]);
-        setActionVerb('');
-        setActionObject('');
-        setActionRoleId(undefined);
-        setActionMemberId(undefined);
-    };
-
-    const handleDeleteAction = (index: number) => {
-        setCurrentActions(currentActions.filter((_, i) => i !== index));
-    };
-
     const handleSaveControlPath = () => {
-        if (!cpSourceCtrlId || !cpTargetId || currentActions.length === 0) {
+        if (!cpSourceCtrlId || !cpTargetId || !actionVerb || !actionObject) {
             alert("Please define a source, target, and at least one control action.");
             return;
         }
 
-        const controlsString = currentActions.map(a => `${a.verb} ${a.object}`).join(', ');
+        const controlsString = `${actionVerb} ${actionObject}`;
+        const newCpId = editingCpId || uuidv4();
 
         if (editingCpId) {
-            updateControlPath(editingCpId, { sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: controlsString, higherAuthority: cpHigherAuth });
-            const oldActions = controlActions.filter(ca => ca.controlPathId === editingCpId);
-            oldActions.forEach(ca => deleteControlAction(ca.id));
-            currentActions.forEach(action => {
-                addControlAction({ ...action, controllerId: cpSourceCtrlId, controlPathId: editingCpId, description: '', isOutOfScope: false });
-            });
+            const existingPath = controlPaths.find(p => p.id === editingCpId);
+            const existingAction = controlActions.find(a => a.controlPathId === editingCpId);
+            if (existingPath) updateControlPath(editingCpId, { sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: controlsString });
+            if (existingAction) updateControlAction(existingAction.id, { verb: actionVerb, object: actionObject });
         } else {
-            const newCpId = uuidv4();
-            addControlPath({ id: newCpId, sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: controlsString, higherAuthority: cpHigherAuth });
-            currentActions.forEach(action => {
-                addControlAction({ ...action, controllerId: cpSourceCtrlId, controlPathId: newCpId, description: '', isOutOfScope: false });
-            });
+            addControlPath({ id: newCpId, sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: controlsString });
+            addControlAction({ controllerId: cpSourceCtrlId, controlPathId: newCpId, verb: actionVerb, object: actionObject, description: '', isOutOfScope: false });
         }
+        resetForm();
+    };
+
+    const resetForm = () => {
         setCpSourceCtrlId('');
         setCpTargetId('');
-        setCpHigherAuth(false);
         setEditingCpId(null);
-        setCurrentActions([]);
+        setActionVerb('');
+        setActionObject('');
     };
 
     const editControlPath = (cp: ControlPath) => {
         setEditingCpId(cp.id);
         setCpSourceCtrlId(cp.sourceControllerId);
         setCpTargetId(cp.targetId);
-        setCpHigherAuth(!!cp.higherAuthority);
-        const relatedActions = controlActions.filter(ca => ca.controlPathId === cp.id).map(({ verb, object, roleId, memberId }) => ({ verb, object, roleId, memberId }));
-        setCurrentActions(relatedActions);
+        const relatedAction = controlActions.find(ca => ca.controlPathId === cp.id);
+        if (relatedAction) {
+            setActionVerb(relatedAction.verb);
+            setActionObject(relatedAction.object);
+        }
     };
 
     const handleDeleteControlPath = (pathId: string) => {
@@ -123,105 +82,54 @@ const ControlPathsBuilder: React.FC = () => {
         deleteControlPath(pathId);
     };
 
-    const getMemberName = (memberId: string) => {
-        const member = selectedControllerForCP?.teamDetails?.members.find(m => m.id === memberId);
-        return member ? `${member.name}${member.commandRank ? ` (${member.commandRank})` : ''}` : 'Unknown Member';
-    };
-
-    const getRoleName = (roleId: string) => {
-        const role = selectedControllerForCP?.teamDetails?.roles.find(r => r.id === roleId);
-        return role ? role.name : 'Unknown Role';
-    };
-
     return (
-        <section>
-            <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">3. Control Paths & Actions</h3>
-            <div className="p-4 bg-sky-50 border-l-4 border-sky-400 text-sky-800 rounded-r-lg text-sm space-y-2 mb-4">
-                <p>Define the control relationships between controllers and the components (or other controllers). Think about how commands flow downwards. For each path, list all control actions the controller can provide.</p>
+        <section className="space-y-6">
+            <div>
+                <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Control Paths & Actions</h3>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">How does a controller give commands? Let's draw the lines of command from a controller down to what it controls.</p>
             </div>
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4 space-y-4">
-                <p className="text-md font-semibold text-slate-700">Define a new control path:</p>
+
+            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 space-y-4">
+                <p className="text-md font-semibold text-slate-700 dark:text-slate-200">{editingCpId ? 'Editing Control Path' : 'Define a New Control Path'}</p>
                 <Select
-                    label="1. First, select the item that is being controlled:"
+                    label="1. Source (Who is in control?)"
+                    value={cpSourceCtrlId}
+                    onChange={e => setCpSourceCtrlId(e.target.value)}
+                    options={[{value: '', label: 'Select a source controller...'}, ...controllerOptions]}
+                />
+                <Select
+                    label="2. Target (What is being controlled?)"
                     value={cpTargetId}
                     onChange={e => setCpTargetId(e.target.value)}
                     options={[{value: '', label: 'Select a controlled item...'}, ...pathTargetOptions]}
                 />
-                <Select
-                    label={<>2. Next, select the <Tooltip content={GLOSSARY['Controller']}>controller</Tooltip> that provides the control action:</>}
-                    value={cpSourceCtrlId}
-                    onChange={e => setCpSourceCtrlId(e.target.value)}
-                    options={[{value: '', label: 'Select a source controller...'}, ...controllerOptions]}
-                    disabled={!cpTargetId}
-                />
-                <div className={`pl-4 border-l-4 border-slate-300 ${!cpSourceCtrlId ? 'opacity-50' : ''}`}>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                        3. Describe all the <Tooltip content={GLOSSARY['Control Action']}>control action(s)</Tooltip> available to that controller:
+                <div className="pl-4 border-l-4 border-slate-300 dark:border-slate-600">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        3. Define the Control Action
                     </label>
                     <div className="flex items-end space-x-2">
-                        <Input label="Action Verb" value={actionVerb} onChange={e => setActionVerb(e.target.value)} placeholder="e.g., INCREASE" disabled={!cpSourceCtrlId} containerClassName="flex-grow !mb-0"/>
-                        <Input label="Action Object" value={actionObject} onChange={e => setActionObject(e.target.value)} placeholder="e.g., PITCH" disabled={!cpSourceCtrlId} containerClassName="flex-grow !mb-0"/>
-                        {selectedControllerForCP?.ctrlType === ControllerType.Team && memberOptions.length > 0 && (
-                            <Select 
-                                label="Team Member" 
-                                value={actionMemberId || ''} 
-                                onChange={e => setActionMemberId(e.target.value || undefined)} 
-                                options={[{label: 'Any Member', value: ''}, ...memberOptions]} 
-                                containerClassName="flex-grow !mb-0" 
-                            />
-                        )}
-                        {selectedControllerForCP?.ctrlType === ControllerType.Team && roleOptions.length > 0 && (
-                            <Select 
-                                label="Associated Role" 
-                                value={actionRoleId || ''} 
-                                onChange={e => setActionRoleId(e.target.value || undefined)} 
-                                options={[{label: 'No Role', value: ''}, ...roleOptions]} 
-                                containerClassName="flex-grow !mb-0" 
-                            />
-                        )}
-                        <Button onClick={handleAddAction} leftIcon={<PlaceholderPlusIcon/>} disabled={!cpSourceCtrlId || !actionVerb || !actionObject} className="h-10">Add Action</Button>
+                        <Input label="Action Verb" value={actionVerb} onChange={e => setActionVerb(e.target.value)} placeholder="e.g., INCREASE" containerClassName="flex-grow !mb-0"/>
+                        <Input label="Action Object" value={actionObject} onChange={e => setActionObject(e.target.value)} placeholder="e.g., PITCH" containerClassName="flex-grow !mb-0"/>
                     </div>
-
-                    {currentActions.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                            <h4 className="text-sm font-medium text-slate-600">Actions for this path:</h4>
-                            <ul className="bg-white p-2 rounded-md border border-slate-200 divide-y divide-slate-200">
-                                {currentActions.map((action, index) => (
-                                    <li key={index} className="flex justify-between items-center text-sm py-2">
-                                        <div>
-                                            <span className="font-medium">{action.verb} {action.object}</span>
-                                            <div className="text-slate-500 text-xs mt-1">
-                                                {action.memberId && <span>Member: {getMemberName(action.memberId)}</span>}
-                                                {action.memberId && action.roleId && <span> • </span>}
-                                                {action.roleId && <span>Role: {getRoleName(action.roleId)}</span>}
-                                                {!action.memberId && !action.roleId && selectedControllerForCP?.ctrlType === ControllerType.Team && <span>Any team member</span>}
-                                            </div>
-                                        </div>
-                                        <Button onClick={() => handleDeleteAction(index)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete Action"><PlaceholderTrashIcon /></Button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
                 </div>
-                {selectedControllerForCP?.ctrlType === ControllerType.Team && (
-                    <Checkbox label="Does the item being controlled have higher authority than the controller? (This is rare and usually applies to oversight relationships)" checked={cpHigherAuth} onChange={e => setCpHigherAuth(e.target.checked)} />
-                )}
-                <Button onClick={handleSaveControlPath} leftIcon={<PlaceholderPlusIcon />}>
-                    {editingCpId ? 'Update Control Path & Actions' : 'Add Control Path & Actions'}
-                </Button>
+                <div className="flex space-x-2 pt-4">
+                    <Button onClick={handleSaveControlPath} leftIcon={<PlusIcon className="w-5 h-5" />}>
+                        {editingCpId ? 'Update Path' : 'Add Path'}
+                    </Button>
+                    {editingCpId && <Button onClick={resetForm} variant="secondary">Cancel</Button>}
+                </div>
             </div>
+
             <ul className="space-y-2">
                 {controlPaths.map(cp => (
-                    <li key={cp.id} className="flex justify-between items-center p-3 border border-slate-300 rounded-md bg-white shadow-sm">
+                    <li key={cp.id} className="flex justify-between items-center p-3 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 shadow-sm">
                         <div>
-                            <p><span className="font-semibold">{getItemName(cp.sourceControllerId)}</span> → <span className="font-semibold">{getItemName(cp.targetId)}</span></p>
-                            <p className="text-sm text-slate-600">Controls: {cp.controls}</p>
-                            {cp.higherAuthority && <p className="text-xs text-slate-500">Target has higher authority</p>}
+                            <p className="font-medium text-slate-800 dark:text-slate-200"><span className="font-semibold">{getItemName(cp.sourceControllerId)}</span> → <span className="font-semibold">{getItemName(cp.targetId)}</span></p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Action: {cp.controls}</p>
                         </div>
                         <div className="flex items-center space-x-1 ml-4">
-                            <Button onClick={() => editControlPath(cp)} size="sm" variant="ghost" className="text-slate-600 hover:bg-slate-100">Edit</Button>
-                            <Button onClick={() => handleDeleteControlPath(cp.id)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete"><PlaceholderTrashIcon /></Button>
+                            <Button onClick={() => editControlPath(cp)} size="sm" variant="ghost">Edit</Button>
+                            <Button onClick={() => handleDeleteControlPath(cp.id)} size="sm" variant="ghost" className="text-red-500"><TrashIcon className="w-4 h-4"/></Button>
                         </div>
                     </li>
                 ))}

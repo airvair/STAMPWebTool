@@ -1,39 +1,11 @@
-// airvair/stampwebtool/STAMPWebTool-ec65ad6e324f19eae402e103914f6c7858ecb5c9/components/step3_ControlStructure/partials/SystemComponentsBuilder.tsx
+// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step3_ControlStructure/partials/SystemComponentsBuilder.tsx
 import React, { useState, useEffect } from 'react';
 import { useAnalysis } from '../../../hooks/useAnalysis';
 import { SystemComponent, ComponentType } from '../../../types';
 import Input from '../../shared/Input';
 import Select from '../../shared/Select';
 import Button from '../../shared/Button';
-
-const PlaceholderPlusIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="w-5 h-5"
-    >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-    </svg>
-);
-const PlaceholderTrashIcon = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="w-5 h-5"
-    >
-        <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-        />
-    </svg>
-);
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 const SystemComponentsBuilder: React.FC = () => {
     const { hazards, systemComponents, addSystemComponent, updateSystemComponent, deleteSystemComponent } = useAnalysis();
@@ -44,21 +16,16 @@ const SystemComponentsBuilder: React.FC = () => {
 
     const componentTypeOptions = Object.values(ComponentType).map(ct => ({ value: ct, label: ct }));
 
-    // Auto-import system components from hazards on first render
     useEffect(() => {
-        if (hazards.length === 0) return;
-        hazards.forEach(h => {
-            const base = h.systemComponent.trim();
-            if (!base) return;
-            const existing = systemComponents.filter(sc => sc.name.startsWith(base));
-            const existsExact = systemComponents.some(sc => sc.name === base);
-            if (!existsExact) {
-                const name = existing.length > 0 ? `${base} ${existing.length + 1}` : base;
-                addSystemComponent({ name, type: ComponentType.Physical });
-            }
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        if (systemComponents.length === 0 && hazards.length > 0) {
+            const componentNamesFromHazards = new Set(hazards.map(h => h.systemComponent.trim()).filter(Boolean));
+            componentNamesFromHazards.forEach(name => {
+                if (!systemComponents.some(sc => sc.name === name)) {
+                    addSystemComponent({ name, type: ComponentType.Physical });
+                }
+            });
+        }
+    }, [hazards, systemComponents, addSystemComponent]);
 
 
     const handleSaveComponent = () => {
@@ -66,12 +33,9 @@ const SystemComponentsBuilder: React.FC = () => {
         if (editingComponentId) {
             updateSystemComponent(editingComponentId, { name: componentName, type: componentType });
         } else {
-            const existing = systemComponents.filter(sc => sc.name.startsWith(componentName));
-            const existsExact = systemComponents.some(sc => sc.name === componentName);
-            const name = existsExact ? `${componentName} ${existing.length + 1}` : componentName;
-            addSystemComponent({ name, type: componentType });
+            addSystemComponent({ name: componentName, type: componentType });
         }
-        setComponentName(''); setComponentType(ComponentType.Physical); setEditingComponentId(null);
+        resetForm();
     };
 
     const editComponent = (comp: SystemComponent) => {
@@ -80,40 +44,40 @@ const SystemComponentsBuilder: React.FC = () => {
         setComponentType(comp.type);
     };
 
+    const resetForm = () => {
+        setEditingComponentId(null);
+        setComponentName('');
+        setComponentType(ComponentType.Physical);
+    }
+
     return (
-        <section>
-            <h3 className="text-xl font-semibold text-slate-700 mb-3 border-b pb-2">1. System Components (Physical/Process)</h3>
-            <div className="p-4 bg-sky-50 border-l-4 border-sky-400 text-sky-800 rounded-r-lg text-sm space-y-2 mb-4">
-                <p>
-                    Start at the most basic component in the system you intend to control. In most systems this is the physical system, such as a vehicle, an aircraft, a satellite or similar. If you are analyzing just a component that that is the most basic, which could be something like the brakes, a steering wheel, the engine, or perhaps even a door. It can also be a process if you are analyzing an organization on how it manages a department or even a person, such as the case in health care where the patient might be the most basic process. Regardless, it is the lowest level you are analyzing.
-                </p>
-                <p className="font-semibold">
-                    Think about your system. What is the most basic component in your system?
-                </p>
+        <section className="space-y-6">
+            <div>
+                <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">System Components</h3>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Start at the bottom of the ladder. What are the basic physical parts or processes your system controls? (e.g., 'The Aircraft', 'The Patient', 'The Database')</p>
             </div>
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-4">
+
+            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50">
                 <div className="flex flex-wrap md:flex-nowrap items-end gap-4">
                     <Input label="Component Name" value={componentName} onChange={e => setComponentName(e.target.value)} placeholder="e.g., Engine, Database" containerClassName="w-full md:w-auto flex-grow !mb-0"/>
                     <Select label="Component Type" value={componentType} onChange={e => setComponentType(e.target.value as ComponentType)} options={componentTypeOptions} containerClassName="w-full md:w-auto flex-grow !mb-0" />
-                    <Button onClick={handleSaveComponent} leftIcon={<PlaceholderPlusIcon />} className="h-10 w-full md:w-auto">
-                        {editingComponentId ? 'Update Component' : 'Add Component'}
+                    <Button onClick={handleSaveComponent} leftIcon={<PlusIcon className="w-5 h-5" />} className="h-10 w-full md:w-auto">
+                        {editingComponentId ? 'Update' : 'Add'}
                     </Button>
+                    {editingComponentId && <Button onClick={resetForm} variant="secondary" className="h-10">Cancel</Button>}
                 </div>
             </div>
+
             <ul className="space-y-2">
                 {systemComponents.map(comp => (
-                    <li key={comp.id} className="flex justify-between items-center p-3 border border-slate-300 rounded-md bg-white shadow-sm">
+                    <li key={comp.id} className="flex justify-between items-center p-3 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 shadow-sm">
                         <div>
-                            <span className="font-medium">{comp.name}</span>
-                            <span className="text-sm text-slate-500"> ({comp.type})</span>
+                            <span className="font-medium text-slate-800 dark:text-slate-200">{comp.name}</span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400"> ({comp.type})</span>
                         </div>
                         <div className="flex items-center space-x-1 ml-4">
-                            <Button onClick={() => editComponent(comp)} size="sm" variant="ghost" className="text-slate-600 hover:bg-slate-100">
-                                Edit
-                            </Button>
-                            <Button onClick={() => deleteSystemComponent(comp.id)} size="sm" variant="ghost" className="text-red-600 hover:bg-red-100" aria-label="Delete">
-                                <PlaceholderTrashIcon />
-                            </Button>
+                            <Button onClick={() => editComponent(comp)} size="sm" variant="ghost">Edit</Button>
+                            <Button onClick={() => deleteSystemComponent(comp.id)} size="sm" variant="ghost" className="text-red-500"><TrashIcon className="w-4 h-4" /></Button>
                         </div>
                     </li>
                 ))}
