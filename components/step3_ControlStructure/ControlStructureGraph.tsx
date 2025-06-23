@@ -5,7 +5,7 @@ import 'reactflow/dist/style.css';
 import dagre from 'dagre';
 
 import { CustomEdge, CustomNode } from '@/components/step3_ControlStructure/CustomGraphElements';
-import { Controller, SystemComponent, ControllerType } from '@/types';
+import { Controller, SystemComponent, ControllerType, ControlPath, FeedbackPath, CommunicationPath } from '@/types';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { CONTROLLER_NODE_STYLE } from '@/constants';
 
@@ -15,6 +15,7 @@ const NODE_WIDTH = 180;
 const BASE_NODE_HEIGHT = 60;
 const TEAM_CONTAINER_PADDING = 20;
 const TEAM_HEADER_HEIGHT = 40;
+const MEMBER_VERTICAL_SPACING = 20;
 
 interface TransformedData {
     nodes: Node[];
@@ -33,10 +34,66 @@ const transformAnalysisData = (
     controllers.forEach(controller => {
         const isComplexTeam = controller.ctrlType === ControllerType.Team && !controller.teamDetails?.isSingleUnit;
 
-        if (isComplexTeam) {
-            // Complex team logic remains the same...
+        if (isComplexTeam && controller.teamDetails) {
+            const teamContainerId = `team-container-${controller.id}`;
+            const activeContext = controller.teamDetails?.contexts.find(c => c.id === activeContexts?.[controller.id]);
+
+            const memberNodes: Node[] = [];
+
+            if (activeContext) {
+                const highestRank = (controller.teamDetails.members || []).map(m => m.commandRank).sort()[0];
+                const sortedAssignments = [...activeContext.assignments].sort((a, b) => {
+                    const roleA = controller.teamDetails?.roles.find(r => r.id === a.roleId);
+                    const roleB = controller.teamDetails?.roles.find(r => r.id === b.roleId);
+                    return (roleA?.authorityLevel ?? 99) - (roleB?.authorityLevel ?? 99);
+                });
+
+                sortedAssignments.forEach((assignment, index) => {
+                    const member = controller.teamDetails?.members.find(m => m.id === assignment.memberId);
+                    const role = controller.teamDetails?.roles.find(r => r.id === assignment.roleId);
+                    if (member && role) {
+                        const isCommander = member.commandRank === highestRank && member.commandRank !== 'GR';
+                        memberNodes.push({
+                            id: `${controller.id}-${member.id}`,
+                            type: 'custom',
+                            position: { x: TEAM_CONTAINER_PADDING, y: TEAM_HEADER_HEIGHT + (index * (BASE_NODE_HEIGHT + MEMBER_VERTICAL_SPACING)) },
+                            data: { label: member.name, role: role.name, rank: member.commandRank, commCount: 0 },
+                            parentNode: teamContainerId,
+                            extent: 'parent',
+                            draggable: false,
+                            style: {
+                                width: NODE_WIDTH,
+                                height: BASE_NODE_HEIGHT,
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                color: CONTROLLER_NODE_STYLE[controller.ctrlType].color,
+                                borderStyle: 'solid',
+                                borderRadius: '0.25rem',
+                                // Conditional border for the commander
+                                borderWidth: isCommander ? 2.5 : 1,
+                                borderColor: isCommander ? '#DAA520' : CONTROLLER_NODE_STYLE[controller.ctrlType].borderColor,
+                            }
+                        });
+                    }
+                });
+            }
+
+            nodes.push({
+                id: teamContainerId,
+                type: 'default',
+                position: { x: 0, y: 0 },
+                data: { label: activeContext ? controller.name : `${controller.name} (Select Context)` },
+                style: {
+                    ...CONTROLLER_NODE_STYLE[ControllerType.Team],
+                    width: NODE_WIDTH + (TEAM_CONTAINER_PADDING * 2),
+                    height: TEAM_HEADER_HEIGHT + (memberNodes.length * (BASE_NODE_HEIGHT + MEMBER_VERTICAL_SPACING)) - (memberNodes.length > 0 ? MEMBER_VERTICAL_SPACING : 0) + TEAM_CONTAINER_PADDING,
+                    borderRadius: '0.5rem',
+                },
+                zIndex: -1,
+            });
+
+            nodes.push(...memberNodes);
+
         } else {
-            // Simple controller
             nodes.push({
                 id: controller.id,
                 type: 'custom',
@@ -78,46 +135,56 @@ const transformAnalysisData = (
 
     feedbackPaths.forEach(path => edges.push({ id: `fp-${path.id}`, source: path.sourceId, target: path.targetControllerId, type: 'custom', label: path.feedback, markerEnd: { type: 'arrowclosed', color: '#6ee7b7' }, style: { stroke: '#6ee7b7' }, animated: !path.isMissing, sourcePosition: Position.Top, targetPosition: Position.Bottom, sourceHandle: 'top_right', targetHandle: 'bottom_right' }));
 
-    // Communication path logic remains the same...
+    communicationPaths.forEach(path => {
+        const sourceNode = path.sourceMemberId ? `${path.sourceControllerId}-${path.sourceMemberId}` : path.sourceControllerId;
+        const targetNode = path.targetMemberId ? `${path.targetControllerId}-${path.targetMemberId}` : path.targetControllerId;
+        edges.push({
+            id: path.id,
+            source: sourceNode,
+            target: targetNode,
+            type: 'custom',
+            label: path.description,
+            style: { stroke: '#888', strokeDasharray: '5 5' },
+            sourcePosition: Position.Right,
+            targetPosition: Position.Left
+        });
+    });
 
     return { nodes, edges };
 };
+
 
 const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
     const dagreGraph = new dagre.graphlib.Graph({ compound: true });
     dagreGraph.setDefaultEdgeLabel(() => ({}));
     dagreGraph.setGraph({ rankdir: direction, nodesep: 150, ranksep: 100, align: 'UL' });
 
-    const topLevelNodes = nodes.filter(n => !n.parentNode);
-
-    topLevelNodes.forEach((node) => {
-        dagreGraph.setNode(node.id, { width: node.style?.width || NODE_WIDTH, height: node.style?.height || BASE_NODE_HEIGHT });
+    nodes.forEach((node) => {
+        dagreGraph.setNode(node.id, { width: (node.style?.width as number) || NODE_WIDTH, height: (node.style?.height as number) || BASE_NODE_HEIGHT });
+        if(node.parentNode) {
+            dagreGraph.setParent(node.id, node.parentNode);
+        }
     });
 
     edges.forEach((edge) => {
         dagreGraph.setEdge(edge.source, edge.target);
     });
 
-    nodes.forEach(node => {
-        if(node.parentNode) {
-            dagreGraph.setParent(node.id, node.parentNode);
-        }
-    });
-
     dagre.layout(dagreGraph);
 
-    const layoutedNodes = nodes.map((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
-        if (nodeWithPosition) {
-            node.position = {
-                x: nodeWithPosition.x - (node.style?.width || NODE_WIDTH) / 2,
-                y: nodeWithPosition.y - (node.style?.height || BASE_NODE_HEIGHT) / 2,
-            };
+    nodes.forEach((node) => {
+        if (!node.parentNode) {
+            const nodeWithPosition = dagreGraph.node(node.id);
+            if (nodeWithPosition) {
+                node.position = {
+                    x: nodeWithPosition.x - ((node.style?.width as number || NODE_WIDTH) / 2),
+                    y: nodeWithPosition.y - ((node.style?.height as number || BASE_NODE_HEIGHT) / 2),
+                };
+            }
         }
-        return node;
     });
 
-    return { nodes: layoutedNodes, edges };
+    return { nodes, edges };
 };
 
 const GraphCanvas: React.FC = () => {
@@ -126,7 +193,14 @@ const GraphCanvas: React.FC = () => {
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const { fitView } = useReactFlow();
 
-    const memoizedTransformedData = useMemo(() => transformAnalysisData(analysisData), [analysisData, analysisData.activeContexts]);
+    const memoizedTransformedData = useMemo(() => transformAnalysisData(analysisData), [
+        analysisData.controllers,
+        analysisData.systemComponents,
+        analysisData.controlPaths,
+        analysisData.feedbackPaths,
+        analysisData.communicationPaths,
+        analysisData.activeContexts
+    ]);
 
     const onLayout = useCallback(() => {
         const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(memoizedTransformedData.nodes, memoizedTransformedData.edges);
