@@ -1,4 +1,3 @@
-// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/layout/MainLayout.tsx
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAnalysis } from '../../hooks/useAnalysis';
@@ -63,7 +62,13 @@ const MainLayout: React.FC = () => {
           </div>
         </header>
 
-        <Stepper steps={steps} currentPath={location.pathname} />
+        <Stepper
+            steps={steps}
+            currentPath={location.pathname}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            currentStepIndex={currentStepIndex}
+        />
 
         <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
           {currentStepDefinition && (
@@ -75,25 +80,6 @@ const MainLayout: React.FC = () => {
             </div>
           </div>
         </main>
-
-        <footer className="bg-white/80 dark:bg-black/80 backdrop-blur-sm border-t border-slate-200 dark:border-white/10 p-4 sticky bottom-0 z-30 shadow-top">
-          <div className="container mx-auto flex justify-between items-center">
-            <Button onClick={handlePrevious} disabled={currentStepIndex <= 0} variant="secondary">
-              Previous Step
-            </Button>
-            <div className="text-sm text-slate-500 dark:text-slate-100">
-              Step {currentStepIndex + 1} of {steps.length}: <span className="font-semibold">{currentStepDefinition?.shortTitle}</span>
-            </div>
-            <Button onClick={handleNext} disabled={currentStepIndex >= steps.length - 1}>
-              Next Step
-            </Button>
-          </div>
-        </footer>
-        <style>{`
-        .shadow-top {
-          box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-      `}</style>
       </div>
   );
 };
