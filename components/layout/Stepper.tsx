@@ -28,22 +28,27 @@ const Stepper: React.FC<StepperProps> = ({ steps, currentPath, onPrevious, onNex
                         const isCurrent = currentStepIndex === stepIdx;
                         const isCompleted = currentStepIndex > stepIdx;
                         const isStart = step.path === '/start';
-                        const isFuture = stepIdx > currentStepIndex;
 
                         let buttonClass = 'group flex flex-col items-center py-2 px-1 md:px-3 border-b-4 focus:outline-none transition-colors duration-200 ';
                         if (isCurrent) {
                             buttonClass += 'border-sky-500 text-sky-600 dark:text-sky-400 font-semibold';
                         } else if (isCompleted) {
-                            buttonClass += 'border-green-500 text-slate-700 dark:text-slate-300 hover:border-sky-400 cursor-pointer';
+                            buttonClass += 'border-green-500 text-slate-700 dark:text-slate-300 hover:border-sky-400';
                         } else { // isFuture
-                            buttonClass += 'border-transparent text-slate-400 dark:text-slate-500 cursor-default';
+                            buttonClass += 'border-transparent text-slate-400 dark:text-slate-500 hover:border-sky-400';
+                        }
+
+                        if (!isStart) {
+                            buttonClass += ' cursor-pointer';
+                        } else {
+                            buttonClass += ' cursor-default';
                         }
 
                         return (
                             <li key={step.shortTitle} className="flex-shrink-0">
                                 <button
-                                    onClick={() => !isFuture && !isStart && navigate(step.path)}
-                                    disabled={isFuture || isStart}
+                                    onClick={() => !isStart && navigate(step.path)}
+                                    disabled={isStart}
                                     className={buttonClass}
                                 >
                                     <span className={`text-xs md:text-sm ${isCurrent ? 'font-bold' : 'font-medium'}`}>{step.shortTitle}</span>
