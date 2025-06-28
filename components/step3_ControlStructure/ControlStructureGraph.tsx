@@ -13,8 +13,7 @@ const LayoutIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" v
 
 const NODE_WIDTH = 180;
 const BASE_NODE_HEIGHT = 60;
-const NODE_SEPARATION = 80; // Horizontal separation between nodes on the same rank
-const RANK_SEPARATION = 120; // Vertical separation between ranks (layers)
+const PARENT_PADDING = 40; // Padding for parent nodes with multiple children
 
 interface TransformedData {
     nodes: Node[];
@@ -28,6 +27,7 @@ const transformAnalysisData = (
     let nodes: Node[] = [];
     let edges: Edge[] = [];
 
+    // Pre-calculate which children each controller controls
     const controllerChildrenMap = new Map<string, string[]>();
     controlPaths.forEach(path => {
         const children = controllerChildrenMap.get(path.sourceControllerId) || [];
@@ -41,10 +41,8 @@ const transformAnalysisData = (
         const children = controllerChildrenMap.get(controller.id) || [];
         const numChildren = children.length;
 
-        // Parent node width must account for its children's widths plus the separation between them.
-        const nodeWidth = numChildren > 1
-            ? (NODE_WIDTH * numChildren) + (NODE_SEPARATION * (numChildren - 1))
-            : NODE_WIDTH;
+        // Dynamic width for parent nodes based on the number of children
+        const nodeWidth = numChildren > 1 ? (NODE_WIDTH * numChildren) + PARENT_PADDING : NODE_WIDTH;
 
         nodes.push({
             id: controller.id,
@@ -52,9 +50,9 @@ const transformAnalysisData = (
             position: { x: 0, y: 0 },
             data: {
                 label: controller.name,
-                children: children,
-                width: nodeWidth,
-                commCount: 0
+                children: children, // Pass children to node for handle creation
+                width: nodeWidth, // Pass calculated width for handle positioning
+                commCount: 0 // Will be updated later if needed
             },
             style: {
                 ...CONTROLLER_NODE_STYLE[controller.ctrlType],
@@ -128,10 +126,10 @@ const transformAnalysisData = (
 const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
     const dagreGraph = new dagre.graphlib.Graph({ compound: true });
     dagreGraph.setDefaultEdgeLabel(() => ({}));
-    dagreGraph.setGraph({ rankdir: direction, nodesep: NODE_SEPARATION, ranksep: RANK_SEPARATION });
+    dagreGraph.setGraph({ rankdir: direction, nodesep: 150, ranksep: 100, align: 'UL' });
 
     nodes.forEach((node) => {
-        dagreGraph.setNode(node.id, { width: node.data.width || NODE_WIDTH, height: BASE_NODE_HEIGHT });
+        dagreGraph.setNode(node.id, { width: (node.style?.width as number) || NODE_WIDTH, height: (node.style?.height as number) || BASE_NODE_HEIGHT });
         if(node.parentNode) {
             dagreGraph.setParent(node.id, node.parentNode);
         }
@@ -148,8 +146,8 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
             const nodeWithPosition = dagreGraph.node(node.id);
             if (nodeWithPosition) {
                 node.position = {
-                    x: nodeWithPosition.x - (node.data.width || NODE_WIDTH) / 2,
-                    y: nodeWithPosition.y - BASE_NODE_HEIGHT / 2,
+                    x: nodeWithPosition.x - ((node.style?.width as number || NODE_WIDTH) / 2),
+                    y: nodeWithPosition.y - ((node.style?.height as number || BASE_NODE_HEIGHT) / 2),
                 };
             }
         }
