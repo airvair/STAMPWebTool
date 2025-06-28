@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>STAMP Tool</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Add SortableJS library -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
     /* Add Inter font from Google Fonts if Tailwind default isn't sufficient */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -36,6 +38,18 @@
     }
     .dark ::-webkit-scrollbar-thumb:hover {
       background: #666;
+    }
+
+    /* SortableJS drag-and-drop styles */
+    .sortable-ghost {
+      opacity: 0.4;
+      background-color: #38bdf8; /* sky-400 */
+    }
+    .sortable-chosen {
+      cursor: grabbing;
+    }
+    .drag-handle {
+      cursor: grab;
     }
   </style>
   <script type="importmap">

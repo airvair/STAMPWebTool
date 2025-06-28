@@ -88,14 +88,7 @@ const CastStep2: React.FC = () => {
     addEventDetail({ description: newEventDesc });
     setNewEventDesc('');
   };
-  const moveEvent = (index: number, direction: 'up' | 'down') => {
-    const currentEvents = [...sequenceOfEvents].sort((a, b) => a.order - b.order);
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= currentEvents.length) return;
-    const newEvents = [...currentEvents];
-    [newEvents[index], newEvents[targetIndex]] = [newEvents[targetIndex], newEvents[index]];
-    reorderEventDetails(newEvents);
-  };
+
   const handleLossSelectionChange = (lossId: string, isSelected: boolean) => {
     const standardLoss = STANDARD_LOSSES.find(sl => sl.id === lossId);
     if (standardLoss) {
@@ -181,7 +174,7 @@ const CastStep2: React.FC = () => {
   const renderSubStep = () => {
     switch (castStep2SubStep) {
       case 0: return <ScopeBuilder analysisType={AnalysisType.CAST} scope={scope} setScope={setScope} handleScopeBlur={handleScopeBlur} />;
-      case 1: return <SequenceOfEventsBuilder sequenceOfEvents={sequenceOfEvents} newEventDesc={newEventDesc} setNewEventDesc={setNewEventDesc} handleAddEvent={handleAddEvent} updateEventDetail={updateEventDetail} deleteEventDetail={deleteEventDetail} moveEvent={moveEvent} />;
+      case 1: return <SequenceOfEventsBuilder sequenceOfEvents={sequenceOfEvents} newEventDesc={newEventDesc} setNewEventDesc={setNewEventDesc} handleAddEvent={handleAddEvent} updateEventDetail={updateEventDetail} deleteEventDetail={deleteEventDetail} reorderEventDetails={reorderEventDetails} />;
       case 2: return <LossesBuilder analysisType={AnalysisType.CAST} losses={losses} selectedLossIdsState={selectedLossIdsState} otherLossTitle={otherLossTitle} otherLossDesc={otherLossDesc} getUnlinkedLosses={getUnlinkedLosses} handleLossSelectionChange={handleLossSelectionChange} setOtherLossTitle={setOtherLossTitle} setOtherLossDesc={setOtherLossDesc} handleAddOtherLoss={handleAddOtherLoss} deleteLoss={deleteLoss} />;
       case 3: return <HazardsBuilder analysisType={AnalysisType.CAST} hazards={hazards} losses={losses} currentHazardText={currentHazardText} hazardError={hazardError} editingHazardId={editingHazardId} linkedLossIds={linkedLossIds} parentHazardForSubHazard={parentHazardForSubHazard} subHazardDescription={subHazardDescription} coveredLossCount={coveredLossCount} handleHazardInputChange={handleHazardInputChange} handleHazardLossLinkChange={handleHazardLossLinkChange} handleSaveHazard={handleSaveHazard} resetHazardForm={resetHazardForm} editHazard={editHazard} deleteHazard={deleteHazard} setParentHazardForSubHazard={setParentHazardForSubHazard} setSubHazardDescription={setSubHazardDescription} handleAddSubHazard={handleAddSubHazard} />;
       case 4: return <SystemConstraintsBuilder analysisType={AnalysisType.CAST} systemConstraints={systemConstraints} hazards={hazards} updateSystemConstraint={updateSystemConstraint} />;
