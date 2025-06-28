@@ -1,21 +1,39 @@
 import { Node, Edge } from 'reactflow';
-import { Controller, SystemComponent, ControlPath, FeedbackPath, CommunicationPath } from '@/types';
+import { Controller, SystemComponent, ControlPath, FeedbackPath, CommunicationPath, ControllerType, TeamRole } from '@/types';
 import { useAnalysis } from '@/hooks/useAnalysis';
-import { CONTROLLER_NODE_STYLE, NODE_WIDTH, BASE_NODE_HEIGHT, PARENT_PADDING } from '@/constants';
+import {
+    CONTROLLER_NODE_STYLE,
+    NODE_WIDTH,
+    BASE_NODE_HEIGHT,
+    PARENT_PADDING,
+    TEAM_NODE_HEADER_HEIGHT,
+    TEAM_NODE_PADDING,
+    MEMBER_NODE_WIDTH,
+    MEMBER_NODE_HEIGHT,
+    MEMBER_NODE_SPACING,
+} from '@/constants';
 
 export interface TransformedData {
     nodes: Node[];
     edges: Edge[];
 }
 
+/**
+ * Transforms the analysis data from the context into nodes and edges
+ * that can be rendered by React Flow.
+ *
+ * This function now handles complex team structures by creating a parent container
+ * node for the team and nesting individual member nodes inside it. It also
+ * considers the active context to display the correct roles for team members.
+ */
 export const transformAnalysisData = (
     analysisData: ReturnType<typeof useAnalysis>
 ): TransformedData => {
-    const { controllers, systemComponents, controlPaths, feedbackPaths, communicationPaths } = analysisData;
+    const { controllers, systemComponents, controlPaths, feedbackPaths, communicationPaths, activeContexts } = analysisData;
     let nodes: Node[] = [];
     let edges: Edge[] = [];
 
-    // Pre-calculate which children each controller controls
+    // Pre-calculate which children each controller controls for handle creation
     const controllerChildrenMap = new Map<string, string[]>();
     controlPaths.forEach(path => {
         const children = controllerChildrenMap.get(path.sourceControllerId) || [];
@@ -26,37 +44,120 @@ export const transformAnalysisData = (
     });
 
     controllers.forEach(controller => {
-        const children = controllerChildrenMap.get(controller.id) || [];
-        const numChildren = children.length;
+        const isComplexTeam = controller.ctrlType === ControllerType.Team &&
+            controller.teamDetails &&
+            !controller.teamDetails.isSingleUnit &&
+            controller.teamDetails.members.length > 0;
 
-        // Dynamic width for parent nodes based on the number of children
-        const nodeWidth = numChildren > 1 ? (NODE_WIDTH * numChildren) + PARENT_PADDING : NODE_WIDTH;
+        if (isComplexTeam) {
+            const memberNodes: Node[] = [];
+            const { members, roles, contexts } = controller.teamDetails!;
 
+            // Determine the active context for this team
+            const activeContextId = activeContexts[controller.id];
+            const activeContext = contexts.find(c => c.id === activeContextId);
+
+            members.forEach((member, index) => {
+                let contextualRole: TeamRole | undefined;
+                if (activeContext) {
+                    const assignment = activeContext.assignments.find(a => a.memberId === member.id);
+                    if (assignment) {
+                        contextualRole = roles.find(r => r.id === assignment.roleId);
+                    }
+                }
+
+                // The role to display is the contextual role if available, otherwise fallback to command rank
+                const displayRole = contextualRole ? contextualRole.name : member.commandRank;
+
+                memberNodes.push({
+                    id: `${controller.id}-${member.id}`,
+                    type: 'teamMember',
+                    data: {
+                        label: member.name,
+                        role: displayRole, // Pass the dynamic role
+                        commandRank: member.commandRank // Pass the static rank for styling
+                    },
+                    position: {
+                        x: TEAM_NODE_PADDING,
+                        y: TEAM_NODE_HEADER_HEIGHT + (index * (MEMBER_NODE_HEIGHT + MEMBER_NODE_SPACING)),
+                    },
+                    parentNode: controller.id,
+                    extent: 'parent',
+                    draggable: false,
+                    style: {
+                        width: MEMBER_NODE_WIDTH,
+                        height: MEMBER_NODE_HEIGHT,
+                    },
+                });
+            });
+
+            const containerHeight = TEAM_NODE_HEADER_HEIGHT + (members.length * (MEMBER_NODE_HEIGHT + MEMBER_NODE_SPACING)) + TEAM_NODE_PADDING;
+            const containerWidth = MEMBER_NODE_WIDTH + (TEAM_NODE_PADDING * 2);
+
+            nodes.push({
+                id: controller.id,
+                type: 'custom',
+                data: { label: controller.name },
+                position: { x: 0, y: 0 },
+                style: {
+                    ...CONTROLLER_NODE_STYLE[controller.ctrlType],
+                    width: containerWidth,
+                    height: containerHeight,
+                    borderRadius: '0.375rem',
+                },
+                className: 'team-group-node'
+            });
+
+            nodes.push(...memberNodes);
+
+        } else {
+            // Existing logic for simple controllers
+            const children = controllerChildrenMap.get(controller.id) || [];
+            const numChildren = children.length;
+            const nodeWidth = numChildren > 1 ? (NODE_WIDTH * numChildren) + PARENT_PADDING : NODE_WIDTH;
+
+            nodes.push({
+                id: controller.id,
+                type: 'custom',
+                position: { x: 0, y: 0 },
+                data: {
+                    label: controller.name,
+                    children: children,
+                    width: nodeWidth,
+                    commCount: 0
+                },
+                style: {
+                    ...CONTROLLER_NODE_STYLE[controller.ctrlType],
+                    width: nodeWidth,
+                    height: BASE_NODE_HEIGHT,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    textAlign: 'center',
+                    borderRadius: '0.375rem',
+                },
+            });
+        }
+    });
+
+    systemComponents.forEach(component => {
         nodes.push({
-            id: controller.id,
+            id: component.id,
             type: 'custom',
             position: { x: 0, y: 0 },
-            data: {
-                label: controller.name,
-                children: children, // Pass children to node for handle creation
-                width: nodeWidth, // Pass calculated width for handle positioning
-                commCount: 0 // Will be updated later if needed
-            },
+            data: { label: component.name, commCount: 0 },
             style: {
-                ...CONTROLLER_NODE_STYLE[controller.ctrlType],
-                width: nodeWidth,
+                width: NODE_WIDTH,
                 height: BASE_NODE_HEIGHT,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 textAlign: 'center',
-                borderRadius: '0.375rem',
-            },
+                border: '1px solid #333',
+                backgroundColor: '#fff',
+                color: '#000'
+            }
         });
-    });
-
-    systemComponents.forEach(component => {
-        nodes.push({ id: component.id, type: 'custom', position: { x: 0, y: 0 }, data: { label: component.name, commCount: 0 }, style: { width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000', backgroundColor: '#fff', color: '#000' } });
     });
 
     controlPaths.forEach(path => {

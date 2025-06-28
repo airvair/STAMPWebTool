@@ -4,6 +4,7 @@ import 'reactflow/dist/style.css';
 
 import { CustomNode } from '@/components/step3_ControlStructure/graph/CustomNode';
 import { CustomEdge } from '@/components/step3_ControlStructure/graph/CustomEdge';
+import { TeamMemberNode } from '@/components/step3_ControlStructure/graph/TeamMemberNode'; // Import the new node
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { transformAnalysisData } from './graphUtils/dataTransformation';
 import { getLayoutedElements } from './graphUtils/layout';
@@ -35,7 +36,10 @@ const GraphCanvas: React.FC = () => {
         onLayout();
     }, [memoizedTransformedData.nodes.length, memoizedTransformedData.edges.length, onLayout]);
 
-    const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
+    const nodeTypes = useMemo(() => ({
+        custom: CustomNode,
+        teamMember: TeamMemberNode // Register the new node type
+    }), []);
     const edgeTypes = useMemo(() => ({ custom: CustomEdge }), []);
 
     return (

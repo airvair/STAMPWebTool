@@ -53,6 +53,14 @@ export const BASE_NODE_HEIGHT = 60;
 export const PARENT_PADDING = 40;
 export const ACTUATOR_SENSOR_BOX_SIZE = 16;
 
+// NEW: Constants for Team Visualization
+export const TEAM_NODE_HEADER_HEIGHT = 40;
+export const TEAM_NODE_PADDING = 15;
+export const MEMBER_NODE_WIDTH = NODE_WIDTH;
+export const MEMBER_NODE_HEIGHT = 50;
+export const MEMBER_NODE_SPACING = 10;
+export const COMMANDER_BORDER_COLOR = '#DAA520'; // GoldenRod for commanders
+
 export const MISSING_FEEDBACK_COLOR = 'border-red-500 text-red-700';
 
 export const CONTROL_LINE_COLOR = '#2563eb';
