@@ -1,4 +1,4 @@
-// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step3_ControlStructure/ControlStructureGraph.tsx
+// airvair/stampwebtool/STAMPWebTool-b000546fa5f298b66d61c62bd2d61ff4ceb6cfb3/components/step3_ControlStructure/ControlStructureGraph.tsx
 import React, { useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, { Background, Controls, Node, Edge, useNodesState, useEdgesState, Panel, useReactFlow, ReactFlowProvider, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -13,9 +13,8 @@ const LayoutIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" fill="none" v
 
 const NODE_WIDTH = 180;
 const BASE_NODE_HEIGHT = 60;
-const TEAM_CONTAINER_PADDING = 20;
-const TEAM_HEADER_HEIGHT = 40;
-const MEMBER_VERTICAL_SPACING = 20;
+const NODE_SEPARATION = 80; // Horizontal separation between nodes on the same rank
+const RANK_SEPARATION = 120; // Vertical separation between ranks (layers)
 
 interface TransformedData {
     nodes: Node[];
@@ -25,99 +24,60 @@ interface TransformedData {
 const transformAnalysisData = (
     analysisData: ReturnType<typeof useAnalysis>
 ): TransformedData => {
-    const { controllers, systemComponents, controlPaths, feedbackPaths, communicationPaths, activeContexts } = analysisData;
+    const { controllers, systemComponents, controlPaths, feedbackPaths, communicationPaths } = analysisData;
     let nodes: Node[] = [];
     let edges: Edge[] = [];
 
-    const getCommCount = (id: string) => communicationPaths.filter(p => p.sourceControllerId === id || p.targetControllerId === id).length;
+    const controllerChildrenMap = new Map<string, string[]>();
+    controlPaths.forEach(path => {
+        const children = controllerChildrenMap.get(path.sourceControllerId) || [];
+        if (!children.includes(path.targetId)) {
+            children.push(path.targetId);
+        }
+        controllerChildrenMap.set(path.sourceControllerId, children);
+    });
 
     controllers.forEach(controller => {
-        const isComplexTeam = controller.ctrlType === ControllerType.Team && !controller.teamDetails?.isSingleUnit;
+        const children = controllerChildrenMap.get(controller.id) || [];
+        const numChildren = children.length;
 
-        if (isComplexTeam && controller.teamDetails) {
-            const teamContainerId = `team-container-${controller.id}`;
-            const activeContext = controller.teamDetails?.contexts.find(c => c.id === activeContexts?.[controller.id]);
+        // Parent node width must account for its children's widths plus the separation between them.
+        const nodeWidth = numChildren > 1
+            ? (NODE_WIDTH * numChildren) + (NODE_SEPARATION * (numChildren - 1))
+            : NODE_WIDTH;
 
-            const memberNodes: Node[] = [];
-
-            if (activeContext) {
-                const highestRank = (controller.teamDetails.members || []).map(m => m.commandRank).sort()[0];
-                const sortedAssignments = [...activeContext.assignments].sort((a, b) => {
-                    const roleA = controller.teamDetails?.roles.find(r => r.id === a.roleId);
-                    const roleB = controller.teamDetails?.roles.find(r => r.id === b.roleId);
-                    return (roleA?.authorityLevel ?? 99) - (roleB?.authorityLevel ?? 99);
-                });
-
-                sortedAssignments.forEach((assignment, index) => {
-                    const member = controller.teamDetails?.members.find(m => m.id === assignment.memberId);
-                    const role = controller.teamDetails?.roles.find(r => r.id === assignment.roleId);
-                    if (member && role) {
-                        const isCommander = member.commandRank === highestRank && member.commandRank !== 'GR';
-                        memberNodes.push({
-                            id: `${controller.id}-${member.id}`,
-                            type: 'custom',
-                            position: { x: TEAM_CONTAINER_PADDING, y: TEAM_HEADER_HEIGHT + (index * (BASE_NODE_HEIGHT + MEMBER_VERTICAL_SPACING)) },
-                            data: { label: member.name, role: role.name, rank: member.commandRank, commCount: 0 },
-                            parentNode: teamContainerId,
-                            extent: 'parent',
-                            draggable: false,
-                            style: {
-                                width: NODE_WIDTH,
-                                height: BASE_NODE_HEIGHT,
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                                color: CONTROLLER_NODE_STYLE[controller.ctrlType].color,
-                                borderStyle: 'solid',
-                                borderRadius: '0.25rem',
-                                // Conditional border for the commander
-                                borderWidth: isCommander ? 2.5 : 1,
-                                borderColor: isCommander ? '#DAA520' : CONTROLLER_NODE_STYLE[controller.ctrlType].borderColor,
-                            }
-                        });
-                    }
-                });
-            }
-
-            nodes.push({
-                id: teamContainerId,
-                type: 'default',
-                position: { x: 0, y: 0 },
-                data: { label: activeContext ? controller.name : `${controller.name} (Select Context)` },
-                style: {
-                    ...CONTROLLER_NODE_STYLE[ControllerType.Team],
-                    width: NODE_WIDTH + (TEAM_CONTAINER_PADDING * 2),
-                    height: TEAM_HEADER_HEIGHT + (memberNodes.length * (BASE_NODE_HEIGHT + MEMBER_VERTICAL_SPACING)) - (memberNodes.length > 0 ? MEMBER_VERTICAL_SPACING : 0) + TEAM_CONTAINER_PADDING,
-                    borderRadius: '0.5rem',
-                },
-                zIndex: -1,
-            });
-
-            nodes.push(...memberNodes);
-
-        } else {
-            nodes.push({
-                id: controller.id,
-                type: 'custom',
-                position: { x: 0, y: 0 },
-                data: { label: controller.name, commCount: getCommCount(controller.id) },
-                style: {
-                    ...CONTROLLER_NODE_STYLE[controller.ctrlType],
-                    width: NODE_WIDTH,
-                    height: BASE_NODE_HEIGHT,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    borderRadius: '0.375rem',
-                },
-            });
-        }
+        nodes.push({
+            id: controller.id,
+            type: 'custom',
+            position: { x: 0, y: 0 },
+            data: {
+                label: controller.name,
+                children: children,
+                width: nodeWidth,
+                commCount: 0
+            },
+            style: {
+                ...CONTROLLER_NODE_STYLE[controller.ctrlType],
+                width: nodeWidth,
+                height: BASE_NODE_HEIGHT,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                borderRadius: '0.375rem',
+            },
+        });
     });
 
     systemComponents.forEach(component => {
-        nodes.push({ id: component.id, type: 'custom', position: { x: 0, y: 0 }, data: { label: component.name, commCount: getCommCount(component.id) }, style: { width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000', backgroundColor: '#fff', color: '#000' } });
+        nodes.push({ id: component.id, type: 'custom', position: { x: 0, y: 0 }, data: { label: component.name, commCount: 0 }, style: { width: NODE_WIDTH, height: BASE_NODE_HEIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', border: '1px solid #000', backgroundColor: '#fff', color: '#000' } });
     });
 
     controlPaths.forEach(path => {
+        const children = controllerChildrenMap.get(path.sourceControllerId) || [];
+        const childIndex = children.indexOf(path.targetId);
+        const sourceHandle = children.length > 1 && childIndex !== -1 ? `bottom_control_${childIndex}` : 'bottom_left';
+
         edges.push({
             id: `cp-${path.id}`,
             source: path.sourceControllerId,
@@ -126,27 +86,38 @@ const transformAnalysisData = (
             label: path.controls,
             markerEnd: { type: 'arrowclosed', color: '#FFFFFF' },
             style: { stroke: '#FFFFFF' },
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top,
-            sourceHandle: 'bottom_left',
+            sourceHandle,
             targetHandle: 'top_left'
         });
     });
 
-    feedbackPaths.forEach(path => edges.push({ id: `fp-${path.id}`, source: path.sourceId, target: path.targetControllerId, type: 'custom', label: path.feedback, markerEnd: { type: 'arrowclosed', color: '#6ee7b7' }, style: { stroke: '#6ee7b7' }, animated: !path.isMissing, sourcePosition: Position.Top, targetPosition: Position.Bottom, sourceHandle: 'top_right', targetHandle: 'bottom_right' }));
+    feedbackPaths.forEach(path => {
+        const childrenOfTarget = controllerChildrenMap.get(path.targetControllerId) || [];
+        const feedbackSourceIndex = childrenOfTarget.indexOf(path.sourceId);
+        const targetHandle = childrenOfTarget.length > 1 && feedbackSourceIndex !== -1 ? `bottom_feedback_${feedbackSourceIndex}` : 'bottom_right';
+
+        edges.push({
+            id: `fp-${path.id}`,
+            source: path.sourceId,
+            target: path.targetControllerId,
+            type: 'custom',
+            label: path.feedback,
+            markerEnd: { type: 'arrowclosed', color: '#6ee7b7' },
+            style: { stroke: '#6ee7b7' },
+            animated: !path.isMissing,
+            sourceHandle: 'top_right',
+            targetHandle
+        });
+    });
 
     communicationPaths.forEach(path => {
-        const sourceNode = path.sourceMemberId ? `${path.sourceControllerId}-${path.sourceMemberId}` : path.sourceControllerId;
-        const targetNode = path.targetMemberId ? `${path.targetControllerId}-${path.targetMemberId}` : path.targetControllerId;
         edges.push({
             id: path.id,
-            source: sourceNode,
-            target: targetNode,
+            source: path.sourceControllerId,
+            target: path.targetControllerId,
             type: 'custom',
             label: path.description,
-            style: { stroke: '#888', strokeDasharray: '5 5' },
-            sourcePosition: Position.Right,
-            targetPosition: Position.Left
+            style: { stroke: '#888', strokeDasharray: '5 5' }
         });
     });
 
@@ -157,10 +128,10 @@ const transformAnalysisData = (
 const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
     const dagreGraph = new dagre.graphlib.Graph({ compound: true });
     dagreGraph.setDefaultEdgeLabel(() => ({}));
-    dagreGraph.setGraph({ rankdir: direction, nodesep: 150, ranksep: 100, align: 'UL' });
+    dagreGraph.setGraph({ rankdir: direction, nodesep: NODE_SEPARATION, ranksep: RANK_SEPARATION });
 
     nodes.forEach((node) => {
-        dagreGraph.setNode(node.id, { width: (node.style?.width as number) || NODE_WIDTH, height: (node.style?.height as number) || BASE_NODE_HEIGHT });
+        dagreGraph.setNode(node.id, { width: node.data.width || NODE_WIDTH, height: BASE_NODE_HEIGHT });
         if(node.parentNode) {
             dagreGraph.setParent(node.id, node.parentNode);
         }
@@ -177,8 +148,8 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
             const nodeWithPosition = dagreGraph.node(node.id);
             if (nodeWithPosition) {
                 node.position = {
-                    x: nodeWithPosition.x - ((node.style?.width as number || NODE_WIDTH) / 2),
-                    y: nodeWithPosition.y - ((node.style?.height as number || BASE_NODE_HEIGHT) / 2),
+                    x: nodeWithPosition.x - (node.data.width || NODE_WIDTH) / 2,
+                    y: nodeWithPosition.y - BASE_NODE_HEIGHT / 2,
                 };
             }
         }
@@ -199,7 +170,6 @@ const GraphCanvas: React.FC = () => {
         analysisData.controlPaths,
         analysisData.feedbackPaths,
         analysisData.communicationPaths,
-        analysisData.activeContexts
     ]);
 
     const onLayout = useCallback(() => {
