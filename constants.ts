@@ -47,7 +47,11 @@ export const CONTROLLER_NODE_STYLE: Record<ControllerType, React.CSSProperties> 
   },
 };
 
-// ... (rest of the file remains the same)
+// Constants for Graph Visualization
+export const NODE_WIDTH = 180;
+export const BASE_NODE_HEIGHT = 60;
+export const PARENT_PADDING = 40;
+export const ACTUATOR_SENSOR_BOX_SIZE = 16;
 
 export const MISSING_FEEDBACK_COLOR = 'border-red-500 text-red-700';
 
