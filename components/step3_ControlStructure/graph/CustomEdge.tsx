@@ -39,7 +39,20 @@ export const CustomEdge: React.FC<EdgeProps> = ({
                 </div>
                 {(isActuator || isSensor) && (
                     <div style={{ position: 'absolute', transform: `translate(${boxX}px, ${boxY}px)`, pointerEvents: 'all' }} className="nodrag nopan">
-                        <div style={{ width: ACTUATOR_SENSOR_BOX_SIZE, height: ACTUATOR_SENSOR_BOX_SIZE, background: 'white', border: `1.5px solid #333`, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold', transform: getBoxTransform(boxSide), color: '#000000' }}>
+                        <div style={{ 
+                            width: ACTUATOR_SENSOR_BOX_SIZE, 
+                            height: ACTUATOR_SENSOR_BOX_SIZE, 
+                            background: 'white', 
+                            border: `1.5px solid ${isActuator ? '#3b82f6' : '#ef4444'}`, // Blue for A, Red for S
+                            borderRadius: '3px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            fontSize: '10px', 
+                            fontWeight: 'bold', 
+                            transform: getBoxTransform(boxSide), 
+                            color: isActuator ? '#3b82f6' : '#ef4444' // Blue for A, Red for S
+                        }}>
                             {isActuator ? 'A' : 'S'}
                         </div>
                     </div>
