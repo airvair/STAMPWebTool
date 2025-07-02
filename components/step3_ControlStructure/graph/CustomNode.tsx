@@ -8,24 +8,20 @@ export const CustomNode: React.FC<NodeProps<CustomNodeData>> = ({ data }) => {
 
     const renderDynamicHandles = (position: Position) => {
         let referenceArray: string[] = [];
-        let controlPrefix: string;
-        let feedbackPrefix: string;
-        let controlType: 'source' | 'target';
-        let feedbackType: 'source' | 'target';
-        const fixedControlOffset = 0.3; // Matches static handle position
+        let handlePrefix: string;
+        let handleType: 'source' | 'target';
+        let fixedHandleOffset: number; // Offset for single dynamic handle case
 
         if (position === Position.Bottom) {
             referenceArray = data.children || [];
-            controlPrefix = 'bottom_control_';
-            feedbackPrefix = 'bottom_feedback_';
-            controlType = 'source';
-            feedbackType = 'target';
+            handlePrefix = 'bottom_control_';
+            handleType = 'source';
+            fixedHandleOffset = 0.3; // Matches 'bottom_left' in static handles
         } else if (position === Position.Top) {
             referenceArray = data.parents || [];
-            controlPrefix = 'top_control_';
-            feedbackPrefix = 'top_feedback_';
-            controlType = 'target';
-            feedbackType = 'source';
+            handlePrefix = 'top_control_';
+            handleType = 'target';
+            fixedHandleOffset = 0.3; // Matches 'top_left' in static handles
         } else {
             return null; // Should not happen
         }
@@ -33,50 +29,39 @@ export const CustomNode: React.FC<NodeProps<CustomNodeData>> = ({ data }) => {
         const n = referenceArray.length;
         const totalWidth = data.width || NODE_WIDTH; // Fallback to NODE_WIDTH if width is not provided
 
-        // If only one connection, place the control and feedback handles at the default static offsets
+        // If only one connection, use a fixed position for a cleaner look unless it's a special case
         if (n === 1) {
             return (
-                <>
-                    <Handle
-                        type={controlType}
-                        position={position}
-                        id={`${controlPrefix}0`}
-                        style={{ ...handleStyle, left: `${fixedControlOffset * 100}%` }}
-                    />
-                    <Handle
-                        type={feedbackType}
-                        position={position}
-                        id={`${feedbackPrefix}0`}
-                        style={{ ...handleStyle, left: `${(1 - fixedControlOffset) * 100}%` }}
-                    />
-                </>
+                <Handle
+                    type={handleType}
+                    position={position}
+                    id={`${handlePrefix}0`} // Use index 0 for the single handle
+                    style={{ ...handleStyle, left: `${fixedHandleOffset * 100}%` }} // Fixed percentage for single handle
+                />
             );
         }
 
-        // The space between actuator and sensor handles should be 40% of a standard node's width.
-        const offsetInPixels = NODE_WIDTH * 0.2;
+        // The space between handles is based on a proportion of a standard node's width.
+        const offsetInPixels = NODE_WIDTH * 0.2; // This value is half the gap between control and feedback handles in default design
         const offsetPercent = (offsetInPixels / totalWidth) * 100;
 
         return referenceArray.map((_, index) => {
             const centerPercent = ((index + 0.5) / n) * 100;
-            const controlPos = centerPercent - offsetPercent;
-            const feedbackPos = centerPercent + offsetPercent;
+            // For control paths, the handle is on the 'control' side (left of center if multiple for same child, but here simply distributed)
+            // For feedback paths, the handle is on the 'feedback' side (right of center)
+
+            // Simplification: For multiple connections to/from this node, just distribute them evenly.
+            // Further refinement would involve differentiating control vs. feedback handles if both dynamic.
+            const handlePosition = centerPercent;
 
             return (
-                <React.Fragment key={`dynamic-handles-${index}`}> {/* pair for connection */}
-                    <Handle
-                        type={controlType}
-                        position={position}
-                        id={`${controlPrefix}${index}`}
-                        style={{ ...handleStyle, left: `${controlPos}%` }}
-                    />
-                    <Handle
-                        type={feedbackType}
-                        position={position}
-                        id={`${feedbackPrefix}${index}`}
-                        style={{ ...handleStyle, left: `${feedbackPos}%` }}
-                    />
-                </React.Fragment>
+                <Handle
+                    key={`${handlePrefix}${index}`}
+                    type={handleType}
+                    position={position}
+                    id={`${handlePrefix}${index}`}
+                    style={{ ...handleStyle, left: `${handlePosition}%` }}
+                />
             );
         });
     };
