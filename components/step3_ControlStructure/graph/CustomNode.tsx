@@ -53,9 +53,12 @@ export const CustomNode: React.FC<NodeProps<CustomNodeData>> = ({ data }) => {
             );
         }
 
-        // The space between actuator and sensor handles should be 40% of a standard node's width.
-        const offsetInPixels = NODE_WIDTH * 0.2;
-        const offsetPercent = (offsetInPixels / totalWidth) * 100;
+        // Space each pair of control/feedback handles. Ideally the gap is
+        // 40% of the node's width, but cap it so pairs never overlap.
+        const idealPairSpacing = totalWidth * 0.4;
+        const maxPairSpacing = totalWidth / n;
+        const pairSpacing = Math.min(idealPairSpacing, maxPairSpacing);
+        const offsetPercent = (pairSpacing / 2 / totalWidth) * 100;
 
         return referenceArray.map((_, index) => {
             const centerPercent = ((index + 0.5) / n) * 100;
