@@ -130,15 +130,6 @@ export interface OperationalContext extends Identifiable {
   assignments: RoleAssignment[];
 }
 
-export interface TeamDetails {
-  isSingleUnit?: boolean;
-  isHierarchical?: boolean;
-  members: TeamMember[];
-  roles: TeamRole[];
-  contexts: OperationalContext[];
-}
-
-
 export interface Controller extends Identifiable {
   name: string;
   ctrlType: ControllerType;
@@ -224,4 +215,15 @@ export interface ScenarioChecklistItem {
   tooltip?: string;
   relevantControllerTypes?: ControllerType[];
   relevantScenarioClasses?: ScenarioClass[];
+}
+
+// Added for dynamic handle rendering based on incoming connections
+export interface CustomNodeData {
+  label: string;
+  role?: string;
+  rank?: string;
+  children?: string[]; // IDs of children (for outgoing edges)
+  parents?: string[]; // IDs of parents (for incoming edges)
+  width?: number; // Calculated width for layout
+  commCount?: number; // Existing property
 }

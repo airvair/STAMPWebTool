@@ -1,5 +1,5 @@
 import { Node, Edge } from 'reactflow';
-import { Controller, SystemComponent, ControlPath, FeedbackPath, CommunicationPath, ControllerType, TeamRole } from '@/types';
+import { Controller, SystemComponent, ControlPath, FeedbackPath, CommunicationPath, ControllerType, TeamRole, CustomNodeData } from '@/types';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import {
     CONTROLLER_NODE_STYLE,
@@ -33,7 +33,7 @@ export const transformAnalysisData = (
     let nodes: Node[] = [];
     let edges: Edge[] = [];
 
-    // Pre-calculate which children each controller controls for handle creation
+    // Pre-calculate which children each controller controls for outgoing handle creation
     const controllerChildrenMap = new Map<string, string[]>();
     controlPaths.forEach(path => {
         const children = controllerChildrenMap.get(path.sourceControllerId) || [];
@@ -41,6 +41,16 @@ export const transformAnalysisData = (
             children.push(path.targetId);
         }
         controllerChildrenMap.set(path.sourceControllerId, children);
+    });
+
+    // Pre-calculate which nodes are targets of control paths for incoming handle creation
+    const targetParentsMap = new Map<string, string[]>();
+    controlPaths.forEach(path => {
+        const parents = targetParentsMap.get(path.targetId) || [];
+        if (!parents.includes(path.sourceControllerId)) {
+            parents.push(path.sourceControllerId);
+        }
+        targetParentsMap.set(path.targetId, parents);
     });
 
     controllers.forEach(controller => {
@@ -113,8 +123,17 @@ export const transformAnalysisData = (
         } else {
             // Existing logic for simple controllers
             const children = controllerChildrenMap.get(controller.id) || [];
+            const parents = targetParentsMap.get(controller.id) || []; // Get incoming connections
             const numChildren = children.length;
-            const nodeWidth = numChildren > 1 ? (NODE_WIDTH * numChildren) + PARENT_PADDING : NODE_WIDTH;
+            const numParents = parents.length;
+
+            // Calculate width based on both outgoing and incoming connections
+            let nodeWidth = NODE_WIDTH;
+            if (numChildren > 1 || numParents > 1) {
+                nodeWidth = Math.max(numChildren, numParents) * NODE_WIDTH * 0.7; // Adjusted multiplier for better spacing
+                nodeWidth = Math.max(nodeWidth, NODE_WIDTH); // Ensure it's at least default width
+            }
+
 
             nodes.push({
                 id: controller.id,
@@ -123,9 +142,10 @@ export const transformAnalysisData = (
                 data: {
                     label: controller.name,
                     children: children,
+                    parents: parents, // Pass incoming connections count
                     width: nodeWidth,
-                    commCount: 0
-                },
+                    commCount: 0 // Keep existing
+                } as CustomNodeData, // Explicitly cast to CustomNodeData
                 style: {
                     ...CONTROLLER_NODE_STYLE[controller.ctrlType],
                     width: nodeWidth,
@@ -141,13 +161,27 @@ export const transformAnalysisData = (
     });
 
     systemComponents.forEach(component => {
+        const parents = targetParentsMap.get(component.id) || []; // Get incoming connections
+        const numParents = parents.length;
+
+        let nodeWidth = NODE_WIDTH;
+        if (numParents > 1) {
+            nodeWidth = numParents * NODE_WIDTH * 0.7; // Adjusted multiplier
+            nodeWidth = Math.max(nodeWidth, NODE_WIDTH);
+        }
+
         nodes.push({
             id: component.id,
             type: 'custom',
             position: { x: 0, y: 0 },
-            data: { label: component.name, commCount: 0 },
+            data: {
+                label: component.name,
+                parents: parents, // Pass incoming connections count
+                width: nodeWidth,
+                commCount: 0
+            } as CustomNodeData, // Explicitly cast to CustomNodeData
             style: {
-                width: NODE_WIDTH,
+                width: nodeWidth,
                 height: BASE_NODE_HEIGHT,
                 display: 'flex',
                 alignItems: 'center',
@@ -161,9 +195,24 @@ export const transformAnalysisData = (
     });
 
     controlPaths.forEach(path => {
-        const children = controllerChildrenMap.get(path.sourceControllerId) || [];
-        const childIndex = children.indexOf(path.targetId);
-        const sourceHandle = children.length > 1 && childIndex !== -1 ? `bottom_control_${childIndex}` : 'bottom_left';
+        const sourceNode = nodes.find(n => n.id === path.sourceControllerId);
+        const targetNode = nodes.find(n => n.id === path.targetId);
+
+        let sourceHandle = 'bottom_left';
+        if (sourceNode?.data?.children && sourceNode.data.children.length > 1) {
+            const childIndex = sourceNode.data.children.indexOf(path.targetId);
+            if (childIndex !== -1) {
+                sourceHandle = `bottom_control_${childIndex}`;
+            }
+        }
+
+        let targetHandle = 'top_left';
+        if (targetNode?.data?.parents && targetNode.data.parents.length > 1) {
+            const parentIndex = targetNode.data.parents.indexOf(path.sourceControllerId);
+            if (parentIndex !== -1) {
+                targetHandle = `top_control_${parentIndex}`;
+            }
+        }
 
         edges.push({
             id: `cp-${path.id}`,
@@ -174,14 +223,30 @@ export const transformAnalysisData = (
             markerEnd: { type: 'arrowclosed', color: '#FFFFFF' },
             style: { stroke: '#FFFFFF' },
             sourceHandle,
-            targetHandle: 'top_left'
+            targetHandle
         });
     });
 
     feedbackPaths.forEach(path => {
-        const childrenOfTarget = controllerChildrenMap.get(path.targetControllerId) || [];
-        const feedbackSourceIndex = childrenOfTarget.indexOf(path.sourceId);
-        const targetHandle = childrenOfTarget.length > 1 && feedbackSourceIndex !== -1 ? `bottom_feedback_${feedbackSourceIndex}` : 'bottom_right';
+        const sourceNode = nodes.find(n => n.id === path.sourceId);
+        const targetNode = nodes.find(n => n.id === path.targetControllerId);
+
+        let sourceHandle = 'top_right';
+        if (sourceNode?.data?.parents && sourceNode.data.parents.length > 1) { // Assuming feedback source is a target of control path, or has multiple incoming feedback paths
+            const parentIndex = sourceNode.data.parents.indexOf(path.targetControllerId); // This logic needs careful review depending on exact desired behavior for feedback nodes
+            if (parentIndex !== -1) {
+                sourceHandle = `top_feedback_${parentIndex}`; // Re-use top handle for feedback target
+            }
+        }
+
+
+        let targetHandle = 'bottom_right';
+        if (targetNode?.data?.children && targetNode.data.children.length > 1) {
+            const childIndex = targetNode.data.children.indexOf(path.sourceId); // Assuming feedback target is also a source of control path
+            if (childIndex !== -1) {
+                targetHandle = `bottom_feedback_${childIndex}`;
+            }
+        }
 
         edges.push({
             id: `fp-${path.id}`,
@@ -192,10 +257,11 @@ export const transformAnalysisData = (
             markerEnd: { type: 'arrowclosed', color: '#6ee7b7' },
             style: { stroke: '#6ee7b7' },
             animated: !path.isMissing,
-            sourceHandle: 'top_right',
+            sourceHandle,
             targetHandle
         });
     });
+
 
     communicationPaths.forEach(path => {
         edges.push({
