@@ -51,6 +51,7 @@ export const CONTROLLER_NODE_STYLE: Record<ControllerType, React.CSSProperties> 
 export const NODE_WIDTH = 180;
 export const BASE_NODE_HEIGHT = 60;
 export const PARENT_PADDING = 40;
+export const CHILD_NODE_SPACING = 20; // Padding between child nodes
 export const ACTUATOR_SENSOR_BOX_SIZE = 16;
 
 // NEW: Constants for Team Visualization

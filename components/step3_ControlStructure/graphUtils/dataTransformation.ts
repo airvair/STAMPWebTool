@@ -6,6 +6,7 @@ import {
     NODE_WIDTH,
     BASE_NODE_HEIGHT,
     PARENT_PADDING,
+    CHILD_NODE_SPACING,
     TEAM_NODE_HEADER_HEIGHT,
     TEAM_NODE_PADDING,
     MEMBER_NODE_WIDTH,
@@ -42,6 +43,47 @@ export const transformAnalysisData = (
         }
         controllerChildrenMap.set(path.sourceControllerId, children);
     });
+
+    // Helper function to calculate node width based on controller type and team details
+    const getNodeWidth = (controller: Controller): number => {
+        const isComplexTeam = controller.ctrlType === ControllerType.Team &&
+            controller.teamDetails &&
+            !controller.teamDetails.isSingleUnit &&
+            controller.teamDetails.members.length > 0;
+
+        if (isComplexTeam) {
+            return MEMBER_NODE_WIDTH + (TEAM_NODE_PADDING * 2);
+        }
+        return NODE_WIDTH;
+    };
+
+    // Calculate parent node widths based on children
+    const calculateParentWidth = (parentId: string): number => {
+        const children = controllerChildrenMap.get(parentId) || [];
+        if (children.length === 0) {
+            // No children, use default width based on controller type
+            const controller = controllers.find(c => c.id === parentId);
+            return controller ? getNodeWidth(controller) : NODE_WIDTH;
+        }
+
+        let totalChildrenWidth = 0;
+        children.forEach(childId => {
+            const childController = controllers.find(c => c.id === childId);
+            const childComponent = systemComponents.find(c => c.id === childId);
+            
+            if (childController) {
+                totalChildrenWidth += getNodeWidth(childController);
+            } else if (childComponent) {
+                totalChildrenWidth += NODE_WIDTH;
+            }
+        });
+
+        // Add spacing between children (n-1 gaps for n children)
+        const totalSpacing = children.length > 1 ? (children.length - 1) * CHILD_NODE_SPACING : 0;
+        
+        // Parent width includes all children widths plus spacing between them
+        return totalChildrenWidth + totalSpacing;
+    };
 
     controllers.forEach(controller => {
         const isComplexTeam = controller.ctrlType === ControllerType.Team &&
@@ -111,10 +153,9 @@ export const transformAnalysisData = (
             nodes.push(...memberNodes);
 
         } else {
-            // Existing logic for simple controllers
+            // Calculate parent width based on actual children widths
             const children = controllerChildrenMap.get(controller.id) || [];
-            const numChildren = children.length;
-            const nodeWidth = numChildren > 1 ? (NODE_WIDTH * numChildren) + PARENT_PADDING : NODE_WIDTH;
+            const nodeWidth = calculateParentWidth(controller.id);
 
             nodes.push({
                 id: controller.id,
@@ -163,7 +204,22 @@ export const transformAnalysisData = (
     controlPaths.forEach(path => {
         const children = controllerChildrenMap.get(path.sourceControllerId) || [];
         const childIndex = children.indexOf(path.targetId);
-        const sourceHandle = children.length > 1 && childIndex !== -1 ? `bottom_control_${childIndex}` : 'bottom_left';
+        
+        // Calculate the horizontal position of the child relative to parent
+        let sourceHandle = 'bottom_left'; // Default to left side (actuator)
+        let targetHandle = 'top_left'; // Default to left side (actuator)
+        
+        if (children.length > 1 && childIndex !== -1) {
+            // Parent has multiple children, use indexed source handle (actuator on left)
+            sourceHandle = `bottom_control_${childIndex}`;
+            // Target child uses simple top handle (or indexed if it also has children)
+            const targetChildren = controllerChildrenMap.get(path.targetId) || [];
+            if (targetChildren.length > 1) {
+                targetHandle = 'top_control_0'; // Child also has children, use its first control handle
+            } else {
+                targetHandle = 'top_left'; // Simple child, use static handle
+            }
+        }
 
         edges.push({
             id: `cp-${path.id}`,
@@ -174,14 +230,29 @@ export const transformAnalysisData = (
             markerEnd: { type: 'arrowclosed', color: '#FFFFFF' },
             style: { stroke: '#FFFFFF' },
             sourceHandle,
-            targetHandle: 'top_left'
+            targetHandle
         });
     });
 
     feedbackPaths.forEach(path => {
         const childrenOfTarget = controllerChildrenMap.get(path.targetControllerId) || [];
         const feedbackSourceIndex = childrenOfTarget.indexOf(path.sourceId);
-        const targetHandle = childrenOfTarget.length > 1 && feedbackSourceIndex !== -1 ? `bottom_feedback_${feedbackSourceIndex}` : 'bottom_right';
+        
+        let sourceHandle = 'top_right'; // Default to right side (sensor)
+        let targetHandle = 'bottom_right'; // Default to right side (sensor)
+        
+        if (childrenOfTarget.length > 1 && feedbackSourceIndex !== -1) {
+            // Target (parent) has multiple children, use indexed handle
+            targetHandle = `bottom_feedback_${feedbackSourceIndex}`;
+            
+            // Source child handle depends on whether it has children
+            const sourceChildren = controllerChildrenMap.get(path.sourceId) || [];
+            if (sourceChildren.length > 1) {
+                sourceHandle = 'top_feedback_0'; // Child has children, use its first feedback handle
+            } else {
+                sourceHandle = 'top_right'; // Simple child, use static handle
+            }
+        }
 
         edges.push({
             id: `fp-${path.id}`,
@@ -192,7 +263,7 @@ export const transformAnalysisData = (
             markerEnd: { type: 'arrowclosed', color: '#6ee7b7' },
             style: { stroke: '#6ee7b7' },
             animated: !path.isMissing,
-            sourceHandle: 'top_right',
+            sourceHandle,
             targetHandle
         });
     });
