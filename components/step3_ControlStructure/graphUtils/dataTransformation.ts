@@ -100,29 +100,16 @@ export const transformAnalysisData = (
             const childComponent = systemComponents.find(c => c.id === childId);
             
             if (childController) {
-                // Check if this child is also a parent - if so, calculate its parent width
+                // Check if this child is large because it's a parent (has children) 
+                // vs being large because it has multiple parents
                 const childChildren = controllerChildrenMap.get(childId) || [];
+                const childParents = childParentsMap.get(childId) || [];
+                
                 if (childChildren.length > 0) {
-                    // Child is a parent, calculate its width based on its children
-                    let childParentWidth = 0;
-                    childChildren.forEach(grandchildId => {
-                        const grandchildController = controllers.find(c => c.id === grandchildId);
-                        const grandchildComponent = systemComponents.find(c => c.id === grandchildId);
-                        
-                        if (grandchildController) {
-                            childParentWidth += getNodeWidth(grandchildController);
-                        } else if (grandchildComponent) {
-                            childParentWidth += NODE_WIDTH;
-                        }
-                    });
-                    
-                    // Add spacing between grandchildren
-                    const grandchildSpacing = childChildren.length > 1 ? (childChildren.length - 1) * CHILD_NODE_SPACING : 0;
-                    
-                    // Use calculated parent width for the child
-                    totalChildrenWidth += childParentWidth + grandchildSpacing;
+                    // Child is large because it's a parent - use its calculated parent width
+                    totalChildrenWidth += calculateParentWidth(childId);
                 } else {
-                    // Child has no children, use its base width
+                    // Child is simple OR large due to multiple parents - use base width
                     totalChildrenWidth += getNodeWidth(childController);
                 }
             } else if (childComponent) {
@@ -259,40 +246,6 @@ export const transformAnalysisData = (
                 return parentController ? getNodeWidth(parentController) : NODE_WIDTH;
             });
 
-            // Calculate actual child widths for handle positioning
-            const childWidths = children.map(childId => {
-                const childController = controllers.find(c => c.id === childId);
-                const childComponent = systemComponents.find(c => c.id === childId);
-                
-                if (childController) {
-                    const childChildren = controllerChildrenMap.get(childId) || [];
-                    if (childChildren.length > 0) {
-                        // Child is a parent, calculate its width based on its children
-                        let childParentWidth = 0;
-                        childChildren.forEach(grandchildId => {
-                            const grandchildController = controllers.find(c => c.id === grandchildId);
-                            const grandchildComponent = systemComponents.find(c => c.id === grandchildId);
-                            
-                            if (grandchildController) {
-                                childParentWidth += getNodeWidth(grandchildController);
-                            } else if (grandchildComponent) {
-                                childParentWidth += NODE_WIDTH;
-                            }
-                        });
-                        
-                        // Add spacing between grandchildren
-                        const grandchildSpacing = childChildren.length > 1 ? (childChildren.length - 1) * CHILD_NODE_SPACING : 0;
-                        return childParentWidth + grandchildSpacing;
-                    } else {
-                        return getNodeWidth(childController);
-                    }
-                } else if (childComponent) {
-                    return NODE_WIDTH;
-                } else {
-                    return NODE_WIDTH;
-                }
-            });
-
             nodes.push({
                 id: controller.id,
                 type: 'custom',
@@ -300,7 +253,6 @@ export const transformAnalysisData = (
                 data: {
                     label: controller.name,
                     children: children,
-                    childWidths: childWidths,
                     grandchildren: directGrandchildren,
                     parents: parents,
                     parentWidths: parentWidths,

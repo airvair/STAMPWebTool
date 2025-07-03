@@ -8,7 +8,6 @@ interface CustomNodeData {
     rank?: string;
     commCount: number;
     children?: string[];
-    childWidths?: number[];
     width?: number;
     grandchildren?: string[];
     parents?: string[];
@@ -56,16 +55,11 @@ export const CustomNode: React.FC<NodeProps<CustomNodeData>> = ({ data }) => {
         // Render child handles in the remaining space
         if (hasChildren) {
             data.children!.forEach((childId, index) => {
-            // Calculate the center position of each child using actual child widths
-            const childWidths = data.childWidths || data.children!.map(() => NODE_WIDTH);
+            // Calculate the center position of each child accounting for spacing
             const totalSpacing = (n - 1) * CHILD_NODE_SPACING;
-            
-            // Calculate the cumulative position of this child's center
-            let cumulativeWidth = grandchildWidth;
-            for (let i = 0; i < index; i++) {
-                cumulativeWidth += childWidths[i] + CHILD_NODE_SPACING;
-            }
-            const childCenterX = cumulativeWidth + (childWidths[index] / 2);
+            const childrenOnlyWidth = availableWidthForChildren - totalSpacing;
+            const childWidth = childrenOnlyWidth / n;
+            const childCenterX = grandchildWidth + (index * (childWidth + CHILD_NODE_SPACING)) + (childWidth / 2);
             const childCenterPercent = (childCenterX / totalWidth) * 100;
 
             // The space between actuator and sensor handles should be 40% of a STANDARD node's width.
@@ -157,6 +151,7 @@ export const CustomNode: React.FC<NodeProps<CustomNodeData>> = ({ data }) => {
                 );
             });
         }
+
 
         return handles;
     };
