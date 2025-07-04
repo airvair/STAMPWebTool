@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnalysisType } from '../../../types';
+import { AnalysisType } from '@/types';
 import Textarea from '../../shared/Textarea';
 import CastStepLayout from './CastStepLayout';
 

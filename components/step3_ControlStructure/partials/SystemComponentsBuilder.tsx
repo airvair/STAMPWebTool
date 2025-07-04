@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAnalysis } from '../../../hooks/useAnalysis';
-import { SystemComponent, ComponentType } from '../../../types';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { SystemComponent, ComponentType } from '@/types';
 import Input from '../../shared/Input';
 import Select from '../../shared/Select';
 import Button from '../../shared/Button';

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAnalysis } from '../../hooks/useAnalysis';
-import { Requirement, AnalysisType } from '../../types';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { Requirement, AnalysisType } from '@/types';
 import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
 import Button from '../shared/Button';

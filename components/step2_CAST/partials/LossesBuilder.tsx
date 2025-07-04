@@ -1,6 +1,6 @@
 import React from 'react';
-import { Loss, AnalysisType } from '../../../types';
-import { STANDARD_LOSSES } from '../../../constants';
+import { Loss, AnalysisType } from '@/types';
+import { STANDARD_LOSSES } from '@/constants';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import Checkbox from '../../shared/Checkbox';

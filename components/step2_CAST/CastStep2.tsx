@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, ChangeEvent } from 'react';
-import { useAnalysis } from '../../hooks/useAnalysis';
-import { Loss, Hazard, SystemConstraint, AnalysisType } from '../../types';
-import { STANDARD_LOSSES } from '../../constants';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { Loss, Hazard, SystemConstraint, AnalysisType } from '@/types';
+import { STANDARD_LOSSES } from '@/constants';
 import ScopeBuilder from './partials/ScopeBuilder';
 import SequenceOfEventsBuilder from './partials/SequenceOfEventsBuilder';
 import LossesBuilder from './partials/LossesBuilder';

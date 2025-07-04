@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAnalysis } from '../../hooks/useAnalysis';
-import { StepDefinition } from '../../types';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { StepDefinition } from '@/types';
 import Button from '../shared/Button';
 
 interface StepperProps {

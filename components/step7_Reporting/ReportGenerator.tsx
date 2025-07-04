@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAnalysis } from '../../hooks/useAnalysis';
+import { useAnalysis } from '@/hooks/useAnalysis';
 import Button from '../shared/Button';
 
 

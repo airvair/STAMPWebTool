@@ -1,6 +1,6 @@
 
 import { useContext } from 'react';
-import { AnalysisContext } from '../contexts/AnalysisContext';
+import { AnalysisContext } from '@/contexts/AnalysisContext';
 
 export const useAnalysis = () => {
   const context = useContext(AnalysisContext);

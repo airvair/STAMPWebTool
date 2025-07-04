@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAnalysis } from '../../hooks/useAnalysis';
-import { UnsafeControlAction, UCAType, UCCA } from '../../types';
-import { UCA_QUESTIONS_MAP, CONTROLLER_TYPE_COLORS } from '../../constants';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { UnsafeControlAction, UCAType, UCCA } from '@/types';
+import { UCA_QUESTIONS_MAP, CONTROLLER_TYPE_COLORS } from '@/constants';
 import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
 import Button from '../shared/Button';

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAnalysis } from '../../hooks/useAnalysis';
-import { APP_TITLE, APP_VERSION, CAST_STEPS, STPA_STEPS } from '../../constants';
-import { AnalysisType } from '../../types';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { APP_TITLE, APP_VERSION, CAST_STEPS, STPA_STEPS } from '@/constants';
+import { AnalysisType } from '@/types';
 import Button from '../shared/Button';
 import Stepper from './Stepper';
 import webLogo from '/weblogo.webp';

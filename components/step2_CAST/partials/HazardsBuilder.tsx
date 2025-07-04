@@ -1,5 +1,5 @@
 import React, { ChangeEvent } from 'react';
-import { Hazard, Loss, AnalysisType } from '../../../types';
+import { Hazard, Loss, AnalysisType } from '@/types';
 import { hazardInfoContent } from './CastInfo';
 import Checkbox from '../../shared/Checkbox';
 import Button from '../../shared/Button';

@@ -3,7 +3,7 @@ import {
   AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent,
   Controller, ControlAction, UnsafeControlAction, CausalScenario, Requirement, EventDetail,
   ControlPath, FeedbackPath, UCCA, CommunicationPath
-} from '../types';
+} from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface AnalysisContextState {

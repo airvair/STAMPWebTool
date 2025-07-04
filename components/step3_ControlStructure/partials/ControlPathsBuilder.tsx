@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { useAnalysis } from '../../../hooks/useAnalysis';
-import { ControlPath } from '../../../types';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { ControlPath } from '@/types';
 import Input from '../../shared/Input';
 import Select from '../../shared/Select';
 import Button from '../../shared/Button';

@@ -4,7 +4,7 @@ interface SortableEvent {
   oldIndex?: number;
   newIndex?: number;
 }
-import { EventDetail } from '../../../types';
+import { EventDetail } from '@/types';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';
 import CastStepLayout from "./CastStepLayout";

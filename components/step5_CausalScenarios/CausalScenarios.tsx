@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAnalysis } from '../../hooks/useAnalysis';
-import { CausalScenario, ScenarioClass } from '../../types';
-import { SCENARIO_CLASSES_BY_CONTROLLER, CONTROLLER_TYPE_COLORS } from '../../constants';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { CausalScenario, ScenarioClass } from '@/types';
+import { SCENARIO_CLASSES_BY_CONTROLLER, CONTROLLER_TYPE_COLORS } from '@/constants';
 import Select from '../shared/Select';
 import Checkbox from '../shared/Checkbox';
 import Textarea from '../shared/Textarea';

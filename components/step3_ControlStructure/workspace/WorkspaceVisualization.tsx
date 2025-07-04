@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react';
-import { useAnalysis } from '../../../hooks/useAnalysis';
-import { AnalysisType } from '../../../types';
+import { useAnalysis } from '@/hooks/useAnalysis';
 import { WorkspaceVisualizationState } from './hooks/useWorkspaceState';
-import CastControlStructureDiagram from '../CastControlStructureDiagram';
-import StpaControlStructureDiagram from '../StpaControlStructureDiagram';
+import ControlStructureDiagram from '../ControlStructureDiagram';
 import VisualizationControlPanel from '../partials/VisualizationControlPanel';
 
 interface WorkspaceVisualizationProps {
@@ -48,11 +46,7 @@ const WorkspaceVisualization: React.FC<WorkspaceVisualizationProps> = ({
 
     return (
       <div className="flex-1 h-full">
-        {analysisSession.analysisType === AnalysisType.CAST ? (
-          <CastControlStructureDiagram />
-        ) : (
-          <StpaControlStructureDiagram />
-        )}
+        <ControlStructureDiagram />
       </div>
     );
   };

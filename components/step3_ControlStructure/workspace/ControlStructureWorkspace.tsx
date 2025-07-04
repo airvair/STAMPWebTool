@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useAnalysis } from '../../../hooks/useAnalysis';
+import { useAnalysis } from '@/hooks/useAnalysis';
 import { useWorkspaceState } from './hooks/useWorkspaceState';
 import WorkspaceNavigation from './WorkspaceNavigation';
 import WorkspaceContent from './WorkspaceContent';

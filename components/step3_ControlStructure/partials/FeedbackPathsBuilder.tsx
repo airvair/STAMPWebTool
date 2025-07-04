@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useAnalysis } from '../../../hooks/useAnalysis';
-import { FeedbackPath } from '../../../types';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { FeedbackPath } from '@/types';
 import Select from '../../shared/Select';
 import Button from '../../shared/Button';
 import Textarea from '../../shared/Textarea';

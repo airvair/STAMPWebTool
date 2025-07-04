@@ -1,5 +1,5 @@
 import React from 'react';
-import { SystemConstraint, Hazard, AnalysisType } from '../../../types';
+import { SystemConstraint, Hazard, AnalysisType } from '@/types';
 import Textarea from '../../shared/Textarea';
 import CastStepLayout from './CastStepLayout';
 

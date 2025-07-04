@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAnalysis } from '../../../hooks/useAnalysis';
+import { useAnalysis } from '@/hooks/useAnalysis';
 import { WORKSPACE_SECTIONS, WorkspaceState } from './hooks/useWorkspaceState';
 
 interface WorkspaceNavigationProps {
