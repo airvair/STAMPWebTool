@@ -1,4 +1,3 @@
-// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step3_ControlStructure/partials/SystemComponentsBuilder.tsx
 import React, { useState, useEffect } from 'react';
 import { useAnalysis } from '../../../hooks/useAnalysis';
 import { SystemComponent, ComponentType } from '../../../types';

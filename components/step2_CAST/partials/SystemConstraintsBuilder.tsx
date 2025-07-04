@@ -1,4 +1,3 @@
-// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step2_CAST/partials/SystemConstraintsBuilder.tsx
 import React from 'react';
 import { SystemConstraint, Hazard, AnalysisType } from '../../../types';
 import Textarea from '../../shared/Textarea';

@@ -1,4 +1,3 @@
-// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step3_ControlStructure/partials/CommunicationLinksBuilder.tsx
 import React, { useState } from 'react';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { CommunicationPath, ControllerType } from '@/types';

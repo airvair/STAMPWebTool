@@ -1,4 +1,3 @@
-// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step2_CAST/CastStep2.tsx
 import React, { useState, useCallback, useEffect, ChangeEvent } from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { Loss, Hazard, SystemConstraint, AnalysisType } from '../../types';

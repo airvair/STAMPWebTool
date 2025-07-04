@@ -1,4 +1,3 @@
-// airvair/stampwebtool/STAMPWebTool-f5c1dab5c5a55a938ebbcbf8004fb874ef32635f/types.ts
 // types.ts
 
 export enum AnalysisType {

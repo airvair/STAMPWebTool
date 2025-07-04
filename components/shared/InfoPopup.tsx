@@ -1,4 +1,3 @@
-// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/shared/InfoPopup.tsx
 import React, { useState, ReactNode } from 'react';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import Modal from './Modal';

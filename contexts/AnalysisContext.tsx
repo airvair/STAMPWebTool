@@ -1,4 +1,3 @@
-// airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/contexts/AnalysisContext.tsx
 import React, { createContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import {
   AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent,
