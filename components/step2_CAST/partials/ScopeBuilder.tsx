@@ -12,7 +12,6 @@ interface ScopeBuilderProps {
 }
 
 const ScopeBuilder: React.FC<ScopeBuilderProps> = ({
-                                                       analysisType,
                                                        scope,
                                                        setScope,
                                                        handleScopeBlur,

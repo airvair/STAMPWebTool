@@ -1,11 +1,10 @@
-import { Node, Edge } from 'reactflow';
-import { Controller, SystemComponent, ControlPath, FeedbackPath, CommunicationPath, ControllerType, TeamRole } from '@/types';
+import { Node, Edge, MarkerType } from 'reactflow';
+import { Controller, ControllerType, TeamRole } from '@/types';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import {
     CONTROLLER_NODE_STYLE,
     NODE_WIDTH,
     BASE_NODE_HEIGHT,
-    PARENT_PADDING,
     CHILD_NODE_SPACING,
     TEAM_NODE_HEADER_HEIGHT,
     TEAM_NODE_PADDING,
@@ -31,8 +30,8 @@ export const transformAnalysisData = (
     analysisData: ReturnType<typeof useAnalysis>
 ): TransformedData => {
     const { controllers, systemComponents, controlPaths, feedbackPaths, communicationPaths, activeContexts } = analysisData;
-    let nodes: Node[] = [];
-    let edges: Edge[] = [];
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
 
     // Pre-calculate which children each controller controls for handle creation
     const controllerChildrenMap = new Map<string, string[]>();
@@ -103,7 +102,6 @@ export const transformAnalysisData = (
                 // Check if this child is large because it's a parent (has children) 
                 // vs being large because it has multiple parents
                 const childChildren = controllerChildrenMap.get(childId) || [];
-                const childParents = childParentsMap.get(childId) || [];
                 
                 if (childChildren.length > 0) {
                     // Child is large because it's a parent - use its calculated parent width
@@ -140,7 +138,6 @@ export const transformAnalysisData = (
         if (parents.length <= 1) {
             // Single or no parent, use default width
             const controller = controllers.find(c => c.id === targetId);
-            const component = systemComponents.find(c => c.id === targetId);
             return controller ? getNodeWidth(controller) : NODE_WIDTH;
         }
 
@@ -365,7 +362,7 @@ export const transformAnalysisData = (
             target: path.targetId,
             type: 'custom',
             label: path.controls,
-            markerEnd: { type: 'arrowclosed', color: '#3b82f6' }, // Blue
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#3b82f6' }, // Blue
             style: { stroke: '#3b82f6', strokeWidth: '2px' }, // Blue with thicker line
             sourceHandle,
             targetHandle
@@ -413,7 +410,7 @@ export const transformAnalysisData = (
             target: path.targetControllerId,
             type: 'custom',
             label: path.feedback,
-            markerEnd: { type: 'arrowclosed', color: '#ef4444' }, // Red
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#ef4444' }, // Red
             style: { stroke: '#ef4444', strokeWidth: '2px' }, // Red with thicker line
             animated: !path.isMissing,
             sourceHandle,

@@ -1,8 +1,7 @@
 // airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step2_CAST/partials/HazardsBuilder.tsx
 import React, { ChangeEvent } from 'react';
 import { Hazard, Loss, AnalysisType } from '../../../types';
-import { hazardInfoContent, subHazardInfoContent } from './CastInfo';
-import Input from '../../shared/Input';
+import { hazardInfoContent } from './CastInfo';
 import Checkbox from '../../shared/Checkbox';
 import Button from '../../shared/Button';
 import InfoPopup from '../../shared/InfoPopup';
@@ -43,8 +42,6 @@ const HazardsBuilder: React.FC<HazardsBuilderProps> = ({
                                                            hazardError,
                                                            editingHazardId,
                                                            linkedLossIds,
-                                                           parentHazardForSubHazard,
-                                                           subHazardDescription,
                                                            coveredLossCount,
                                                            handleHazardInputChange,
                                                            handleHazardLossLinkChange,
@@ -52,9 +49,6 @@ const HazardsBuilder: React.FC<HazardsBuilderProps> = ({
                                                            resetHazardForm,
                                                            editHazard,
                                                            deleteHazard,
-                                                           setParentHazardForSubHazard,
-                                                           setSubHazardDescription,
-                                                           handleAddSubHazard,
                                                        }) => {
     const title = "Identify Hazards";
     const description = (

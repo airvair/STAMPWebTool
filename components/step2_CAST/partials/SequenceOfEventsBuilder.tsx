@@ -1,6 +1,10 @@
 // airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step2_CAST/partials/SequenceOfEventsBuilder.tsx
 import React, { useRef, useEffect } from 'react';
-import type { SortableEvent } from 'sortablejs';
+// SortableJS is loaded from CDN, declare the event type inline
+interface SortableEvent {
+  oldIndex?: number;
+  newIndex?: number;
+}
 import { EventDetail } from '../../../types';
 import Input from '../../shared/Input';
 import Button from '../../shared/Button';

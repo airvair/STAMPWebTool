@@ -223,7 +223,7 @@ const ControllersBuilder: React.FC = () => {
 
     const handleSaveController = () => {
         if (!controllerName) return;
-        let controllerData: Omit<Controller, 'id'> = { name: controllerName, ctrlType: controllerType };
+        const controllerData: Omit<Controller, 'id'> = { name: controllerName, ctrlType: controllerType };
 
         if(controllerType === ControllerType.Team) {
             controllerData.teamDetails = teamDetails;

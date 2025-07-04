@@ -12,7 +12,6 @@ interface SystemConstraintsBuilderProps {
 }
 
 const SystemConstraintsBuilder: React.FC<SystemConstraintsBuilderProps> = ({
-                                                                               analysisType,
                                                                                systemConstraints,
                                                                                hazards,
                                                                                updateSystemConstraint,

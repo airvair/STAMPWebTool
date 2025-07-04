@@ -172,10 +172,10 @@ export const START_STEP: StepDefinition = {
 
 export const STEPS_BASE: StepDefinition[] = [
   { path: 'step3', title: 'Control Structure & Actions', shortTitle: 'Structure & Actions' },
-  { path: 'step5', title: 'Unsafe Control Actions (UCAs & UCCAs)', shortTitle: 'UCAs/UCCAs' },
-  { path: 'step6', title: 'Causal Scenarios', shortTitle: 'Scenarios' },
-  { path: 'step7', title: 'Requirements / Mitigations', shortTitle: 'Reqs/Mitigs' },
-  { path: 'step8', title: 'Report & Export', shortTitle: 'Report' },
+  { path: 'step4', title: 'Unsafe Control Actions (UCAs & UCCAs)', shortTitle: 'UCAs/UCCAs' },
+  { path: 'step5', title: 'Causal Scenarios', shortTitle: 'Scenarios' },
+  { path: 'step6', title: 'Requirements / Mitigations', shortTitle: 'Reqs/Mitigs' },
+  { path: 'step7', title: 'Report & Export', shortTitle: 'Report' },
 ];
 
 export const CAST_STEPS: StepDefinition[] = [

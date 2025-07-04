@@ -1,12 +1,23 @@
 import path from "path";
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";   // <-- make sure this is installed
+import react from "@vitejs/plugin-react";
+import checker from "vite-plugin-checker";
 
 export default defineConfig(({ mode }) => ({
-  // return value ⬆ is now an **object expression**, not a function body
   base: mode === "development" ? "/" : "/STAMPWebTool/",
 
-  plugins: [react()],
+  plugins: [
+    react(),
+    checker({
+      typescript: true,
+      overlay: {
+        initialIsOpen: false,
+        position: "tl",
+        badgeStyle: "transform: translate(0, 0); top: 10px; left: 10px; z-index: 9999;",
+        panelStyle: "width: calc(100vw - 20px); height: calc(100vh - 20px); margin: 10px; background: rgba(0, 0, 0, 0.9); border-radius: 8px; padding: 20px; color: white; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 14px; line-height: 1.5; overflow: auto; white-space: pre-wrap;"
+      }
+    })
+  ],
 
   resolve: {
     alias: {

@@ -1,14 +1,14 @@
 // airvair/stampwebtool/STAMPWebTool-a2dc94729271b2838099dd63a9093c4d/components/step2_CAST/CastStep2.tsx
 import React, { useState, useCallback, useEffect, ChangeEvent } from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
-import { Loss, Hazard, SystemConstraint, EventDetail, AnalysisType } from '../../types';
+import { Loss, Hazard, SystemConstraint, AnalysisType } from '../../types';
 import { STANDARD_LOSSES } from '../../constants';
 import ScopeBuilder from './partials/ScopeBuilder';
 import SequenceOfEventsBuilder from './partials/SequenceOfEventsBuilder';
 import LossesBuilder from './partials/LossesBuilder';
 import HazardsBuilder from './partials/HazardsBuilder';
 import SystemConstraintsBuilder from './partials/SystemConstraintsBuilder';
-import SubStepper from './partials/SubStepper';
+import SubStepperEnhanced from './partials/SubStepperEnhanced';
 import Button from '../shared/Button';
 
 const CAST_SUB_STEPS = ['Scope', 'Events', 'Losses', 'Hazards', 'Constraints'];
@@ -17,7 +17,7 @@ const CastStep2: React.FC = () => {
   const {
     analysisSession, updateAnalysisSession,
     castStep2SubStep, setCastStep2SubStep, castStep2MaxReachedSubStep,
-    losses, addLoss, updateLoss, deleteLoss,
+    losses, addLoss, deleteLoss,
     hazards, addHazard, updateHazard, deleteHazard,
     systemConstraints, addSystemConstraint, updateSystemConstraint, deleteSystemConstraint,
     sequenceOfEvents, addEventDetail, updateEventDetail, deleteEventDetail, reorderEventDetails
@@ -37,7 +37,7 @@ const CastStep2: React.FC = () => {
   const [validationStatus, setValidationStatus] = useState<boolean[]>([]);
 
   const validateSteps = useCallback(() => {
-    const status = CAST_SUB_STEPS.map((step, index) => {
+    const status = CAST_SUB_STEPS.map((_, index) => {
       switch (index) {
         case 0: return scope.trim() !== '';
         case 1: return sequenceOfEvents.length > 0;
@@ -184,7 +184,26 @@ const CastStep2: React.FC = () => {
 
   return (
       <div>
-        <SubStepper steps={CAST_SUB_STEPS} currentStep={castStep2SubStep} maxReachedStep={castStep2MaxReachedSubStep} setStep={setCastStep2SubStep} validationStatus={validationStatus} />
+        <SubStepperEnhanced 
+          steps={CAST_SUB_STEPS} 
+          currentStep={castStep2SubStep} 
+          maxReachedStep={castStep2MaxReachedSubStep} 
+          setStep={setCastStep2SubStep} 
+          validationStatus={validationStatus}
+          variant="hybrid"
+          size="md"
+          showProgress={true}
+          enableAnimations={true}
+          theme="minimal"
+          stepDescriptions={[
+            'Define the scope and purpose of the analysis',
+            'Document the sequence of events that occurred',
+            'Identify the losses and unacceptable outcomes',
+            'Analyze hazardous system states',
+            'Develop safety constraints and requirements'
+          ]}
+          ariaLabel="CAST Analysis Progress"
+        />
         <div className="mt-8 bg-slate-50 dark:bg-slate-800/50 p-6 sm:p-8 rounded-xl shadow-md border border-slate-200 dark:border-slate-700/50">
           {renderSubStep()}
         </div>

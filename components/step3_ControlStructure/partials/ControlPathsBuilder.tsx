@@ -2,9 +2,7 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAnalysis } from '../../../hooks/useAnalysis';
-import { Controller, ControlPath, ControllerType, ControlAction, SystemComponent } from '../../../types';
-import { GLOSSARY } from '../../../constants';
-import Tooltip from '../../shared/Tooltip';
+import { ControlPath } from '../../../types';
 import Input from '../../shared/Input';
 import Select from '../../shared/Select';
 import Button from '../../shared/Button';
@@ -15,7 +13,7 @@ const ControlPathsBuilder: React.FC = () => {
         controllers,
         systemComponents,
         controlPaths, addControlPath, updateControlPath, deleteControlPath,
-        controlActions, addControlAction, deleteControlAction,
+        controlActions, addControlAction, updateControlAction, deleteControlAction,
     } = useAnalysis();
 
     const [cpSourceCtrlId, setCpSourceCtrlId] = useState('');

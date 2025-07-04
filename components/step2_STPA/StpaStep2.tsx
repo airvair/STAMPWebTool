@@ -3,7 +3,7 @@
 // For now, it's largely identical due to FR-5.3 stating "Identical UI widgets as 5.2 except copy changes".
 // The copy changes are handled within SharedLossesHazards component via analysisType prop.
 
-import React, {ChangeEvent} from 'react';
+import React from 'react';
 import { AnalysisType, Hazard, Loss, SystemConstraint } from '../../types'; // Removed EventDetail as it's CAST-specific
 import { useState, useCallback, useEffect } from 'react';
 import { useAnalysis } from '../../hooks/useAnalysis';
@@ -23,7 +23,7 @@ const PlaceholderTrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill=
 const SharedLossesHazardsComponent: React.FC<{ analysisType: AnalysisType }> = ({ analysisType }) => {
   const {
     analysisSession, updateAnalysisSession,
-    losses, addLoss, updateLoss, deleteLoss,
+    losses, addLoss, deleteLoss,
     hazards, addHazard, updateHazard, deleteHazard,
     systemConstraints, addSystemConstraint, updateSystemConstraint,
   } = useAnalysis();

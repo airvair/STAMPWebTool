@@ -169,7 +169,6 @@ export const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'T
             const prevNode = rank[i - 1];
             const currNode = rank[i];
             const prevWidth = prevNode.data?.width || (prevNode.style?.width as number) || NODE_WIDTH;
-            const currWidth = currNode.data?.width || (currNode.style?.width as number) || NODE_WIDTH;
             
             const prevRight = prevNode.position.x + prevWidth;
             const minGap = CHILD_NODE_SPACING;
@@ -185,7 +184,6 @@ export const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'T
     rankGroups.forEach((rank, rankIndex) => {
         if (rankIndex === rankGroups.length - 1) return; // Skip last rank
         
-        const nextRank = rankGroups[rankIndex + 1];
         
         // For each pair of nodes in current rank
         for (let i = 0; i < rank.length - 1; i++) {
@@ -214,7 +212,6 @@ export const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'T
                             if (child) {
                                 // Ensure child is positioned to allow non-crossing connections
                                 const childWidth = child.data?.width || (child.style?.width as number) || NODE_WIDTH;
-                                const nodeAWidth = nodeA.data?.width || (nodeA.style?.width as number) || NODE_WIDTH;
                                 const nodeBWidth = nodeB.data?.width || (nodeB.style?.width as number) || NODE_WIDTH;
                                 
                                 // The child should be positioned between the two parents

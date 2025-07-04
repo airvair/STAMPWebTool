@@ -28,7 +28,7 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
                                                              }) => {
   const [inputValue, setInputValue] = useState(value);
   const [showOptions, setShowOptions] = useState(false);
-  const [highlightIndex, setHighlightIndex] = useState(-1);
+  const [highlightIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 

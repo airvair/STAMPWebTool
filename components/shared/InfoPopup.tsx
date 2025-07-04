@@ -5,17 +5,17 @@ import Modal from './Modal';
 import Button from './Button';
 
 interface InfoPopupProps {
-    title: string;
-    content: ReactNode;
-    containerClassName?: string;
+  title: string;
+  content: ReactNode;
+  containerClassName?: string;
 }
 
 const InfoPopup: React.FC<InfoPopupProps> = ({ title, content, containerClassName = '' }) => {
-    const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
-    const StyledContent: React.FC<{ children: ReactNode }> = ({ children }) => (
-        <div className="space-y-4 text-slate-300">
-            <style>{`
+  const StyledContent: React.FC<{ children: ReactNode }> = ({ children }) => (
+    <div className="space-y-4 text-slate-300">
+      <style>{`
                 .info-content-dark p {
                     line-height: 1.6;
                     color: #d1d5db; /* gray-300 */
@@ -43,42 +43,38 @@ const InfoPopup: React.FC<InfoPopupProps> = ({ title, content, containerClassNam
                     color: #cbd5e1; /* slate-300 */
                 }
             `}</style>
-            <div className="info-content-dark">
-                {children}
-            </div>
-        </div>
-    );
+      <div className="info-content-dark">{children}</div>
+    </div>
+  );
 
-    const modalFooter = (
-        <div className="text-right">
-            <Button onClick={() => setIsOpen(false)}>Close</Button>
-        </div>
-    );
+  const modalFooter = (
+    <div className="text-right">
+      <Button onClick={() => setIsOpen(false)}>Close</Button>
+    </div>
+  );
 
-    return (
-        <div className={`inline-block align-middle ${containerClassName}`}>
-            <button
-                type="button"
-                className="inline-flex justify-center items-center rounded-full bg-slate-800 px-1.5 py-1.5 text-sm font-medium text-slate-300 shadow-sm hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-black"
-                onClick={() => setIsOpen(true)}
-                aria-label={`More information about ${title}`}
-            >
-                <QuestionMarkCircleIcon className="h-5 w-5" aria-hidden="true" />
-            </button>
+  return (
+    <div className={`inline-block align-middle ${containerClassName}`}>
+      <button
+        type="button"
+        className="inline-flex items-center justify-center rounded-full bg-slate-800 px-1.5 py-1.5 text-sm font-medium text-slate-300 shadow-sm hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-black"
+        onClick={() => setIsOpen(true)}
+        aria-label={`More information about ${title}`}
+      >
+        <QuestionMarkCircleIcon className="h-5 w-5" aria-hidden="true" />
+      </button>
 
-            <Modal
-                isOpen={isOpen}
-                onClose={() => setIsOpen(false)}
-                title={title}
-                size="2xl"
-                footer={modalFooter}
-            >
-                <StyledContent>
-                    {content}
-                </StyledContent>
-            </Modal>
-        </div>
-    );
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={title}
+        size="2xl"
+        footer={modalFooter}
+      >
+        <StyledContent>{content}</StyledContent>
+      </Modal>
+    </div>
+  );
 };
 
 export default InfoPopup;

@@ -31,7 +31,7 @@ const CommunicationLinksBuilder: React.FC = () => {
     const handleSaveCommunicationPath = () => {
         if (!commSourceId || !commTargetId || !commDescription) return;
 
-        let pathData: Omit<CommunicationPath, 'id'> = {
+        const pathData: Omit<CommunicationPath, 'id'> = {
             sourceControllerId: commSourceId,
             targetControllerId: commTargetId,
             description: commDescription,

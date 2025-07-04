@@ -12,7 +12,7 @@ interface StepperProps {
     currentStepIndex: number;
 }
 
-const Stepper: React.FC<StepperProps> = ({ steps, currentPath, onPrevious, onNext, currentStepIndex }) => {
+const Stepper: React.FC<StepperProps> = ({ steps, currentPath: _currentPath, onPrevious, onNext, currentStepIndex }) => {
     const navigate = useNavigate();
     const { analysisSession } = useAnalysis();
     if (!analysisSession) return null;
