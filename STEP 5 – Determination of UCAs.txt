@@ -1,0 +1,70 @@
+STEP 5 – Determination of UCAs
+Start at bottom of control structure, this process will do the following, but most will be behind the scenes and the user will be guided without necessarily being aware of the following:
+Identify hardware and electro-mechanical failures and unsafe interactions
+Identify UCAs in control structure
+Identify UCCA for teaming control – macro scale
+Identify UCA/UCCAs based on role divisions
+Identify UCA/UCCAs for organizations
+Hardware and Electro-Mechanical Component Analysis
+Analyst should consider the hardware and electro-mechanical failures. This will be further developed as part of causal scenarios but some preliminary evaluation can occur here.
+Probability assessments for hardware and electro-mechanical components (import if known).
+Consider combinations of failures or interactions that can create a hazard:
+One engine fails catastrophically and that then sends shrapnel that damages other components.
+A design that results in one component mechanically blocking another component
+Factors that can affect all components (fuel contamination).
+
+System & Component Overview ☐ Review key documentation (schematics, block diagrams, spec sheets) ☐ List all major components (motors, gearboxes, sensors, actuators, controllers, wiring)
+
+Failure Mode Brainstorm ☐ For each component, note common failure types: • Mechanical wear (bearings, belts, gears) • Electrical faults (shorts, opens, insulation breakdown) • Sensor drift or dropout • Control electronics/software glitches
+
+Unsafe Interaction Scan ☐ Identify critical interfaces where two or more elements meet (e.g. motor-coupling, sensor-actuator loop) ☐ Consider how one component’s failure could drive another into a hazardous state (e.g. stalled motor → gearbox overload → housing rupture)
+User should document the findings for each hardware or electro-mechanical component.
+Control actions from previous step are provided to the user starting at the bottom of the control structure, then branching out as necessary for items on the same level – moving from left to right across that layer, but does NOT consider the ROLES or SHARING of controls.
+The user does not need to see the control structure here, but the system must ensure that each control previously identified for each controller is presented.
+User can add additional control actions at this step if they realize they missed one.
+At each stage the user should be reminded to eliminate items that are outside the scope of the investigation.
+For example, if applying brakes was listed as a possible control action but the investigation only involves what happens in flight, then brakes should be excluded.
+The following is incorporated as a reminder each time a UCA is created.
+The user has the option to exclude it, or add it back later if necessary.
+Tool presents each control action previously identified in step 4 in turn, moving across all of the lowest level of controls.
+USER is asked to consider if there is any way that the control action can be unsafe considering each of the following ways that a control action can be unsafe, is there any context where the control action can be unsafe:
+Not providing the control action leads to a hazard.
+Providing the control action leads to a hazard (this includes not providing enough or providing too much, for example, a driver might provide too much gas or not enough gas or a pilot might add too much elevator or not enough.
+Providing a potentially safe control action but too early, too late, or in the wrong order (think of a driver turning left, right, left instead of right, left, right, as an example of the wrong order).
+The control action lasts too long or is stopped too soon (for continuous control
+Each UCA consists of five parts (source, type, control action, context and link to hazard – tool to constrain the user such that they complete the UCA correctly. Tagging is automated, UCAs numbered in the order they are analyzed. Following is how a completed UCA should look, without the labels on the second line:
+
+[Image content]
+An image displaying the structure of a UCA (Unsafe Control Action).
+The first line shows an example: "UCA-2: BSCU Autobrake provides Brake command during a normal takeoff [H-4.3]".
+The second line breaks down this structure with labels underneath each part:
+
+"BSCU Autobrake" is labeled "".
+
+"provides" is labeled "
+
+"Brake command" is labeled "
+
+"during a normal takeoff" is labeled "
+
+"[H-4.3]" is labeled "".
+[End of image content]
+
+The UCAs are numbered in order, UCA-1, 2, etc.
+Expanding on the second line, these are the parts that comprise a UCA
+
+ 
+
+[Image content]
+A slide titled "Organization Analysis – process similar to UCCA – controller is substituted for dept".
+It contains two diagrams illustrating control structures.
+
+The first diagram is under the bullet point: "Is more than one controller controlling the same process?". It shows two boxes labeled "Dept 1" and "Dept 2" at the top. Below them is a single box labeled "Shared Process". Blue arrows point from each department down to the shared process, and also from the shared process up to each department, indicating a two-way interaction.
+
+The second diagram is under the bullet point: "Is one controller controlling multiple separate items?". It shows a single box at the top labeled "Senior Management". Below it are two separate boxes labeled "Dept 1" and "Dept 2". Blue arrows point from Senior Management down to each department, and also from each department up to Senior Management, indicating two-way control and feedback between management and each individual department.
+[End of image content]
+
+Organizational Analysis – The same as UCCA but organization/department name is substituted at the controller.
+Last step: User is prompted to filter any remaining UCAs/UCCAs that do not apply
+CAST analysis: Eliminate UCAs that were not accident factors but not before considering the interaction between apparently unrelated UCAs.
+STPA analysis: Only consider UCAs within the scope of the analysis – but not before considering interaction between apparently unrelated UCAs

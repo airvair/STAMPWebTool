@@ -188,11 +188,25 @@ export interface UnsafeControlAction extends Identifiable {
   code: string;
 }
 
+export enum UCCAType {
+  Team = 'Team-based',
+  Role = 'Role-based', 
+  Organizational = 'Organizational',
+  CrossController = 'Cross-Controller',
+  Temporal = 'Temporal'
+}
+
 export interface UCCA extends Identifiable {
   code: string;
   description: string;
   context: string;
   hazardIds: string[];
+  uccaType: UCCAType;
+  involvedControllerIds: string[];
+  involvedRoleIds?: string[];
+  temporalRelationship?: 'Simultaneous' | 'Sequential' | 'Within-Timeframe';
+  operationalContextId?: string;
+  isSystematic?: boolean; // Whether this represents a systematic pattern vs single occurrence
 }
 
 export interface CausalScenario extends Identifiable {
@@ -223,4 +237,44 @@ export interface ScenarioChecklistItem {
   tooltip?: string;
   relevantControllerTypes?: ControllerType[];
   relevantScenarioClasses?: ScenarioClass[];
+}
+
+export enum FailureType {
+  MechanicalWear = 'Mechanical Wear',
+  ElectricalFault = 'Electrical Fault',
+  SensorDrift = 'Sensor Drift',
+  ControlElectronics = 'Control Electronics',
+  SoftwareGlitch = 'Software Glitch',
+  StructuralFailure = 'Structural Failure',
+  Other = 'Other',
+}
+
+export interface HardwareComponent extends Identifiable {
+  name: string;
+  type: string; // e.g., 'motor', 'gearbox', 'sensor', 'actuator', 'controller', 'wiring'
+  description?: string;
+  systemComponentId?: string; // Link to SystemComponent if applicable
+}
+
+export interface FailureMode extends Identifiable {
+  hardwareComponentId: string;
+  failureType: FailureType;
+  description: string;
+  probabilityAssessment?: number; // 0-1 probability if known
+  severityLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
+  detectionDifficulty?: 'Easy' | 'Moderate' | 'Difficult' | 'Very Difficult';
+}
+
+export interface UnsafeInteraction extends Identifiable {
+  sourceComponentId: string; // Hardware component that fails
+  affectedComponentIds: string[]; // Components affected by the failure
+  interactionType: 'Cascading' | 'Blocking' | 'Common Cause' | 'Environmental' | 'Other';
+  description: string;
+  hazardIds: string[]; // Links to hazards this interaction could cause
+}
+
+export interface HardwareAnalysisSession extends Identifiable {
+  completedAt?: string;
+  analysisNotes?: string;
+  importedProbabilityData?: boolean;
 }

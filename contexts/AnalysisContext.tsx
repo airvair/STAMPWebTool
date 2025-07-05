@@ -2,7 +2,8 @@ import React, { createContext, useState, useCallback, ReactNode, useEffect } fro
 import {
   AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent,
   Controller, ControlAction, UnsafeControlAction, CausalScenario, Requirement, EventDetail,
-  ControlPath, FeedbackPath, UCCA, CommunicationPath
+  ControlPath, FeedbackPath, UCCA, CommunicationPath, HardwareComponent, FailureMode, 
+  UnsafeInteraction, HardwareAnalysisSession
 } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -25,6 +26,10 @@ interface AnalysisContextState {
   requirements: Requirement[];
   sequenceOfEvents: EventDetail[];
   activeContexts: { [key: string]: string };
+  hardwareComponents: HardwareComponent[];
+  failureModes: FailureMode[];
+  unsafeInteractions: UnsafeInteraction[];
+  hardwareAnalysisSession: HardwareAnalysisSession | null;
 
   setAnalysisType: (type: AnalysisType, initialStep: string) => void;
   updateAnalysisSession: (data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => void;
@@ -90,6 +95,20 @@ interface AnalysisContextState {
   setCurrentStep: (stepPath: string) => void;
   setActiveContext: (controllerId: string, contextId: string) => void;
   resetAnalysis: () => void;
+
+  addHardwareComponent: (component: Omit<HardwareComponent, 'id'>) => void;
+  updateHardwareComponent: (id: string, updates: Partial<HardwareComponent>) => void;
+  deleteHardwareComponent: (id: string) => void;
+
+  addFailureMode: (mode: Omit<FailureMode, 'id'>) => void;
+  updateFailureMode: (id: string, updates: Partial<FailureMode>) => void;
+  deleteFailureMode: (id: string) => void;
+
+  addUnsafeInteraction: (interaction: Omit<UnsafeInteraction, 'id'>) => void;
+  updateUnsafeInteraction: (id: string, updates: Partial<UnsafeInteraction>) => void;
+  deleteUnsafeInteraction: (id: string) => void;
+
+  updateHardwareAnalysisSession: (data: Partial<HardwareAnalysisSession>) => void;
 }
 
 const initialState: AnalysisContextState = {
@@ -99,6 +118,7 @@ const initialState: AnalysisContextState = {
   losses: [], hazards: [], systemConstraints: [], systemComponents: [], controllers: [],
   controlPaths: [], feedbackPaths: [], communicationPaths: [], controlActions: [], ucas: [], uccas: [], scenarios: [], requirements: [], sequenceOfEvents: [],
   activeContexts: {},
+  hardwareComponents: [], failureModes: [], unsafeInteractions: [], hardwareAnalysisSession: null,
   setAnalysisType: () => {}, updateAnalysisSession: () => {}, setCastStep2SubStep: () => {},
   addLoss: () => {}, updateLoss: () => {}, deleteLoss: () => {},
   addHazard: () => {}, updateHazard: () => {}, deleteHazard: () => {},
@@ -117,6 +137,10 @@ const initialState: AnalysisContextState = {
   setCurrentStep: () => {},
   setActiveContext: () => {},
   resetAnalysis: () => {},
+  addHardwareComponent: () => {}, updateHardwareComponent: () => {}, deleteHardwareComponent: () => {},
+  addFailureMode: () => {}, updateFailureMode: () => {}, deleteFailureMode: () => {},
+  addUnsafeInteraction: () => {}, updateUnsafeInteraction: () => {}, deleteUnsafeInteraction: () => {},
+  updateHardwareAnalysisSession: () => {},
 };
 
 export const AnalysisContext = createContext<AnalysisContextState>(initialState);
@@ -141,6 +165,10 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const [scenarios, setScenarios] = useState<CausalScenario[]>(() => JSON.parse(localStorage.getItem('scenarios') || '[]'));
   const [requirements, setRequirements] = useState<Requirement[]>(() => JSON.parse(localStorage.getItem('requirements') || '[]'));
   const [activeContexts, setActiveContexts] = useState<{ [key: string]: string; }>(() => JSON.parse(localStorage.getItem('activeContexts') || '{}'));
+  const [hardwareComponents, setHardwareComponents] = useState<HardwareComponent[]>(() => JSON.parse(localStorage.getItem('hardwareComponents') || '[]'));
+  const [failureModes, setFailureModes] = useState<FailureMode[]>(() => JSON.parse(localStorage.getItem('failureModes') || '[]'));
+  const [unsafeInteractions, setUnsafeInteractions] = useState<UnsafeInteraction[]>(() => JSON.parse(localStorage.getItem('unsafeInteractions') || '[]'));
+  const [hardwareAnalysisSession, setHardwareAnalysisSession] = useState<HardwareAnalysisSession | null>(() => JSON.parse(localStorage.getItem('hardwareAnalysisSession') || 'null'));
 
 
   useEffect(() => { if (analysisSession) localStorage.setItem('analysisSession', JSON.stringify(analysisSession)); else localStorage.removeItem('analysisSession'); }, [analysisSession]);
@@ -161,6 +189,10 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   useEffect(() => { localStorage.setItem('scenarios', JSON.stringify(scenarios)); }, [scenarios]);
   useEffect(() => { localStorage.setItem('requirements', JSON.stringify(requirements)); }, [requirements]);
   useEffect(() => { localStorage.setItem('activeContexts', JSON.stringify(activeContexts)); }, [activeContexts]);
+  useEffect(() => { localStorage.setItem('hardwareComponents', JSON.stringify(hardwareComponents)); }, [hardwareComponents]);
+  useEffect(() => { localStorage.setItem('failureModes', JSON.stringify(failureModes)); }, [failureModes]);
+  useEffect(() => { localStorage.setItem('unsafeInteractions', JSON.stringify(unsafeInteractions)); }, [unsafeInteractions]);
+  useEffect(() => { if (hardwareAnalysisSession) localStorage.setItem('hardwareAnalysisSession', JSON.stringify(hardwareAnalysisSession)); else localStorage.removeItem('hardwareAnalysisSession'); }, [hardwareAnalysisSession]);
 
   const setCastStep2SubStep = useCallback((stepUpdater: number | ((prevStep: number) => number)) => {
     _setCastStep2SubStep(prevStep => {
@@ -218,6 +250,10 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     setScenarios([]);
     setRequirements([]);
     setActiveContexts({});
+    setHardwareComponents([]);
+    setFailureModes([]);
+    setUnsafeInteractions([]);
+    setHardwareAnalysisSession(null);
     localStorage.clear();
   }, []);
 
@@ -286,6 +322,9 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const actionOps = createCrudOperations(setControlActions, controlActions);
   const scenarioOps = createCrudOperations(setScenarios, scenarios);
   const requirementOps = createCrudOperations(setRequirements, requirements);
+  const hardwareComponentOps = createCrudOperations(setHardwareComponents, hardwareComponents);
+  const failureModeOps = createCrudOperations(setFailureModes, failureModes);
+  const unsafeInteractionOps = createCrudOperations(setUnsafeInteractions, unsafeInteractions);
 
   const eventOps = {
     add: (item: Omit<EventDetail, 'id' | 'order'>) => {
@@ -303,10 +342,18 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     }
   };
 
+  const updateHardwareAnalysisSession = useCallback((data: Partial<HardwareAnalysisSession>) => {
+    setHardwareAnalysisSession(prev => {
+      const updated = prev ? { ...prev, ...data } : { id: uuidv4(), ...data };
+      return updated as HardwareAnalysisSession;
+    });
+  }, []);
+
   return (
       <AnalysisContext.Provider value={{
         analysisSession, castStep2SubStep, castStep2MaxReachedSubStep, losses, hazards, systemConstraints, systemComponents, controllers, controlPaths, feedbackPaths,
         communicationPaths, controlActions, ucas, uccas, scenarios, requirements, sequenceOfEvents, activeContexts,
+        hardwareComponents, failureModes, unsafeInteractions, hardwareAnalysisSession,
         setAnalysisType, updateAnalysisSession, setCastStep2SubStep, setCurrentStep, resetAnalysis, setActiveContext,
         addLoss: lossOps.add, updateLoss: lossOps.update, deleteLoss: lossOps.delete,
         addHazard, updateHazard, deleteHazard,
@@ -330,6 +377,10 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         deleteUCCA: uccaOps.delete,
         addScenario: scenarioOps.add, updateScenario: scenarioOps.update, deleteScenario: scenarioOps.delete,
         addRequirement: requirementOps.add, updateRequirement: requirementOps.update, deleteRequirement: requirementOps.delete,
+        addHardwareComponent: hardwareComponentOps.add, updateHardwareComponent: hardwareComponentOps.update, deleteHardwareComponent: hardwareComponentOps.delete,
+        addFailureMode: failureModeOps.add, updateFailureMode: failureModeOps.update, deleteFailureMode: failureModeOps.delete,
+        addUnsafeInteraction: unsafeInteractionOps.add, updateUnsafeInteraction: unsafeInteractionOps.update, deleteUnsafeInteraction: unsafeInteractionOps.delete,
+        updateHardwareAnalysisSession,
       }}>
         {children}
       </AnalysisContext.Provider>
