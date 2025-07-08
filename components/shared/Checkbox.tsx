@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string;
     error?: string;
     containerClassName?: string;

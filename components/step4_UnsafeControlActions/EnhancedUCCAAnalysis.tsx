@@ -1,12 +1,16 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { PlusIcon, BeakerIcon, CpuChipIcon } from '@heroicons/react/24/solid';
+import React, { useState, useMemo } from 'react';
 import { useAnalysis } from '@/hooks/useAnalysis';
-import { UCCA, UCCAType, Controller, ControlAction, UnsafeControlAction } from '@/types';
+import { UCCA, UCCAType, Controller, ControlAction, ControllerType } from '@/types';
 import Button from '../shared/Button';
-import Select from '../shared/Select';
-import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
 import Modal from '../shared/Modal';
-import { PlusIcon, TrashIcon, BeakerIcon, CpuChipIcon } from '@heroicons/react/24/solid';
+import Select from '../shared/Select';
+import Textarea from '../shared/Textarea';
+import UCCAEnumerationEngine from './UCCAEnumerationEngine';
+import AdvancedFilter, { FilterGroup, ActiveFilter } from '../shared/AdvancedFilter';
+import CardGrid, { ViewSettings, SortOption } from '../shared/CardGrid';
+import { UCCACard } from '../shared/CardLayouts';
 
 interface ControlActionCombination {
   actions: ControlAction[];
@@ -41,9 +45,13 @@ const EnhancedUCCAAnalysis: React.FC = () => {
 
   const [showUCCAModal, setShowUCCAModal] = useState(false);
   const [showSystematicAnalysis, setShowSystematicAnalysis] = useState(false);
+  const [showThesisEnumeration, setShowThesisEnumeration] = useState(false);
   const [editingUccaId, setEditingUccaId] = useState<string | null>(null);
-  const [selectedUCCAType, setSelectedUCCAType] = useState<UCCAType | 'All'>('All');
   const [systematicResults, setSystematicResults] = useState<ControlActionCombination[]>([]);
+  
+  // Enhanced filtering state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
 
   const [uccaForm, setUccaForm] = useState<UCCAFormState>({
     uccaType: UCCAType.Team,
@@ -138,13 +146,13 @@ const EnhancedUCCAAnalysis: React.FC = () => {
       }
       
       const controllerTypes = new Set(controllers.map(c => c.ctrlType));
-      if (controllerTypes.has('T')) {
+      if (controllerTypes.has(ControllerType.Team)) {
         reasons.push('Team coordination required');
       }
-      if (controllerTypes.has('O')) {
+      if (controllerTypes.has(ControllerType.Organisation)) {
         reasons.push('Organizational policy interaction');
       }
-      if (controllerTypes.has('H') && controllerTypes.has('S')) {
+      if (controllerTypes.has(ControllerType.Human) && controllerTypes.has(ControllerType.Software)) {
         reasons.push('Human-software interaction');
       }
       
@@ -328,6 +336,55 @@ const EnhancedUCCAAnalysis: React.FC = () => {
     }));
   };
 
+  // Enhanced filtering configuration
+  const uccaFilterGroups: FilterGroup[] = useMemo(() => [
+    {
+      id: 'uccaType',
+      label: 'UCCA Type',
+      type: 'multiselect',
+      options: Object.values(UCCAType).map(type => ({
+        id: type,
+        label: type,
+        value: type
+      }))
+    },
+    {
+      id: 'temporalRelationship',
+      label: 'Temporal Relationship',
+      type: 'multiselect',
+      options: [
+        { id: 'simultaneous', label: 'Simultaneous', value: 'Simultaneous' },
+        { id: 'sequential', label: 'Sequential', value: 'Sequential' },
+        { id: 'within-timeframe', label: 'Within Timeframe', value: 'Within-Timeframe' }
+      ]
+    },
+    {
+      id: 'hasHazards',
+      label: 'Hazard Links',
+      type: 'select',
+      options: [
+        { id: 'linked', label: 'Has Hazard Links', value: true },
+        { id: 'unlinked', label: 'No Hazard Links', value: false }
+      ]
+    },
+    {
+      id: 'isSystematic',
+      label: 'Analysis Type',
+      type: 'select',
+      options: [
+        { id: 'systematic', label: 'Systematic Pattern', value: true },
+        { id: 'specific', label: 'Specific Occurrence', value: false }
+      ]
+    },
+    {
+      id: 'controllerCount',
+      label: 'Controller Count',
+      type: 'range',
+      min: 2,
+      max: Math.max(2, controllers.length)
+    }
+  ], [controllers.length]);
+
   // Get available roles from selected team controllers
   const availableRoles = useMemo(() => {
     const roles: { id: string; name: string; controllerId: string }[] = [];
@@ -348,14 +405,82 @@ const EnhancedUCCAAnalysis: React.FC = () => {
     return roles;
   }, [uccaForm.involvedControllerIds, controllers]);
 
-  const filteredUCCAs = uccas.filter(ucca => 
-    selectedUCCAType === 'All' || ucca.uccaType === selectedUCCAType
-  );
+  // Enhanced filtering logic
+  const filteredUCCAs = useMemo(() => {
+    let result = [...uccas];
 
-  const uccaTypeOptions = [
-    { value: 'All', label: 'All Types' },
-    ...Object.values(UCCAType).map(type => ({ value: type, label: type }))
-  ];
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(ucca => 
+        ucca.code?.toLowerCase().includes(query) ||
+        ucca.description.toLowerCase().includes(query) ||
+        ucca.context.toLowerCase().includes(query) ||
+        ucca.uccaType.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply active filters
+    if (activeFilters.length > 0) {
+      result = result.filter(ucca => {
+        return activeFilters.every(filter => {
+          switch (filter.groupId) {
+            case 'uccaType':
+              return ucca.uccaType === filter.value;
+            case 'temporalRelationship':
+              return ucca.temporalRelationship === filter.value;
+            case 'hasHazards': {
+              const hasHazards = ucca.hazardIds.length > 0;
+              return hasHazards === filter.value;
+            }
+            case 'isSystematic':
+              return ucca.isSystematic === filter.value;
+            case 'controllerCount':
+              return ucca.involvedControllerIds.length >= filter.value;
+            default:
+              return true;
+          }
+        });
+      });
+    }
+
+    return result;
+  }, [uccas, searchQuery, activeFilters]);
+
+  // Sort options for UCCA display
+  const uccaSortOptions: SortOption[] = useMemo(() => [
+    {
+      id: 'code',
+      label: 'Code',
+      sortFn: (a: UCCA, b: UCCA) => (a.code || '').localeCompare(b.code || '')
+    },
+    {
+      id: 'type',
+      label: 'UCCA Type',
+      sortFn: (a: UCCA, b: UCCA) => a.uccaType.localeCompare(b.uccaType)
+    },
+    {
+      id: 'controllers',
+      label: 'Controller Count',
+      sortFn: (a: UCCA, b: UCCA) => a.involvedControllerIds.length - b.involvedControllerIds.length
+    },
+    {
+      id: 'systematic',
+      label: 'Systematic First',
+      sortFn: (a: UCCA, b: UCCA) => {
+        if (a.isSystematic && !b.isSystematic) return -1;
+        if (!a.isSystematic && b.isSystematic) return 1;
+        return 0;
+      }
+    },
+    {
+      id: 'hazards',
+      label: 'Hazard Links',
+      sortFn: (a: UCCA, b: UCCA) => a.hazardIds.length - b.hazardIds.length
+    }
+  ], []);
+
+  // Removed: uccaTypeOptions - now using enhanced filtering
 
   const temporalOptions = [
     { value: 'Simultaneous', label: 'Simultaneous' },
@@ -372,13 +497,13 @@ const EnhancedUCCAAnalysis: React.FC = () => {
           Enhanced UCCA Analysis Tools
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button
             onClick={handleRunSystematicAnalysis}
             leftIcon={<BeakerIcon className="w-5 h-5" />}
             disabled={controlActions.filter(ca => !ca.isOutOfScope).length < 2}
           >
-            Run Systematic UCCA Analysis
+            Run Systematic Analysis
           </Button>
           
           <Button
@@ -386,6 +511,14 @@ const EnhancedUCCAAnalysis: React.FC = () => {
             leftIcon={<PlusIcon className="w-5 h-5" />}
           >
             Create UCCA Manually
+          </Button>
+          
+          <Button
+            onClick={() => setShowThesisEnumeration(!showThesisEnumeration)}
+            leftIcon={<CpuChipIcon className="w-5 h-5" />}
+            variant={showThesisEnumeration ? 'primary' : 'secondary'}
+          >
+            Thesis Enumeration
           </Button>
         </div>
         
@@ -410,123 +543,78 @@ const EnhancedUCCAAnalysis: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter and Display */}
+      {/* Enhanced Filter and Display */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-200">
             Identified UCCAs
           </h3>
-          <Select
-            value={selectedUCCAType}
-            onChange={e => setSelectedUCCAType(e.target.value as UCCAType | 'All')}
-            options={uccaTypeOptions}
-            className="w-48"
-          />
         </div>
 
-        {filteredUCCAs.length > 0 ? (
-          <div className="grid gap-4">
-            {filteredUCCAs.map(ucca => {
-              const involvedControllers = ucca.involvedControllerIds.map(id =>
-                controllers.find(c => c.id === id)?.name
-              ).filter(Boolean);
-              
-              return (
-                <div key={ucca.id} className="border border-slate-200 dark:border-slate-700 rounded-lg p-6 bg-white dark:bg-slate-800">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-grow">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-semibold text-lg text-slate-800 dark:text-slate-100">
-                          {ucca.code}
-                        </h4>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          ucca.uccaType === UCCAType.Team ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300' :
-                          ucca.uccaType === UCCAType.Role ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' :
-                          ucca.uccaType === UCCAType.Organizational ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300' :
-                          ucca.uccaType === UCCAType.Temporal ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' :
-                          'bg-slate-100 text-slate-800 dark:bg-slate-900/20 dark:text-slate-300'
-                        }`}>
-                          {ucca.uccaType}
-                        </span>
-                        {ucca.isSystematic && (
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300">
-                            Systematic
-                          </span>
-                        )}
-                      </div>
-                      
-                      <p className="text-slate-700 dark:text-slate-300 mb-2">
-                        {ucca.description}
-                      </p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                        Context: {ucca.context}
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium text-slate-700 dark:text-slate-300">Controllers: </span>
-                          <span className="text-slate-600 dark:text-slate-400">
-                            {involvedControllers.join(', ')}
-                          </span>
-                        </div>
-                        
-                        {ucca.temporalRelationship && (
-                          <div>
-                            <span className="font-medium text-slate-700 dark:text-slate-300">Timing: </span>
-                            <span className="text-slate-600 dark:text-slate-400">
-                              {ucca.temporalRelationship}
-                            </span>
-                          </div>
-                        )}
-                        
-                        {ucca.hazardIds.length > 0 && (
-                          <div>
-                            <span className="font-medium text-slate-700 dark:text-slate-300">Hazards: </span>
-                            <span className="text-slate-600 dark:text-slate-400">
-                              {ucca.hazardIds.map(hid => 
-                                hazards.find(h => h.id === hid)?.code
-                              ).filter(Boolean).join(', ')}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 ml-4">
-                      <Button
-                        onClick={() => loadUCCAForEdit(ucca)}
-                        size="sm"
-                        variant="secondary"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        onClick={() => deleteUCCA(ucca.id)}
-                        size="sm"
-                        variant="secondary"
-                        className="text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/50"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-slate-500 dark:text-slate-400 text-center py-8">
-            No UCCAs identified yet. Use the systematic analysis or create manually.
-          </p>
-        )}
+        {/* Enhanced Search and Filtering */}
+        <AdvancedFilter
+          filterGroups={uccaFilterGroups}
+          activeFilters={activeFilters}
+          onFilterChange={setActiveFilters}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder="Search UCCAs by code, description, or context..."
+        />
+
+        {/* UCCA Card Grid */}
+        <CardGrid
+          items={filteredUCCAs}
+          renderCard={(ucca: UCCA, settings: ViewSettings) => {
+            const controllerNames = ucca.involvedControllerIds.map(id =>
+              controllers.find(c => c.id === id)?.name
+            ).filter(Boolean) as string[];
+            
+            const hazardCodes = ucca.hazardIds.map(hid =>
+              hazards.find(h => h.id === hid)?.code
+            ).filter(Boolean) as string[];
+
+            return (
+              <UCCACard
+                ucca={ucca}
+                controllerNames={controllerNames}
+                hazardCodes={hazardCodes}
+                onEdit={() => loadUCCAForEdit(ucca)}
+                onDelete={() => deleteUCCA(ucca.id)}
+                compactMode={settings.compactMode}
+              />
+            );
+          }}
+          getItemId={(ucca: UCCA) => ucca.id}
+          sortOptions={uccaSortOptions}
+          defaultSort="systematic"
+          emptyMessage="No UCCAs identified yet. Use the systematic analysis or create manually."
+          enableViewControls={true}
+          enableSorting={true}
+        />
       </div>
+
+      {/* Thesis Enumeration Engine */}
+      {showThesisEnumeration && (
+        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+          <UCCAEnumerationEngine 
+            onUCCAGenerated={(potentialUCCA) => {
+              // Handle individual UCCA generation
+              console.log('Generated UCCA:', potentialUCCA);
+            }}
+            onBatchGenerate={(uccas) => {
+              // Handle batch UCCA generation
+              console.log('Generated batch UCCAs:', uccas);
+            }}
+          />
+        </div>
+      )}
 
       {/* Systematic Analysis Results Modal */}
       <Modal
         isOpen={showSystematicAnalysis}
         onClose={() => setShowSystematicAnalysis(false)}
         title="Systematic UCCA Analysis Results"
-        size="large"
+        size="lg"
       >
         <div className="space-y-4 max-h-96 overflow-y-auto">
           <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -579,7 +667,7 @@ const EnhancedUCCAAnalysis: React.FC = () => {
         isOpen={showUCCAModal}
         onClose={resetForm}
         title={editingUccaId ? 'Edit UCCA' : 'Create New UCCA'}
-        size="large"
+        size="lg"
       >
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

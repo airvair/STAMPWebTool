@@ -1,11 +1,11 @@
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import React, { useState } from 'react';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { FeedbackPath } from '@/types';
-import Select from '../../shared/Select';
 import Button from '../../shared/Button';
-import Textarea from '../../shared/Textarea';
 import Checkbox from '../../shared/Checkbox';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
+import Select from '../../shared/Select';
+import Textarea from '../../shared/Textarea';
 
 const FeedbackPathsBuilder: React.FC = () => {
     const {
@@ -63,7 +63,7 @@ const FeedbackPathsBuilder: React.FC = () => {
         <section className="space-y-6">
             <div>
                 <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Feedback Paths</h3>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">How does the controller know what's going on? Define the information paths that flow from a component back to its controller.</p>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">How does the controller know what&apos;s going on? Define the information paths that flow from a component back to its controller.</p>
             </div>
             <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 space-y-4">
                 <p className="text-md font-semibold text-slate-700 dark:text-slate-200">{editingFpId ? 'Editing Feedback Path' : 'Define a New Feedback Path'}</p>

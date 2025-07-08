@@ -1,4 +1,4 @@
-import { Controller, ControlPath, FeedbackPath, SystemComponent } from '@/types';
+import { Controller, ControlPath, SystemComponent } from '@/types';
 
 interface ControllerLevel {
   level: number;
@@ -18,7 +18,7 @@ interface ControllerWithHierarchy extends Controller {
 export function analyzeControllerHierarchy(
   controllers: Controller[],
   controlPaths: ControlPath[],
-  systemComponents: SystemComponent[]
+  _systemComponents: SystemComponent[]
 ): ControllerWithHierarchy[] {
   // Create adjacency lists for the control structure graph
   const controllerGraph = new Map<string, Set<string>>();
@@ -125,7 +125,7 @@ export function getControllersBottomUp(
   systemComponents: SystemComponent[]
 ): Controller[] {
   const hierarchicalControllers = analyzeControllerHierarchy(controllers, controlPaths, systemComponents);
-  return hierarchicalControllers.map(({ hierarchyLevel, sortOrder, ...controller }) => controller);
+  return hierarchicalControllers.map(({ hierarchyLevel: _hierarchyLevel, sortOrder: _sortOrder, ...controller }) => controller);
 }
 
 /**
@@ -263,7 +263,7 @@ export function getControllersAtLevel(
   return hierarchicalControllers
     .filter(c => c.hierarchyLevel === level)
     .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map(({ hierarchyLevel, sortOrder, ...controller }) => controller);
+    .map(({ hierarchyLevel: _hierarchyLevel, sortOrder: _sortOrder, ...controller }) => controller);
 }
 
 /**

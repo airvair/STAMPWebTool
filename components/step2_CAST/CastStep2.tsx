@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useEffect, ChangeEvent } from 'react';
+import { STANDARD_LOSSES } from '@/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { Loss, Hazard, SystemConstraint, AnalysisType } from '@/types';
-import { STANDARD_LOSSES } from '@/constants';
+import Button from '../shared/Button';
+import HazardsBuilder from './partials/HazardsBuilder';
+import LossesBuilder from './partials/LossesBuilder';
 import ScopeBuilder from './partials/ScopeBuilder';
 import SequenceOfEventsBuilder from './partials/SequenceOfEventsBuilder';
-import LossesBuilder from './partials/LossesBuilder';
-import HazardsBuilder from './partials/HazardsBuilder';
-import SystemConstraintsBuilder from './partials/SystemConstraintsBuilder';
 import SubStepperEnhanced from './partials/SubStepperEnhanced';
-import Button from '../shared/Button';
+import SystemConstraintsBuilder from './partials/SystemConstraintsBuilder';
 
 const CAST_SUB_STEPS = ['Scope', 'Events', 'Losses', 'Hazards', 'Constraints'];
 
@@ -41,9 +41,10 @@ const CastStep2: React.FC = () => {
         case 0: return scope.trim() !== '';
         case 1: return sequenceOfEvents.length > 0;
         case 2: return losses.length > 0;
-        case 3:
+        case 3: {
           const allLossesCovered = losses.every(l => hazards.some(h => h.linkedLossIds.includes(l.id)));
           return hazards.length > 0 && allLossesCovered;
+        }
         case 4: return systemConstraints.length >= hazards.length && hazards.length > 0;
         default: return false;
       }

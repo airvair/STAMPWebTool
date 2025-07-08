@@ -1,7 +1,7 @@
-import React, { useState, ReactNode } from 'react';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
-import Modal from './Modal';
+import React, { useState, ReactNode } from 'react';
 import Button from './Button';
+import Modal from './Modal';
 
 interface InfoPopupProps {
   title: string;

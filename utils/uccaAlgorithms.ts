@@ -1,4 +1,4 @@
-import { Controller, ControlAction, UCCA, UCCAType, Hazard } from '@/types';
+import { Controller, ControlAction } from '@/types';
 
 // Types based on the thesis algorithms
 export enum UCCAAlgorithmType {
@@ -222,18 +222,20 @@ export class UCCAIdentificationAlgorithm {
         }));
         
         // Generate temporal patterns
-        const temporalPatterns = ['early', 'late', 'too-long', 'too-short'] as const;
+        // const temporalPatterns = ['early', 'late', 'too-long', 'too-short'] as const;
         
-        for (const caCombo of this.generateActionCombinations(controllerActions)) {
-          for (const pattern of this.generateTemporalPatterns(caCombo.length)) {
-            const combinations: ControlCombination[] = caCombo.map((item, index) => ({
+        const actionCombos = this.generateActionCombinations(controllerActions);
+        
+        if (actionCombos.length > 0) {
+          for (const pattern of this.generateTemporalPatterns(actionCombos.length)) {
+            const combinations: ControlCombination[] = actionCombos.map((item, index) => ({
               controllerId: item.controller.id,
               actionId: item.action.id,
               provided: true, // Type 3-4 assumes actions are provided
               timing: pattern[index]
             }));
             
-            const description = this.generateType3_4Description(caCombo, pattern);
+            const description = this.generateType3_4Description(actionCombos, pattern);
             const riskScore = this.calculateType3_4RiskScore(combinations, authorityTuple);
             
             uccas.push({
@@ -449,7 +451,7 @@ export class UCCAIdentificationAlgorithm {
 
   private static calculateType3_4RiskScore(
     combinations: ControlCombination[],
-    authorityTuple: AuthorityTuple
+    _authorityTuple: AuthorityTuple
   ): number {
     let score = 0;
     
@@ -554,7 +556,7 @@ export class UCCAIdentificationAlgorithm {
   private static areUCCAsEquivalent(
     ucca1: PotentialUCCA,
     ucca2: PotentialUCCA,
-    interchangeableControllers: InterchangeableControllers
+    _interchangeableControllers: InterchangeableControllers
   ): boolean {
     if (ucca1.type !== ucca2.type || ucca1.abstraction !== ucca2.abstraction) {
       return false;

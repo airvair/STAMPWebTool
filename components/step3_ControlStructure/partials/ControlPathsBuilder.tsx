@@ -1,11 +1,11 @@
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { ControlPath } from '@/types';
+import Button from '../../shared/Button';
 import Input from '../../shared/Input';
 import Select from '../../shared/Select';
-import Button from '../../shared/Button';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 const ControlPathsBuilder: React.FC = () => {
     const {
@@ -83,7 +83,7 @@ const ControlPathsBuilder: React.FC = () => {
         <section className="space-y-6">
             <div>
                 <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Control Paths & Actions</h3>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">How does a controller give commands? Let's draw the lines of command from a controller down to what it controls.</p>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">How does a controller give commands? Let&apos;s draw the lines of command from a controller down to what it controls.</p>
             </div>
 
             <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 space-y-4">

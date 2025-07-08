@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "browser-tools": {
+      "command": "npx",
+      "args": ["@agentdeskai/browser-tools-mcp@latest"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-puppeteer"]
+    },
+    "mcp-compass": {
+      "command": "npx",
+      "args": ["-y", "@liuyoshio/mcp-compass"]
+    },
+    "magicui": {
+      "command": "npx",
+      "args": ["magicui-mcp@latest"]
+    }
+  }
+}

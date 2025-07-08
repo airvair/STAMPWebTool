@@ -1,11 +1,11 @@
 import React, { createContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import {
   AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent,
   Controller, ControlAction, UnsafeControlAction, CausalScenario, Requirement, EventDetail,
   ControlPath, FeedbackPath, UCCA, CommunicationPath, HardwareComponent, FailureMode, 
   UnsafeInteraction, HardwareAnalysisSession
 } from '@/types';
-import { v4 as uuidv4 } from 'uuid';
 
 interface AnalysisContextState {
   analysisSession: AnalysisSession | null;

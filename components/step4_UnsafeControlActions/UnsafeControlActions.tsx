@@ -1,17 +1,22 @@
+import { PlusIcon, TrashIcon, CogIcon, WrenchScrewdriverIcon, AcademicCapIcon, FunnelIcon, ChartBarIcon } from '@heroicons/react/24/solid';
 import React, { useState, useEffect } from 'react';
-import { useAnalysis } from '@/hooks/useAnalysis';
-import { UnsafeControlAction, UCAType, UCCA } from '@/types';
 import { UCA_QUESTIONS_MAP, CONTROLLER_TYPE_COLORS } from '@/constants';
-import Textarea from '../shared/Textarea';
-import Checkbox from '../shared/Checkbox';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { UnsafeControlAction, UCAType, UCCA, UCCAType } from '@/types';
 import Button from '../shared/Button';
+import Checkbox from '../shared/Checkbox';
 import Select from '../shared/Select';
+import Textarea from '../shared/Textarea';
+import EnhancedUCCAAnalysis from './EnhancedUCCAAnalysis';
 import GuidedUCAWorkflow from './GuidedUCAWorkflow';
 import GuidedWorkflowOrchestrator from './GuidedWorkflowOrchestrator';
 import HardwareAnalysis from './HardwareAnalysis';
-import EnhancedUCCAAnalysis from './EnhancedUCCAAnalysis';
 import ScopeManagement from './ScopeManagement';
-import { PlusIcon, TrashIcon, CogIcon, WrenchScrewdriverIcon, AcademicCapIcon, FunnelIcon } from '@heroicons/react/24/solid';
+import StpaComplianceDashboard from './StpaComplianceDashboard';
+import SmartSuggestionsPanel from './SmartSuggestionsPanel';
+import { validateUCA, validateUCCALogic } from '@/utils/ucaValidation';
+import { useErrorHandler } from '@/utils/errorHandling';
+import { UcaSuggestion } from '@/utils/smartUcaSuggestions';
 
 interface UCAFormState {
   context: string;
@@ -24,11 +29,12 @@ interface UCCAFormState {
   hazardIds: string[];
 }
 
-type AnalysisMode = 'comprehensive-guided' | 'guided' | 'manual' | 'hardware' | 'enhanced-ucca' | 'scope-management';
+type AnalysisMode = 'comprehensive-guided' | 'guided' | 'manual' | 'hardware' | 'enhanced-ucca' | 'scope-management' | 'compliance-dashboard';
 
 const UnsafeControlActions: React.FC = () => {
   const { controllers, controlActions, ucas, addUCA, updateUCA, deleteUCA, hazards,
     uccas, addUCCA, updateUCCA, deleteUCCA } = useAnalysis();
+  const { validateAndHandle, showSuccess } = useErrorHandler();
 
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('manual');
 
@@ -64,6 +70,20 @@ const UnsafeControlActions: React.FC = () => {
     setEditingUccaId(null);
   };
 
+  const handleSuggestionSelect = (suggestion: UcaSuggestion) => {
+    // Set the form to match the suggestion
+    setSelectedControllerId(suggestion.controllerId);
+    setSelectedControlActionId(suggestion.controlActionId);
+    setSelectedUcaType(suggestion.ucaType);
+    setFormState({
+      context: suggestion.context,
+      hazardIds: suggestion.suggestedHazards
+    });
+    
+    // Clear any existing editing state
+    setEditingUcaId(null);
+  };
+
   const handleHazardLinkChange = (hazardId: string, checked: boolean) => {
     setFormState(prev => {
       const newHazardIds = checked
@@ -84,20 +104,44 @@ const UnsafeControlActions: React.FC = () => {
 
   const handleSaveUCA = () => {
     if (!selectedControlActionId || !selectedUcaType || !currentControlAction) {
-      alert("Please select a control action and a UCA type.");
-      return;
-    }
-    if (formState.hazardIds.length === 0) { // BR-5-HazSel
-      alert("A UCA must be linked to at least one hazard. Please select or create a new hazard if needed.");
-      return;
-    }
-    if (!formState.context.trim()) { // BR-5-Complete (simplified, assuming context is a key part)
-      alert("Please provide a context for the UCA.");
       return;
     }
 
-    const ucaData: Omit<UnsafeControlAction, 'id' | 'code'> = { // Corrected type: Omit 'id' and 'code'
-      controllerId: currentControlAction.controllerId, // Store controllerId for easier access
+    // Create UCA data for validation
+    const ucaData: Partial<UnsafeControlAction> = {
+      controllerId: currentControlAction.controllerId,
+      controlActionId: selectedControlActionId,
+      ucaType: selectedUcaType,
+      context: formState.context,
+      hazardIds: formState.hazardIds,
+    };
+
+    // Validate UCA using MIT STPA compliance framework
+    const validationResult = validateUCA(
+      ucaData,
+      controllers,
+      controlActions,
+      hazards
+    );
+
+    // Handle validation result with professional feedback
+    if (!validateAndHandle(validationResult, 'UnsafeControlActions', 'saveUCA')) {
+      return;
+    }
+
+    // Check for existing UCA of same type
+    if (!editingUcaId) {
+      const existing = ucas.find(u => u.controlActionId === selectedControlActionId && u.ucaType === selectedUcaType);
+      if (existing) {
+        setEditingUcaId(existing.id);
+        setFormState({context: existing.context, hazardIds: existing.hazardIds});
+        return;
+      }
+    }
+
+    // Save UCA
+    const completeUcaData: Omit<UnsafeControlAction, 'id' | 'code'> = {
+      controllerId: currentControlAction.controllerId,
       controlActionId: selectedControlActionId,
       ucaType: selectedUcaType,
       context: formState.context,
@@ -105,44 +149,55 @@ const UnsafeControlActions: React.FC = () => {
     };
 
     if (editingUcaId) {
-      updateUCA(editingUcaId, {
-        controllerId: currentControlAction.controllerId,
-        controlActionId: selectedControlActionId,
-        ucaType: selectedUcaType,
-        context: formState.context,
-        hazardIds: formState.hazardIds,
-      });
+      updateUCA(editingUcaId, completeUcaData);
+      showSuccess('UCA updated successfully');
     } else {
-      const existing = ucas.find(u => u.controlActionId === selectedControlActionId && u.ucaType === selectedUcaType);
-      if (existing && !editingUcaId) { // only prevent add, not update
-        alert(`A UCA of type "${selectedUcaType}" already exists for this control action. You can edit it below.`);
-        setEditingUcaId(existing.id); // switch to edit mode for the existing one
-        setFormState({context: existing.context, hazardIds: existing.hazardIds});
-        return;
-      }
-      addUCA(ucaData);
+      addUCA(completeUcaData);
+      showSuccess('UCA added successfully');
     }
+
+    resetForm();
   };
 
   const handleSaveUCCA = () => {
-    if (!uccaForm.description.trim() || !uccaForm.context.trim()) {
-      alert('Please provide a description and context for the UCCA.');
-      return;
-    }
-    if (uccaForm.hazardIds.length === 0) {
-      alert('A UCCA must be linked to at least one hazard.');
-      return;
-    }
-    const data: Omit<UCCA, 'id' | 'code'> = {
+    // Create UCCA data for validation
+    const uccaData: Partial<UCCA> = {
       description: uccaForm.description,
       context: uccaForm.context,
       hazardIds: uccaForm.hazardIds,
+      uccaType: UCCAType.Team,
+      involvedControllerIds: [] // TODO: Add UI for selecting involved controllers
     };
-    if (editingUccaId) {
-      updateUCCA(editingUccaId, data);
-    } else {
-      addUCCA(data);
+
+    // Validate UCCA using MIT STPA compliance framework
+    const validationResult = validateUCCALogic(
+      uccaData,
+      controllers,
+      controlActions
+    );
+
+    // Handle validation result with professional feedback
+    if (!validateAndHandle(validationResult, 'UnsafeControlActions', 'saveUCCA')) {
+      return;
     }
+
+    // Save UCCA
+    const completeUccaData: Omit<UCCA, 'id' | 'code'> = {
+      description: uccaForm.description,
+      context: uccaForm.context,
+      hazardIds: uccaForm.hazardIds,
+      uccaType: UCCAType.Team,
+      involvedControllerIds: []
+    };
+
+    if (editingUccaId) {
+      updateUCCA(editingUccaId, completeUccaData);
+      showSuccess('UCCA updated successfully');
+    } else {
+      addUCCA(completeUccaData);
+      showSuccess('UCCA added successfully');
+    }
+
     setUccaForm({ description: '', context: '', hazardIds: [] });
     setEditingUccaId(null);
   };
@@ -187,6 +242,8 @@ const UnsafeControlActions: React.FC = () => {
         return <EnhancedUCCAAnalysis />;
       case 'scope-management':
         return <ScopeManagement />;
+      case 'compliance-dashboard':
+        return <StpaComplianceDashboard />;
       case 'manual':
       default:
         return renderManualAnalysis();
@@ -206,6 +263,16 @@ const UnsafeControlActions: React.FC = () => {
         <Select label="Filter by Control Action" value={selectedControlActionId || ''} onChange={e => setSelectedControlActionId(e.target.value)} options={[{value: '', label: 'All Actions'}, ...controlActionOptions]} disabled={!selectedControllerId} placeholder="All Actions" />
         <Select label="Filter by UCA Type" value={selectedUcaType || ''} onChange={e => setSelectedUcaType(e.target.value as UCAType)} options={[{value: '', label: 'All Types'}, ...ucaTypeOptions]} disabled={!selectedControlActionId} placeholder="All Types" />
       </div>
+
+      {/* Smart Suggestions Panel */}
+      {!selectedControlActionId && (
+        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+          <SmartSuggestionsPanel 
+            onSelectSuggestion={handleSuggestionSelect}
+            maxSuggestions={3}
+          />
+        </div>
+      )}
 
       {/* UCA Definition Area - only show if a specific CA and UCA Type are selected */}
       {selectedControlActionId && selectedUcaType && currentControlAction && (
@@ -360,7 +427,7 @@ const UnsafeControlActions: React.FC = () => {
             Choose your analysis approach. Each method offers different strengths for identifying unsafe control actions and combinations.
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
             <Button
               onClick={() => setAnalysisMode('comprehensive-guided')}
               variant={analysisMode === 'comprehensive-guided' ? 'primary' : 'secondary'}
@@ -419,6 +486,16 @@ const UnsafeControlActions: React.FC = () => {
             >
               <span className="font-medium">Scope Management</span>
               <span className="text-xs">Filter & focus analysis</span>
+            </Button>
+            
+            <Button
+              onClick={() => setAnalysisMode('compliance-dashboard')}
+              variant={analysisMode === 'compliance-dashboard' ? 'primary' : 'secondary'}
+              leftIcon={<ChartBarIcon className="w-5 h-5" />}
+              className="h-20 flex-col text-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30"
+            >
+              <span className="font-medium">MIT STPA Compliance</span>
+              <span className="text-xs">Methodology adherence</span>
             </Button>
           </div>
         </div>

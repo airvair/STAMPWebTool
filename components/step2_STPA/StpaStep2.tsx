@@ -1,6 +1,6 @@
 import React from 'react';
-import { AnalysisType } from '@/types';
 import { SharedLossesHazardsComponent } from '@/components/step2_STPA';
+import { AnalysisType } from '@/types';
 
 /**
  * STPA Step 2 component that handles the setup phase for System-Theoretic Process Analysis.

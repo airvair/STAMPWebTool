@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { AnalysisType, Hazard, Loss, SystemConstraint } from '@/types';
-import { useAnalysis } from '@/hooks/useAnalysis';
-import { STANDARD_LOSSES, SYSTEM_COMPONENT_EXAMPLES, SYSTEM_STATE_CONDITION_EXAMPLES } from '@/constants';
 import { Input, Textarea, Checkbox, Button, Select, AutocompleteInput } from '@/components/shared';
+import { STANDARD_LOSSES, SYSTEM_COMPONENT_EXAMPLES, SYSTEM_STATE_CONDITION_EXAMPLES } from '@/constants';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { AnalysisType, Hazard, Loss, SystemConstraint } from '@/types';
 
 // Placeholder SVGs - these should be proper SVG components or from a library
 const PlaceholderPlusIcon = () => (
@@ -386,7 +386,7 @@ const SharedLossesHazardsComponent: React.FC<SharedLossesHazardsComponentProps> 
         <h3 className="text-xl font-semibold text-slate-700 mb-3">
           4. Define System Safety Constraints
         </h3>
-        <p className="text-sm text-slate-600 mb-3">Safety constraints express the positive requirements for safe operation derived from each hazard. These are auto-generated but can be refined. For STPA, specify if the constraint is a "shall not" or "must not" condition related to the hazard.</p>
+        <p className="text-sm text-slate-600 mb-3">Safety constraints express the positive requirements for safe operation derived from each hazard. These are auto-generated but can be refined. For STPA, specify if the constraint is a &quot;shall not&quot; or &quot;must not&quot; condition related to the hazard.</p>
         {analysisType === AnalysisType.STPA && (
              <div className="mb-4">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Default constraint phrasing for new top-level hazards:</label>

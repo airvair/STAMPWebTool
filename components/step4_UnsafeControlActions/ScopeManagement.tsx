@@ -1,12 +1,12 @@
+import { EyeSlashIcon, EyeIcon, FunnelIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import React, { useState, useMemo } from 'react';
 import { useAnalysis } from '@/hooks/useAnalysis';
-import { Controller, ControlAction, UnsafeControlAction, UCCA } from '@/types';
+import { ControlAction } from '@/types';
 import Button from '../shared/Button';
 import Checkbox from '../shared/Checkbox';
+import Modal from '../shared/Modal';
 import Select from '../shared/Select';
 import Textarea from '../shared/Textarea';
-import Modal from '../shared/Modal';
-import { EyeSlashIcon, EyeIcon, FunnelIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 
 interface ScopeFilter {
   id: string;
@@ -35,8 +35,6 @@ const ScopeManagement: React.FC = () => {
     ucas,
     uccas,
     updateControlAction,
-    updateUCA,
-    updateUCCA,
     analysisSession
   } = useAnalysis();
 
@@ -245,7 +243,7 @@ const ScopeManagement: React.FC = () => {
               Analysis Scope Management
             </h3>
             <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
-              Manage what's included in your analysis. Items marked as "out of scope" are excluded from UCA/UCCA 
+              Manage what&apos;s included in your analysis. Items marked as &quot;out of scope&quot; are excluded from UCA/UCCA 
               identification but remain documented for completeness.
             </p>
             
@@ -291,6 +289,7 @@ const ScopeManagement: React.FC = () => {
               <div className="flex items-start gap-3">
                 <Checkbox
                   id={`filter-${filter.id}`}
+                  label=""
                   checked={selectedFilters.includes(filter.id)}
                   onChange={e => {
                     if (e.target.checked) {

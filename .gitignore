@@ -24,8 +24,12 @@ dist-ssr
 *.sw?
 
 # AI Development Files
-CLAUDE.md
 .claude-trace/
 *.claude-trace.*
-*claude*
-*CLAUDE*
+
+# Environment files
+.env.local
+.env
+
+# MCP sensitive configuration
+.claude/mcp_config_local.json

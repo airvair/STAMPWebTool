@@ -1,7 +1,7 @@
 import React from 'react';
+import Select from '@/components/shared/Select';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { ControllerType } from '@/types';
-import Select from '@/components/shared/Select';
 
 const VisualizationControlPanel: React.FC = () => {
     const { controllers, activeContexts, setActiveContext } = useAnalysis();

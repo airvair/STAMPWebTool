@@ -1,18 +1,3 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useAnalysis } from '@/hooks/useAnalysis';
-import { Controller, ControlAction, UCCA, UCCAType } from '@/types';
-import { 
-  UCCAIdentificationAlgorithm, 
-  AuthorityTuple, 
-  PotentialUCCA, 
-  UCCAAlgorithmType,
-  AbstractionLevel 
-} from '@/utils/uccaAlgorithms';
-import Button from '../shared/Button';
-import Textarea from '../shared/Textarea';
-import Checkbox from '../shared/Checkbox';
-import Select from '../shared/Select';
-import Modal from '../shared/Modal';
 import { 
   BeakerIcon, 
   SparklesIcon, 
@@ -21,6 +6,21 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon 
 } from '@heroicons/react/24/solid';
+import React, { useState, useEffect } from 'react';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { Controller, UCCA, UCCAType } from '@/types';
+import { 
+  UCCAIdentificationAlgorithm, 
+  AuthorityTuple, 
+  PotentialUCCA, 
+  UCCAAlgorithmType,
+  AbstractionLevel 
+} from '@/utils/uccaAlgorithms';
+import Button from '../shared/Button';
+import Checkbox from '../shared/Checkbox';
+import Modal from '../shared/Modal';
+import Select from '../shared/Select';
+import AbstractionLevelSelector from '../shared/AbstractionLevelSelector';
 
 interface UCCAWorkflowState {
   currentPhase: 'setup' | 'generation' | 'review' | 'refinement' | 'complete';
@@ -39,6 +39,8 @@ interface UCCAGenerationSettings {
   includeType1_2: boolean;
   includeType3_4: boolean;
   filterEquivalent: boolean;
+  selectedAbstractionLevel: AbstractionLevel;
+  analysisGoal: 'comprehensive' | 'focused' | 'quick';
 }
 
 interface GuidedUCCAWorkflowProps {
@@ -53,11 +55,7 @@ const GuidedUCCAWorkflow: React.FC<GuidedUCCAWorkflowProps> = ({
   const { 
     controllers, 
     controlActions, 
-    controlPaths,
-    systemComponents,
-    hazards,
-    addUCCA,
-    updateUCCA 
+    addUCCA
   } = useAnalysis();
 
   const [workflowState, setWorkflowState] = useState<UCCAWorkflowState>({
@@ -80,7 +78,9 @@ const GuidedUCCAWorkflow: React.FC<GuidedUCCAWorkflowProps> = ({
     includeAbstraction2b: true,
     includeType1_2: true,
     includeType3_4: workflowLevel !== 'organizational', // Organizational analysis focuses on Type 1-2
-    filterEquivalent: true
+    filterEquivalent: true,
+    selectedAbstractionLevel: AbstractionLevel.Abstraction2a,
+    analysisGoal: 'focused'
   });
 
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -173,13 +173,6 @@ const GuidedUCCAWorkflow: React.FC<GuidedUCCAWorkflowProps> = ({
     }));
   };
 
-  const handleModifyUCCA = (index: number, modifications: Partial<PotentialUCCA>) => {
-    setWorkflowState(prev => ({
-      ...prev,
-      modifiedUCCAs: new Map(prev.modifiedUCCAs.set(index, modifications)),
-      acceptedUCCAs: new Set([...prev.acceptedUCCAs, index])
-    }));
-  };
 
   const handleCompleteReview = () => {
     // Convert accepted UCCAs to actual UCCA records
@@ -502,25 +495,42 @@ const GuidedUCCAWorkflow: React.FC<GuidedUCCAWorkflowProps> = ({
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              Analysis Goal
+            </label>
+            <Select
+              value={generationSettings.analysisGoal}
+              onChange={e => setGenerationSettings(prev => ({ 
+                ...prev, 
+                analysisGoal: e.target.value as 'comprehensive' | 'focused' | 'quick'
+              }))}
+              options={[
+                { value: 'quick', label: 'Quick Analysis - High abstraction' },
+                { value: 'focused', label: 'Focused Analysis - Balanced approach' },
+                { value: 'comprehensive', label: 'Comprehensive Analysis - Detailed' }
+              ]}
+            />
+          </div>
+
+          <AbstractionLevelSelector
+            value={generationSettings.selectedAbstractionLevel}
+            onChange={(level) => setGenerationSettings(prev => ({ 
+              ...prev, 
+              selectedAbstractionLevel: level,
+              // Update boolean flags based on selected level
+              includeAbstraction2a: level === AbstractionLevel.Abstraction2a,
+              includeAbstraction2b: level === AbstractionLevel.Abstraction2b,
+              includeType1_2: true, // Both abstraction levels support Type 1-2
+              includeType3_4: workflowLevel !== 'organizational' // Type 3-4 based on workflow level
+            }))}
+            showRecommendation={true}
+            numControllers={selectedControllerIds.size}
+            numActions={controlActions.filter(ca => selectedControllerIds.has(ca.controllerId)).length}
+            analysisGoal={generationSettings.analysisGoal}
+          />
+
           <div className="space-y-3">
-            <Checkbox
-              id="abstraction2a"
-              label="Include Abstraction 2a (Team-level analysis)"
-              checked={generationSettings.includeAbstraction2a}
-              onChange={e => setGenerationSettings(prev => ({ 
-                ...prev, 
-                includeAbstraction2a: e.target.checked 
-              }))}
-            />
-            <Checkbox
-              id="abstraction2b"
-              label="Include Abstraction 2b (Controller-specific analysis)"
-              checked={generationSettings.includeAbstraction2b}
-              onChange={e => setGenerationSettings(prev => ({ 
-                ...prev, 
-                includeAbstraction2b: e.target.checked 
-              }))}
-            />
             <Checkbox
               id="type1_2"
               label="Include Type 1-2 UCCAs (Provide/Not Provide)"
@@ -537,6 +547,15 @@ const GuidedUCCAWorkflow: React.FC<GuidedUCCAWorkflowProps> = ({
               onChange={e => setGenerationSettings(prev => ({ 
                 ...prev, 
                 includeType3_4: e.target.checked 
+              }))}
+            />
+            <Checkbox
+              id="filterEquivalent"
+              label="Filter equivalent combinations (recommended)"
+              checked={generationSettings.filterEquivalent}
+              onChange={e => setGenerationSettings(prev => ({ 
+                ...prev, 
+                filterEquivalent: e.target.checked 
               }))}
             />
           </div>

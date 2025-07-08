@@ -1,5 +1,5 @@
-import { ControllerType, UCAType, ScenarioClass, StepDefinition, FiveFactorArchetype, FiveFactorScores } from './types';
 import React from 'react';
+import { ControllerType, UCAType, ScenarioClass, StepDefinition, FiveFactorArchetype, FiveFactorScores } from './types';
 
 export const APP_TITLE = "STAMP Tool";
 export const APP_VERSION = "Alpha";

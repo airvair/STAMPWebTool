@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { useAnalysis } from '@/hooks/useAnalysis';
-import { WorkspaceVisualizationState } from './hooks/useWorkspaceState';
 import ControlStructureDiagram from '../ControlStructureDiagram';
 import VisualizationControlPanel from '../partials/VisualizationControlPanel';
+import { WorkspaceVisualizationState } from './hooks/useWorkspaceState';
 
 interface WorkspaceVisualizationProps {
   visualizationState: WorkspaceVisualizationState;

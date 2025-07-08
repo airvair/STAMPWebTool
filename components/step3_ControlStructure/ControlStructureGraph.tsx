@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, { Background, Controls, Panel, useNodesState, useEdgesState, useReactFlow, ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import { CustomNode } from '@/components/step3_ControlStructure/graph/CustomNode';
 import { CustomEdge } from '@/components/step3_ControlStructure/graph/CustomEdge';
+import { CustomNode } from '@/components/step3_ControlStructure/graph/CustomNode';
 import { TeamMemberNode } from '@/components/step3_ControlStructure/graph/TeamMemberNode'; // Import the new node
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { transformAnalysisData } from './graphUtils/dataTransformation';

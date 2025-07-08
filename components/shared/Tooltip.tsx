@@ -1,5 +1,5 @@
-import React, { useState, ReactNode } from 'react';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
+import React, { useState, ReactNode } from 'react';
 
 interface TooltipProps {
     children: ReactNode;

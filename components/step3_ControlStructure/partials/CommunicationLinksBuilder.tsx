@@ -1,10 +1,10 @@
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import React, { useState } from 'react';
+import Button from '@/components/shared/Button';
+import Select from '@/components/shared/Select';
+import Textarea from '@/components/shared/Textarea';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { CommunicationPath, ControllerType } from '@/types';
-import Select from '@/components/shared/Select';
-import Button from '@/components/shared/Button';
-import Textarea from '@/components/shared/Textarea';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 const CommunicationLinksBuilder: React.FC = () => {
     const {

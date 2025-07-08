@@ -1,10 +1,10 @@
 import React, { ChangeEvent } from 'react';
 import { Hazard, Loss, AnalysisType } from '@/types';
-import { hazardInfoContent } from './CastInfo';
-import Checkbox from '../../shared/Checkbox';
 import Button from '../../shared/Button';
+import Checkbox from '../../shared/Checkbox';
 import InfoPopup from '../../shared/InfoPopup';
 import Textarea from '../../shared/Textarea';
+import { hazardInfoContent } from './CastInfo';
 import CastStepLayout from './CastStepLayout';
 
 const PlaceholderPlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>;
@@ -54,7 +54,7 @@ const HazardsBuilder: React.FC<HazardsBuilderProps> = ({
         <>
             A Hazard is an unsafe situation that can lead to a Loss.
             <br />
-            Let's define the specific unsafe situations that led to the losses you identified.
+            Let&apos;s define the specific unsafe situations that led to the losses you identified.
         </>
     );
 

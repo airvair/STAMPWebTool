@@ -18,9 +18,9 @@ const ScopeBuilder: React.FC<ScopeBuilderProps> = ({
     const title = "Define the Investigation Scope";
     const description = (
         <>
-            Let's start by drawing the map for our investigation. What are the boundaries?
+            Let&apos;s start by drawing the map for our investigation. What are the boundaries?
             <br />
-            This defines what's 'in-play' and helps focus our efforts on what we can actually influence.
+            This defines what&apos;s &apos;in-play&apos; and helps focus our efforts on what we can actually influence.
         </>
     );
 

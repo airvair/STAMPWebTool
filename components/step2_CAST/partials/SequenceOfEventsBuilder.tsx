@@ -5,11 +5,11 @@ interface SortableEvent {
   newIndex?: number;
 }
 import { EventDetail } from '@/types';
-import Input from '../../shared/Input';
 import Button from '../../shared/Button';
+import Input from '../../shared/Input';
 import CastStepLayout from "./CastStepLayout";
 
-// TypeScript declaration for SortableJS since it's loaded from a CDN
+// TypeScript declaration for SortableJS since it&apos;s loaded from a CDN
 declare const Sortable: any;
 
 // SVG Icons for UI elements
@@ -134,7 +134,7 @@ const SequenceOfEventsBuilder: React.FC<SequenceOfEventsBuilderProps> = ({
                 <Button onClick={handleAddEvent} leftIcon={<PlaceholderPlusIcon />}>Add Event</Button>
             </div>
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                <strong>Tip:</strong> Avoid the word 'fail' unless a mechanical part broke. (e.g., "The pilot did not extend landing gear" instead of "The pilot failed to...").
+                <strong>Tip:</strong> Avoid the word &apos;fail&apos; unless a mechanical part broke. (e.g., &quot;The pilot did not extend landing gear&quot; instead of &quot;The pilot failed to...&quot;).
             </p>
         </CastStepLayout>
     );

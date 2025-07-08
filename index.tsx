@@ -1,9 +1,10 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AnalysisProvider } from './contexts/AnalysisContext';
-import { BrowserRouter } from 'react-router-dom';
+import './src/styles/main.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

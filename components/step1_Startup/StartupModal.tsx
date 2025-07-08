@@ -1,11 +1,11 @@
+import { ClipboardDocumentCheckIcon, CubeTransparentIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CAST_STEPS, STPA_STEPS, APP_TITLE, GLOSSARY } from '@/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { AnalysisType } from '@/types';
 import Button from '../shared/Button';
 import Tooltip from '../shared/Tooltip';
-import { CAST_STEPS, STPA_STEPS, APP_TITLE, GLOSSARY } from '@/constants';
-import { ClipboardDocumentCheckIcon, CubeTransparentIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 // A dedicated component for the choice cards to keep the code clean.
 const ChoiceCard: React.FC<{

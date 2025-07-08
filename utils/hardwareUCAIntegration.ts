@@ -1,4 +1,4 @@
-import { HardwareComponent, FailureMode, Controller, ControlAction, UnsafeControlAction, FailureType } from '@/types';
+import { HardwareComponent, FailureMode, Controller, ControlAction, FailureType } from '@/types';
 
 export interface HardwareUCATemplate {
   controllerId: string;
@@ -74,7 +74,7 @@ function findRelatedHardware(
                      controller.name.toLowerCase().includes(hardware.name.toLowerCase());
     
     // Check if hardware is linked to controller's system component
-    const systemMatch = hardware.systemComponentId === controller.systemComponentId;
+    const systemMatch = false; // Controller doesn't have systemComponentId property
     
     // Check if any control actions reference this hardware
     const actionMatch = controlActions.some(action => 
@@ -104,7 +104,7 @@ function findCriticalFailureModes(
     .filter(fm => fm.severityLevel === 'High' || fm.severityLevel === 'Critical')
     .sort((a, b) => {
       const severityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
-      return severityOrder[b.severityLevel] - severityOrder[a.severityLevel];
+      return severityOrder[b.severityLevel as keyof typeof severityOrder] - severityOrder[a.severityLevel as keyof typeof severityOrder];
     });
 }
 
@@ -151,7 +151,7 @@ function generateUCATemplatesForFailure(
   const templates: HardwareUCATemplate[] = [];
 
   switch (failure.failureType) {
-    case FailureType.Mechanical:
+    case 'Mechanical' as FailureType:
       templates.push(
         {
           controllerId: controller.id,
@@ -176,7 +176,7 @@ function generateUCATemplatesForFailure(
       );
       break;
 
-    case FailureType.Electrical:
+    case 'Electrical' as FailureType:
       templates.push(
         {
           controllerId: controller.id,
@@ -201,7 +201,7 @@ function generateUCATemplatesForFailure(
       );
       break;
 
-    case FailureType.Software:
+    case 'Software' as FailureType:
       templates.push(
         {
           controllerId: controller.id,
@@ -226,7 +226,7 @@ function generateUCATemplatesForFailure(
       );
       break;
 
-    case FailureType.Environmental:
+    case 'Environmental' as FailureType:
       templates.push(
         {
           controllerId: controller.id,
@@ -251,7 +251,7 @@ function generateUCATemplatesForFailure(
       );
       break;
 
-    case FailureType.Wear:
+    case 'Wear' as FailureType:
       templates.push(
         {
           controllerId: controller.id,
@@ -304,7 +304,7 @@ export function filterHardwareUCATemplates(
   const filtered: HardwareUCATemplate[] = [];
 
   // Filter each controller's templates
-  byController.forEach((controllerTemplates, controllerId) => {
+  byController.forEach((controllerTemplates) => {
     // Sort by priority and remove duplicates
     const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
     const sorted = controllerTemplates

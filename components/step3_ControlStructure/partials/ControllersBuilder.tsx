@@ -1,12 +1,12 @@
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { useAnalysis } from '@/hooks/useAnalysis';
-import { Controller, ControllerType, TeamDetails, TeamMember, TeamRole, OperationalContext } from '@/types';
-import { CONTROLLER_TYPE_COLORS } from '@/constants';
+import Button from '@/components/shared/Button';
 import Input from '@/components/shared/Input';
 import Select from '@/components/shared/Select';
-import Button from '@/components/shared/Button';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { CONTROLLER_TYPE_COLORS } from '@/constants';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { Controller, ControllerType, TeamDetails, TeamMember, TeamRole, OperationalContext } from '@/types';
 
 // The rest of the file remains the same as the last version I provided.
 // The key change is correcting the import paths at the top of the file.
@@ -152,7 +152,7 @@ const TeamStructureEditor: React.FC<{
             <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">2. Define Team Roles</label>
                 <div className="p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700/50">
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">Define operational roles (e.g., "Pilot Flying", "Surgeon on Call") and their authority level for the diagram (lower number is higher).</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">Define operational roles (e.g., &quot;Pilot Flying&quot;, &quot;Surgeon on Call&quot;) and their authority level for the diagram (lower number is higher).</p>
                     <ul className="my-2 space-y-1">
                         {teamDetails.roles.map(r => ( <li key={r.id} className="flex justify-between items-center bg-white dark:bg-neutral-900 p-2 rounded border border-slate-300 dark:border-neutral-700 text-sm"><span>{r.name} (Auth: {r.authorityLevel ?? 'N/A'})</span><Button onClick={() => deleteRole(r.id)} variant="ghost" size="sm" className="text-red-500"><TrashIcon className="h-4 w-4"/></Button></li>))}
                     </ul>
@@ -168,7 +168,7 @@ const TeamStructureEditor: React.FC<{
             <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">3. Define Operational Contexts & Assign Roles</label>
                 <div className="p-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700/50">
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">Define specific situations (e.g., "Takeoff Phase", "Emergency Shutdown") and assign a role to each member within that context.</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">Define specific situations (e.g., &quot;Takeoff Phase&quot;, &quot;Emergency Shutdown&quot;) and assign a role to each member within that context.</p>
                     <ul className="my-2 space-y-2">
                         {teamDetails.contexts.map(ctx => (
                             <li key={ctx.id} className="p-3 border border-slate-300 dark:border-neutral-700 rounded bg-white dark:bg-neutral-900">

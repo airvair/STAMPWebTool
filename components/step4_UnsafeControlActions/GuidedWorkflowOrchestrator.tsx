@@ -1,9 +1,3 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useAnalysis } from '@/hooks/useAnalysis';
-import { Controller, ControlAction, UCAType, HardwareComponent } from '@/types';
-import { getNextControllerAdvanced, getControllerLevel, getControllersAtLevel, groupControllersByLevel } from '@/utils/controlStructureHierarchy';
-import { mapHardwareToControllers, filterHardwareUCATemplates, ControllerHardwareMapping } from '@/utils/hardwareUCAIntegration';
-import Button from '../shared/Button';
 import { 
   WrenchScrewdriverIcon, 
   ExclamationTriangleIcon, 
@@ -13,12 +7,16 @@ import {
   CheckCircleIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/solid';
+import React, { useState, useMemo } from 'react';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { groupControllersByLevel } from '@/utils/controlStructureHierarchy';
+import { mapHardwareToControllers } from '@/utils/hardwareUCAIntegration';
+import Button from '../shared/Button';
 
 // Import phase components
-import HardwareAnalysis from './HardwareAnalysis';
 import GuidedUCAWorkflow from './GuidedUCAWorkflow';
 import GuidedUCCAWorkflow from './GuidedUCCAWorkflow';
-import EnhancedUCCAAnalysis from './EnhancedUCCAAnalysis';
+import HardwareAnalysis from './HardwareAnalysis';
 import ScopeManagement from './ScopeManagement';
 
 export enum WorkflowPhase {
@@ -108,8 +106,7 @@ const GuidedWorkflowOrchestrator: React.FC = () => {
     hardwareComponents,
     failureModes,
     ucas,
-    uccas,
-    analysisSession
+    uccas
   } = useAnalysis();
 
   const [workflowState, setWorkflowState] = useState<WorkflowState>({
@@ -156,10 +153,11 @@ const GuidedWorkflowOrchestrator: React.FC = () => {
     switch (workflowState.currentPhase) {
       case WorkflowPhase.Hardware:
         return hardwareComponents.length > 0 ? 0.5 : 0;
-      case WorkflowPhase.IndividualUCA:
+      case WorkflowPhase.IndividualUCA: {
         const totalCombinations = totalControlActions * 7; // 7 UCA types
         const completedUCAs = ucas.length;
         return Math.min(completedUCAs / Math.max(totalCombinations, 1), 1);
+      }
       case WorkflowPhase.ControllerUCCA:
       case WorkflowPhase.CrossLevelUCCA:
       case WorkflowPhase.OrganizationalUCCA:
@@ -264,7 +262,7 @@ const GuidedWorkflowOrchestrator: React.FC = () => {
                 Individual UCA Analysis Phase
               </h4>
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                Systematic bottom-up analysis of individual control actions. We'll move through controllers 
+                Systematic bottom-up analysis of individual control actions. We&apos;ll move through controllers 
                 laterally at each hierarchy level, then progress upward.
               </p>
               <div className="mt-3 grid grid-cols-3 gap-4 text-xs">
@@ -425,7 +423,7 @@ const GuidedWorkflowOrchestrator: React.FC = () => {
 
         {/* Phase Pills */}
         <div className="flex flex-wrap gap-2">
-          {PHASE_DEFINITIONS.map((phase, index) => {
+          {PHASE_DEFINITIONS.map((phase) => {
             const isCompleted = workflowState.completedPhases.has(phase.id);
             const isCurrent = workflowState.currentPhase === phase.id;
             const isAccessible = phase.prerequisites.every(req => workflowState.completedPhases.has(req));

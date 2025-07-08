@@ -1,11 +1,13 @@
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAnalysis } from '@/hooks/useAnalysis';
 import { APP_TITLE, APP_VERSION, CAST_STEPS, STPA_STEPS } from '@/constants';
+import { useAnalysis } from '@/hooks/useAnalysis';
 import { AnalysisType } from '@/types';
 import Button from '../shared/Button';
 import Stepper from './Stepper';
-import webLogo from '/weblogo.webp';
+import { FeedbackContainer } from '../shared/FeedbackNotification';
+import AnalysisStatusIndicator from '../shared/AnalysisStatusIndicator';
+const webLogo = '/weblogo.webp';
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -51,6 +53,7 @@ const MainLayout: React.FC = () => {
   const currentStepDefinition = steps[currentStepIndex];
 
   return (
+    <FeedbackContainer>
       <div className="min-h-screen flex flex-col">
         <header className="bg-neutral-950/80 backdrop-blur-sm text-white shadow-md border-b border-white/10">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -80,7 +83,11 @@ const MainLayout: React.FC = () => {
             </div>
           </div>
         </main>
+        
+        {/* Analysis Status Indicator */}
+        <AnalysisStatusIndicator />
       </div>
+    </FeedbackContainer>
   );
 };
 

@@ -18,9 +18,9 @@ const SystemConstraintsBuilder: React.FC<SystemConstraintsBuilderProps> = ({
     const title = "Define Safety Constraints";
     const description = (
         <>
-            For every unsafe situation (Hazard), there's a safety rule (Constraint) that prevents it.
+            For every unsafe situation (Hazard), there&apos;s a safety rule (Constraint) that prevents it.
             <br />
-            We've auto-generated these based on your hazards. Please review and refine them.
+            We&apos;ve auto-generated these based on your hazards. Please review and refine them.
         </>
     );
     return (

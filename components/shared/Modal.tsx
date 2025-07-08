@@ -11,6 +11,22 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer, size = 'md', persistent = false }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!persistent && event.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
+
+    if (!persistent && onClose) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+    return undefined;
+  }, [isOpen, persistent, onClose]);
+
   if (!isOpen) return null;
 
   const handleOverlayClick = () => {
@@ -18,19 +34,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, footer,
       onClose();
     }
   };
-
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (!persistent && event.key === 'Escape' && onClose) {
-      onClose();
-    }
-  };
-
-  useEffect(() => {
-    if (!persistent && onClose) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [persistent, onClose]);
 
 
   const sizeClasses = {

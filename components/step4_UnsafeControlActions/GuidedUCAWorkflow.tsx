@@ -1,12 +1,14 @@
+import { ChevronLeftIcon, ChevronRightIcon, CheckIcon, XMarkIcon, LightBulbIcon } from '@heroicons/react/24/solid';
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAnalysis } from '@/hooks/useAnalysis';
-import { Controller, ControlAction, UCAType, UnsafeControlAction } from '@/types';
 import { UCA_QUESTIONS_MAP, CONTROLLER_TYPE_COLORS } from '@/constants';
+import { useAnalysis } from '@/hooks/useAnalysis';
 import { getControllersBottomUp, getNextController, getNextControllerAdvanced, getControllerLevel } from '@/utils/controlStructureHierarchy';
 import Button from '../shared/Button';
-import Textarea from '../shared/Textarea';
 import Checkbox from '../shared/Checkbox';
-import { ChevronLeftIcon, ChevronRightIcon, CheckIcon, XMarkIcon, LightBulbIcon } from '@heroicons/react/24/solid';
+import Textarea from '../shared/Textarea';
+import { validateUCA } from '@/utils/ucaValidation';
+import { useErrorHandler } from '@/utils/errorHandling';
+import CompletenessProgressBar from './CompletenessProgressBar';
 
 interface GuidedWorkflowState {
   currentControllerId: string | null;
@@ -43,6 +45,7 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
     addUCA, 
     updateUCA 
   } = useAnalysis();
+  const { validateAndHandle, showSuccess } = useErrorHandler();
 
   const [workflowState, setWorkflowState] = useState<GuidedWorkflowState>({
     currentControllerId: null,
@@ -134,9 +137,6 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
     );
   };
 
-  const hasUnsavedUCA = () => {
-    return formData.context.trim() !== '' || formData.hazardIds.length > 0;
-  };
 
   // Get hardware-based suggestions for the current combination
   const getHardwareSuggestions = () => {
@@ -203,11 +203,11 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
             currentControlActionId: nextControllerActions[0]?.id || null,
             currentUcaTypeIndex: 0,
             currentUcaInstanceIndex: 0,
-            lastMovement: movement
+            lastMovement: movement === 'complete' ? null : movement
           }));
         } else {
           // All controllers have been processed - workflow is complete
-          alert('🎉 Guided UCA analysis complete! You have reviewed all control actions across all controllers.');
+          showSuccess('🎉 Guided UCA analysis complete! You have reviewed all control actions across all controllers.', 'Analysis Complete');
         }
       }
     }
@@ -216,13 +216,25 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
   const addAnotherUCAInstance = () => {
     if (!currentController || !currentControlAction || !currentUcaType) return;
     
-    if (formData.hazardIds.length === 0) {
-      alert('A UCA must be linked to at least one hazard.');
-      return;
-    }
-    
-    if (!formData.context.trim()) {
-      alert('Please provide a context for the UCA.');
+    // Create UCA data for validation
+    const ucaData = {
+      controllerId: currentController.id,
+      controlActionId: currentControlAction.id,
+      ucaType: currentUcaType.type,
+      context: formData.context,
+      hazardIds: formData.hazardIds
+    };
+
+    // Validate UCA using MIT STPA compliance framework
+    const validationResult = validateUCA(
+      ucaData,
+      controllers,
+      controlActions,
+      hazards
+    );
+
+    // Handle validation result with professional feedback
+    if (!validateAndHandle(validationResult, 'GuidedUCAWorkflow', 'addAnotherUCAInstance')) {
       return;
     }
 
@@ -234,18 +246,12 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
     
     const ucaForInstance = existingUcas[workflowState.currentUcaInstanceIndex];
 
-    const ucaData = {
-      controllerId: currentController.id,
-      controlActionId: currentControlAction.id,
-      ucaType: currentUcaType.type,
-      context: formData.context,
-      hazardIds: formData.hazardIds
-    };
-
     if (ucaForInstance) {
       updateUCA(ucaForInstance.id, ucaData);
+      showSuccess('UCA updated successfully');
     } else {
       addUCA(ucaData);
+      showSuccess('UCA added successfully');
     }
 
     // Mark current instance as completed
@@ -293,7 +299,7 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
           }));
         } else {
           // Previous controller (would need more complex logic to go backwards)
-          // For now, we'll just reset to first UCA type
+          // For now, we&apos;ll just reset to first UCA type
           setWorkflowState(prev => ({
             ...prev,
             currentUcaTypeIndex: 0,
@@ -307,13 +313,25 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
   const handleSaveUCA = () => {
     if (!currentController || !currentControlAction || !currentUcaType) return;
     
-    if (formData.hazardIds.length === 0) {
-      alert('A UCA must be linked to at least one hazard.');
-      return;
-    }
-    
-    if (!formData.context.trim()) {
-      alert('Please provide a context for the UCA.');
+    // Create UCA data for validation
+    const ucaData = {
+      controllerId: currentController.id,
+      controlActionId: currentControlAction.id,
+      ucaType: currentUcaType.type,
+      context: formData.context,
+      hazardIds: formData.hazardIds
+    };
+
+    // Validate UCA using MIT STPA compliance framework
+    const validationResult = validateUCA(
+      ucaData,
+      controllers,
+      controlActions,
+      hazards
+    );
+
+    // Handle validation result with professional feedback
+    if (!validateAndHandle(validationResult, 'GuidedUCAWorkflow', 'handleSaveUCA')) {
       return;
     }
 
@@ -325,18 +343,12 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
     
     const ucaForInstance = existingUcas[workflowState.currentUcaInstanceIndex];
 
-    const ucaData = {
-      controllerId: currentController.id,
-      controlActionId: currentControlAction.id,
-      ucaType: currentUcaType.type,
-      context: formData.context,
-      hazardIds: formData.hazardIds
-    };
-
     if (ucaForInstance) {
       updateUCA(ucaForInstance.id, ucaData);
+      showSuccess('UCA updated successfully');
     } else {
       addUCA(ucaData);
+      showSuccess('UCA added successfully');
     }
 
     // Mark as completed and move to next
@@ -381,7 +393,7 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
   };
 
   const isWorkflowComplete = () => {
-    // Check if we're at the last UCA type of the last control action of the last controller
+    // Check if we&apos;re at the last UCA type of the last control action of the last controller
     const isLastUcaType = workflowState.currentUcaTypeIndex === UCA_QUESTIONS_MAP.length - 1;
     const isLastAction = availableControlActions.findIndex(ca => 
       ca.id === workflowState.currentControlActionId
@@ -433,6 +445,9 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
           />
         </div>
       </div>
+
+      {/* Systematic Completeness Progress */}
+      <CompletenessProgressBar compact={true} />
 
       {/* Current Analysis Context */}
       <div className={`p-6 rounded-lg border ${CONTROLLER_TYPE_COLORS[currentController.ctrlType]}`}>

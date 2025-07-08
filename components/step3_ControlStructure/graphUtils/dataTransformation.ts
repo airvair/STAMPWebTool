@@ -1,6 +1,4 @@
 import { Node, Edge, MarkerType } from 'reactflow';
-import { Controller, ControllerType, TeamRole } from '@/types';
-import { useAnalysis } from '@/hooks/useAnalysis';
 import {
     CONTROLLER_NODE_STYLE,
     NODE_WIDTH,
@@ -12,6 +10,8 @@ import {
     MEMBER_NODE_HEIGHT,
     MEMBER_NODE_SPACING,
 } from '@/constants';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { Controller, ControllerType, TeamRole } from '@/types';
 
 export interface TransformedData {
     nodes: Node[];

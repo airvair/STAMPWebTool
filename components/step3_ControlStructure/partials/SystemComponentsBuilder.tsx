@@ -1,10 +1,10 @@
+import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import React, { useState, useEffect } from 'react';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { SystemComponent, ComponentType } from '@/types';
+import Button from '../../shared/Button';
 import Input from '../../shared/Input';
 import Select from '../../shared/Select';
-import Button from '../../shared/Button';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 const SystemComponentsBuilder: React.FC = () => {
     const { hazards, systemComponents, addSystemComponent, updateSystemComponent, deleteSystemComponent } = useAnalysis();
@@ -53,7 +53,7 @@ const SystemComponentsBuilder: React.FC = () => {
         <section className="space-y-6">
             <div>
                 <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">System Components</h3>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Start at the bottom of the ladder. What are the basic physical parts or processes your system controls? (e.g., 'The Aircraft', 'The Patient', 'The Database')</p>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Start at the bottom of the ladder. What are the basic physical parts or processes your system controls? (e.g., &apos;The Aircraft&apos;, &apos;The Patient&apos;, &apos;The Database&apos;)</p>
             </div>
 
             <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50">
