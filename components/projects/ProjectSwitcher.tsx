@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDownIcon, PlusIcon, FolderIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, PlusIcon, FolderIcon, EllipsisVerticalIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useProjects } from '@/contexts/ProjectsContext';
 import {
   DropdownMenu,
@@ -10,16 +10,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { SidebarMenuButton } from '@/components/ui/sidebar';
+import { SidebarMenuButton, SidebarMenuAction } from '@/components/ui/sidebar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import Button from '@/components/shared/Button';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 
 const ProjectSwitcher: React.FC = () => {
-  const { projects, currentProject, selectProject, createProject } = useProjects();
+  const { projects, currentProject, selectProject, createProject, updateProject, deleteProject } = useProjects();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [renamingProjectId, setRenamingProjectId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   const handleCreateProject = () => {
     if (newProjectName.trim()) {
@@ -33,6 +38,35 @@ const ProjectSwitcher: React.FC = () => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && newProjectName.trim()) {
       handleCreateProject();
+    }
+  };
+
+  const handleRenameProject = () => {
+    if (renamingProjectId && renameValue.trim()) {
+      updateProject(renamingProjectId, { name: renameValue.trim() });
+      setRenamingProjectId(null);
+      setRenameValue('');
+    }
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && renameValue.trim()) {
+      handleRenameProject();
+    } else if (e.key === 'Escape') {
+      setRenamingProjectId(null);
+      setRenameValue('');
+    }
+  };
+
+  const handleDeleteProject = (projectId: string) => {
+    setProjectToDelete(projectId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteProject = () => {
+    if (projectToDelete) {
+      deleteProject(projectToDelete);
+      setProjectToDelete(null);
     }
   };
 
@@ -67,26 +101,72 @@ const ProjectSwitcher: React.FC = () => {
               </div>
             ) : (
               projects.map((project) => (
-                <DropdownMenuItem
-                  key={project.id}
-                  onClick={() => selectProject(project.id)}
-                  className="cursor-pointer"
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2 truncate">
-                      <FolderIcon className="w-4 h-4" />
-                      <div className="flex flex-col">
-                        <span className="truncate">{project.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {project.analyses.length} {project.analyses.length === 1 ? 'analysis' : 'analyses'}
-                        </span>
-                      </div>
+                <div key={project.id} className="relative group">
+                  {renamingProjectId === project.id ? (
+                    <div className="flex items-center gap-2 p-2">
+                      <FolderIcon className="w-4 h-4 shrink-0" />
+                      <Input
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        onKeyDown={handleRenameKeyDown}
+                        onBlur={handleRenameProject}
+                        className="h-6 text-sm"
+                        autoFocus
+                      />
                     </div>
-                    {currentProject?.id === project.id && (
-                      <CheckIcon className="w-4 h-4 text-primary" />
-                    )}
-                  </div>
-                </DropdownMenuItem>
+                  ) : (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => selectProject(project.id)}
+                        className={`cursor-pointer pr-8 ${
+                          currentProject?.id === project.id 
+                            ? 'bg-accent/50 hover:bg-accent/70' 
+                            : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <FolderIcon className="w-4 h-4" />
+                          <div className="flex flex-col">
+                            <span className="truncate">{project.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {project.analyses.length} {project.analyses.length === 1 ? 'analysis' : 'analyses'}
+                            </span>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded-sm opacity-0 group-hover:opacity-100 hover:bg-accent transition-opacity">
+                            <EllipsisVerticalIcon className="w-4 h-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" side="right">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRenamingProjectId(project.id);
+                              setRenameValue(project.name);
+                            }}
+                          >
+                            <PencilIcon className="w-4 h-4 mr-2" />
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProject(project.id);
+                            }}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <TrashIcon className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  )}
+                </div>
               ))
             )}
           </DropdownMenuGroup>
@@ -153,6 +233,16 @@ const ProjectSwitcher: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Project"
+        description="Are you sure you want to delete this project? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={confirmDeleteProject}
+        variant="destructive"
+      />
     </>
   );
 };

@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAPI, useAPIHealth, useAPIWebhooks } from '@/hooks/useAPI';
 import { APIConfig, WebhookEvent } from '@/utils/apiClient';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import Button from '../shared/Button';
 import Input from '../shared/Input';
 import Select from '../shared/Select';
@@ -50,6 +51,8 @@ const APIIntegrationPanel: React.FC<APIIntegrationPanelProps> = ({
   const [webhookURL, setWebhookURL] = useState('');
   const [selectedEvents, setSelectedEvents] = useState<WebhookEvent[]>([]);
   const [webhookActive, setWebhookActive] = useState(true);
+  const [deleteWebhookDialog, setDeleteWebhookDialog] = useState(false);
+  const [webhookToDelete, setWebhookToDelete] = useState<string | null>(null);
 
   // Load saved configuration
   useEffect(() => {
@@ -159,9 +162,15 @@ const APIIntegrationPanel: React.FC<APIIntegrationPanelProps> = ({
   };
 
   const handleDeleteWebhook = async (id: string) => {
-    if (confirm('Are you sure you want to delete this webhook?')) {
+    setWebhookToDelete(id);
+    setDeleteWebhookDialog(true);
+  };
+
+  const confirmDeleteWebhook = async () => {
+    if (webhookToDelete) {
       try {
-        await deleteWebhook(id);
+        await deleteWebhook(webhookToDelete);
+        setWebhookToDelete(null);
       } catch (err) {
         console.error('Failed to delete webhook:', err);
       }
@@ -540,6 +549,16 @@ const APIIntegrationPanel: React.FC<APIIntegrationPanelProps> = ({
           </Button>
         </div>
       </Modal>
+
+      <ConfirmationDialog
+        open={deleteWebhookDialog}
+        onOpenChange={setDeleteWebhookDialog}
+        title="Delete Webhook"
+        description="Are you sure you want to delete this webhook?"
+        confirmText="Delete"
+        onConfirm={confirmDeleteWebhook}
+        variant="destructive"
+      />
     </div>
   );
 };

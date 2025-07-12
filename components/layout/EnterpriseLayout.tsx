@@ -16,6 +16,8 @@ import {
   PencilIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
+import HoldToDeleteButton from '../ui/HoldToDeleteButton';
+import { AuroraText } from '@/src/components/magicui/aurora-text';
 import { APP_TITLE, CAST_STEPS, STPA_STEPS } from '@/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { useProjects } from '@/contexts/ProjectsContext';
@@ -25,6 +27,7 @@ import AnalysisStatusIndicator from '../shared/AnalysisStatusIndicator';
 import ProjectSwitcher from '../projects/ProjectSwitcher';
 import NewAnalysisButton from '../projects/NewAnalysisButton';
 import EmptyStateView from '../projects/EmptyStateView';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import {
   Sidebar,
   SidebarContent,
@@ -100,6 +103,8 @@ const EnterpriseLayout: React.FC = () => {
   const [expandedAnalyses, setExpandedAnalyses] = useState<Set<string>>(new Set());
   const [renamingAnalysisId, setRenamingAnalysisId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [deleteAnalysisDialog, setDeleteAnalysisDialog] = useState(false);
+  const [analysisToDelete, setAnalysisToDelete] = useState<{id: string, title: string} | null>(null);
 
   // Listen for workspace section changes to keep sidebar in sync
   useEffect(() => {
@@ -154,11 +159,9 @@ const EnterpriseLayout: React.FC = () => {
 
   const handleDeleteAnalysis = () => {
     if (analysisSession && currentProject) {
-      if (window.confirm(`Are you sure you want to delete this ${analysisSession.analysisType} analysis? This action cannot be undone.`)) {
-        deleteAnalysis(currentProject.id, analysisSession.id);
-        resetAnalysis();
-        navigate('/');
-      }
+      deleteAnalysis(currentProject.id, analysisSession.id);
+      resetAnalysis();
+      navigate('/');
     }
   };
 
@@ -196,13 +199,21 @@ const EnterpriseLayout: React.FC = () => {
   const handleDeleteAnalysisFromMenu = (analysisId: string) => {
     if (currentProject) {
       const analysis = currentProject.analyses.find(a => a.id === analysisId);
-      if (analysis && window.confirm(`Are you sure you want to delete "${analysis.title}"? This action cannot be undone.`)) {
-        deleteAnalysis(currentProject.id, analysisId);
-        if (analysisSession?.id === analysisId) {
-          resetAnalysis();
-          navigate('/');
-        }
+      if (analysis) {
+        setAnalysisToDelete({id: analysisId, title: analysis.title});
+        setDeleteAnalysisDialog(true);
       }
+    }
+  };
+
+  const confirmDeleteAnalysis = () => {
+    if (currentProject && analysisToDelete) {
+      deleteAnalysis(currentProject.id, analysisToDelete.id);
+      if (analysisSession?.id === analysisToDelete.id) {
+        resetAnalysis();
+        navigate('/');
+      }
+      setAnalysisToDelete(null);
     }
   };
 
@@ -231,7 +242,7 @@ const EnterpriseLayout: React.FC = () => {
                           <div className="grid flex-1 text-left text-sm leading-tight">
                             <span className="truncate font-semibold">{APP_TITLE}</span>
                             <span className="truncate text-xs">Created by MalmquistSafety</span>
-                          </div>
+                          </div> C
                         </a>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -320,9 +331,10 @@ const EnterpriseLayout: React.FC = () => {
                                           )}
                                         </button>
                                         <span className="truncate">
-                                          {analysis.title} ({analysis.analysisType})
+                                          {analysis.title}
                                         </span>
                                       </div>
+                                      <AuroraText className="text-xs font-bold ml-2">{analysis.analysisType}</AuroraText>
                                     </SidebarMenuButton>
                                     <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
@@ -374,11 +386,12 @@ const EnterpriseLayout: React.FC = () => {
                                               handleStepNavigation(step.path);
                                             }}
                                             isActive={isCurrent && isSelected}
+                                            className="flex items-center gap-2 pr-2"
                                           >
-                                            <Icon className="w-3 h-3" />
-                                            <span>{step.shortTitle}</span>
+                                            <Icon className="w-3 h-3 shrink-0" />
+                                            <span className="flex-1 truncate text-nowrap">{step.shortTitle}</span>
                                             {isCompleted && isSelected && (
-                                              <div className="ml-auto flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                                              <div className="ml-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
                                                 <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                 </svg>
@@ -389,7 +402,7 @@ const EnterpriseLayout: React.FC = () => {
                                         
                                         {/* CAST Step 2 Sub-steps */}
                                         {isCastScopeAndLosses && isCurrent && isSelected && (
-                                          <div className="ml-6">
+                                          <SidebarMenuSub>
                                             {['Scope', 'Events', 'Losses', 'Hazards', 'Constraints'].map((substep, subIndex) => (
                                               <SidebarMenuSubItem key={substep}>
                                                 <SidebarMenuSubButton
@@ -404,17 +417,18 @@ const EnterpriseLayout: React.FC = () => {
                                                   }}
                                                   isActive={castStep2SubStep === subIndex && isSelected}
                                                   size="sm"
+                                                  className="ml-6"
                                                 >
                                                   {substep}
                                                 </SidebarMenuSubButton>
                                               </SidebarMenuSubItem>
                                             ))}
-                                          </div>
+                                          </SidebarMenuSub>
                                         )}
                                         
                                         {/* Structure & Actions Sub-steps */}
                                         {isStructureAndActions && isCurrent && isSelected && (
-                                          <div className="ml-6">
+                                          <SidebarMenuSub>
                                             {[
                                               { id: 'components', title: 'Components' },
                                               { id: 'controllers', title: 'Controllers' },
@@ -436,12 +450,13 @@ const EnterpriseLayout: React.FC = () => {
                                                   }}
                                                   isActive={activeWorkspaceSection === section.id && isSelected}
                                                   size="sm"
+                                                  className="ml-6"
                                                 >
                                                   {section.title}
                                                 </SidebarMenuSubButton>
                                               </SidebarMenuSubItem>
                                             ))}
-                                          </div>
+                                          </SidebarMenuSub>
                                         )}
                                       </div>
                                     );
@@ -474,19 +489,6 @@ const EnterpriseLayout: React.FC = () => {
               </SidebarContent>
               
               <SidebarFooter>
-                {analysisSession && (
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={handleDeleteAnalysis}
-                        className="text-red-600 hover:text-red-700 data-[state=open]:bg-red-50 data-[state=open]:text-red-700 dark:data-[state=open]:bg-red-900/20"
-                      >
-                        <ArrowPathIcon className="size-4" />
-                        <span>Delete Analysis</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                )}
               </SidebarFooter>
             </Sidebar>
 
@@ -605,6 +607,16 @@ const EnterpriseLayout: React.FC = () => {
 
         {/* Analysis Status Indicator */}
         <AnalysisStatusIndicator />
+        
+        <ConfirmationDialog
+          open={deleteAnalysisDialog}
+          onOpenChange={setDeleteAnalysisDialog}
+          title="Delete Analysis"
+          description={`Are you sure you want to delete "${analysisToDelete?.title}"? This action cannot be undone.`}
+          confirmText="Delete"
+          onConfirm={confirmDeleteAnalysis}
+          variant="destructive"
+        />
       </div>
     </FeedbackContainer>
   );

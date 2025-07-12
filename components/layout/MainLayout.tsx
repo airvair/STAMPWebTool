@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { APP_TITLE, APP_VERSION, CAST_STEPS, STPA_STEPS } from '@/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';
@@ -8,6 +8,8 @@ import Stepper from './Stepper';
 import { FeedbackContainer } from '../shared/FeedbackNotification';
 import AnalysisStatusIndicator from '../shared/AnalysisStatusIndicator';
 import { SlotMachineTransition } from '../ui/slot-machine-transition';
+import { AuroraText } from '@/src/components/magicui/aurora-text';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 const webLogo = '/weblogo.webp';
 
 const MainLayout: React.FC = () => {
@@ -17,6 +19,7 @@ const MainLayout: React.FC = () => {
   const [isAnimating, setIsAnimating] = React.useState(false);
   const [animationDirection, setAnimationDirection] = React.useState<'up' | 'down'>('up');
   const [previousStepIndex, setPreviousStepIndex] = React.useState<number | null>(null);
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   React.useEffect(() => {
     if (!analysisSession || !analysisSession.analysisType) {
@@ -62,10 +65,12 @@ const MainLayout: React.FC = () => {
   };
 
   const handleReset = () => {
-    if (window.confirm("Are you sure you want to reset all analysis data and start over? This action cannot be undone.")) {
-      resetAnalysis();
-      navigate('/');
-    }
+    setShowResetDialog(true);
+  };
+
+  const confirmReset = () => {
+    resetAnalysis();
+    navigate('/');
   };
 
   const currentStepDefinition = steps[currentStepIndex];
@@ -77,7 +82,7 @@ const MainLayout: React.FC = () => {
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
             <div className="flex items-center">
               <img src={webLogo} alt="Logo" className="h-8 w-auto mr-3" />
-              <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} {APP_VERSION} / <span className="font-normal opacity-80">{analysisSession.analysisType}</span></h1>
+              <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} {APP_VERSION} / <AuroraText className="text-lg font-bold opacity-80">{analysisSession.analysisType}</AuroraText></h1>
             </div>
             <Button onClick={handleReset} variant="danger" size="sm">Reset Analysis</Button>
           </div>
@@ -109,6 +114,16 @@ const MainLayout: React.FC = () => {
         
         {/* Analysis Status Indicator */}
         <AnalysisStatusIndicator />
+        
+        <ConfirmationDialog
+          open={showResetDialog}
+          onOpenChange={setShowResetDialog}
+          title="Reset Analysis"
+          description="Are you sure you want to reset all analysis data and start over? This action cannot be undone."
+          confirmText="Reset"
+          onConfirm={confirmReset}
+          variant="destructive"
+        />
       </div>
     </FeedbackContainer>
   );
