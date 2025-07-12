@@ -113,18 +113,7 @@ const TrainingDashboard: React.FC<TrainingDashboardProps> = ({
     ).join(' ');
   };
 
-  const _getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner':
-        return 'text-green-600 bg-green-100 dark:bg-green-900/30';
-      case 'intermediate':
-        return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30';
-      case 'advanced':
-        return 'text-red-600 bg-red-100 dark:bg-red-900/30';
-      default:
-        return 'text-slate-600 bg-slate-100 dark:bg-slate-800';
-    }
-  };
+  // Difficulty color function removed - was unused
 
   const formatTime = (minutes: number): string => {
     if (minutes < 60) return `${minutes} min`;

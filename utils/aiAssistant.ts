@@ -896,7 +896,7 @@ export class AIAssistant {
     // Auto-generate code if missing
     if (!completed.code && completed.controllerId && completed.controlActionId) {
       const controller = context.controllers.find(c => c.id === completed.controllerId);
-      const _action = context.controlActions.find(ca => ca.id === completed.controlActionId);
+      // Control action lookup removed - was unused
       const ucaCount = context.ucas.filter(u => 
         u.controllerId === completed.controllerId &&
         u.controlActionId === completed.controlActionId

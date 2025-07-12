@@ -6,6 +6,7 @@ import {
   ControlPath, FeedbackPath, UCCA, CommunicationPath, HardwareComponent, FailureMode, 
   UnsafeInteraction, HardwareAnalysisSession
 } from '@/types';
+import { useProjects } from './ProjectsContext';
 
 interface AnalysisContextState {
   analysisSession: AnalysisSession | null;
@@ -31,7 +32,7 @@ interface AnalysisContextState {
   unsafeInteractions: UnsafeInteraction[];
   hardwareAnalysisSession: HardwareAnalysisSession | null;
 
-  setAnalysisType: (type: AnalysisType, initialStep: string) => void;
+  setAnalysisType: (type: AnalysisType) => void;
   updateAnalysisSession: (data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => void;
   setCastStep2SubStep: (step: number | ((prevStep: number) => number)) => void; // Allow function form
 
@@ -146,53 +147,208 @@ const initialState: AnalysisContextState = {
 export const AnalysisContext = createContext<AnalysisContextState>(initialState);
 
 export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [analysisSession, setAnalysisSession] = useState<AnalysisSession | null>(() => JSON.parse(localStorage.getItem('analysisSession') || 'null'));
-  const [castStep2SubStep, _setCastStep2SubStep] = useState<number>(() => parseInt(localStorage.getItem('castStep2SubStep') || '0', 10));
-  const [castStep2MaxReachedSubStep, setCastStep2MaxReachedSubStep] = useState<number>(() => parseInt(localStorage.getItem('castStep2MaxReachedSubStep') || '0', 10));
+  const { currentAnalysis, currentProjectId, createAnalysis, updateAnalysis: updateProjectAnalysis } = useProjects();
+  
+  // Create storage key based on current analysis ID
+  const getStorageKey = (key: string) => currentAnalysis ? `${key}-${currentAnalysis.id}` : null;
+  
+  // Helper to load data from localStorage for current analysis
+  const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
+    const storageKey = getStorageKey(key);
+    if (!storageKey) return defaultValue;
+    
+    try {
+      const stored = localStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  };
+  
+  // State is now tied to the current analysis from ProjectsContext
+  const analysisSession = currentAnalysis;
+  
+  const [castStep2SubStep, _setCastStep2SubStep] = useState<number>(0);
+  const [castStep2MaxReachedSubStep, setCastStep2MaxReachedSubStep] = useState<number>(0);
 
-  const [losses, setLosses] = useState<Loss[]>(() => JSON.parse(localStorage.getItem('losses') || '[]'));
-  const [hazards, setHazards] = useState<Hazard[]>(() => JSON.parse(localStorage.getItem('hazards') || '[]'));
-  const [systemConstraints, setSystemConstraints] = useState<SystemConstraint[]>(() => JSON.parse(localStorage.getItem('systemConstraints') || '[]'));
-  const [sequenceOfEvents, setSequenceOfEvents] = useState<EventDetail[]>(() => JSON.parse(localStorage.getItem('sequenceOfEvents') || '[]'));
-  const [systemComponents, setSystemComponents] = useState<SystemComponent[]>(() => JSON.parse(localStorage.getItem('systemComponents') || '[]'));
-  const [controllers, setControllers] = useState<Controller[]>(() => JSON.parse(localStorage.getItem('controllers') || '[]'));
-  const [controlPaths, setControlPaths] = useState<ControlPath[]>(() => JSON.parse(localStorage.getItem('controlPaths') || '[]'));
-  const [feedbackPaths, setFeedbackPaths] = useState<FeedbackPath[]>(() => JSON.parse(localStorage.getItem('feedbackPaths') || '[]'));
-  const [communicationPaths, setCommunicationPaths] = useState<CommunicationPath[]>(() => JSON.parse(localStorage.getItem('communicationPaths') || '[]'));
-  const [controlActions, setControlActions] = useState<ControlAction[]>(() => JSON.parse(localStorage.getItem('controlActions') || '[]'));
-  const [ucas, setUcas] = useState<UnsafeControlAction[]>(() => JSON.parse(localStorage.getItem('ucas') || '[]'));
-  const [uccas, setUccas] = useState<UCCA[]>(() => JSON.parse(localStorage.getItem('uccas') || '[]'));
-  const [scenarios, setScenarios] = useState<CausalScenario[]>(() => JSON.parse(localStorage.getItem('scenarios') || '[]'));
-  const [requirements, setRequirements] = useState<Requirement[]>(() => JSON.parse(localStorage.getItem('requirements') || '[]'));
-  const [activeContexts, setActiveContexts] = useState<{ [key: string]: string; }>(() => JSON.parse(localStorage.getItem('activeContexts') || '{}'));
-  const [hardwareComponents, setHardwareComponents] = useState<HardwareComponent[]>(() => JSON.parse(localStorage.getItem('hardwareComponents') || '[]'));
-  const [failureModes, setFailureModes] = useState<FailureMode[]>(() => JSON.parse(localStorage.getItem('failureModes') || '[]'));
-  const [unsafeInteractions, setUnsafeInteractions] = useState<UnsafeInteraction[]>(() => JSON.parse(localStorage.getItem('unsafeInteractions') || '[]'));
-  const [hardwareAnalysisSession, setHardwareAnalysisSession] = useState<HardwareAnalysisSession | null>(() => JSON.parse(localStorage.getItem('hardwareAnalysisSession') || 'null'));
+  const [losses, setLosses] = useState<Loss[]>([]);
+  const [hazards, setHazards] = useState<Hazard[]>([]);
+  const [systemConstraints, setSystemConstraints] = useState<SystemConstraint[]>([]);
+  const [sequenceOfEvents, setSequenceOfEvents] = useState<EventDetail[]>([]);
+  const [systemComponents, setSystemComponents] = useState<SystemComponent[]>([]);
+  const [controllers, setControllers] = useState<Controller[]>([]);
+  const [controlPaths, setControlPaths] = useState<ControlPath[]>([]);
+  const [feedbackPaths, setFeedbackPaths] = useState<FeedbackPath[]>([]);
+  const [communicationPaths, setCommunicationPaths] = useState<CommunicationPath[]>([]);
+  const [controlActions, setControlActions] = useState<ControlAction[]>([]);
+  const [ucas, setUcas] = useState<UnsafeControlAction[]>([]);
+  const [uccas, setUccas] = useState<UCCA[]>([]);
+  const [scenarios, setScenarios] = useState<CausalScenario[]>([]);
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [activeContexts, setActiveContexts] = useState<{ [key: string]: string; }>({});
+  const [hardwareComponents, setHardwareComponents] = useState<HardwareComponent[]>([]);
+  const [failureModes, setFailureModes] = useState<FailureMode[]>([]);
+  const [unsafeInteractions, setUnsafeInteractions] = useState<UnsafeInteraction[]>([]);
+  const [hardwareAnalysisSession, setHardwareAnalysisSession] = useState<HardwareAnalysisSession | null>(null);
+  
+  // Load data when analysis changes
+  useEffect(() => {
+    if (currentAnalysis) {
+      _setCastStep2SubStep(loadFromStorage('castStep2SubStep', 0));
+      setCastStep2MaxReachedSubStep(loadFromStorage('castStep2MaxReachedSubStep', 0));
+      setLosses(loadFromStorage('losses', []));
+      setHazards(loadFromStorage('hazards', []));
+      setSystemConstraints(loadFromStorage('systemConstraints', []));
+      setSequenceOfEvents(loadFromStorage('sequenceOfEvents', []));
+      setSystemComponents(loadFromStorage('systemComponents', []));
+      setControllers(loadFromStorage('controllers', []));
+      setControlPaths(loadFromStorage('controlPaths', []));
+      setFeedbackPaths(loadFromStorage('feedbackPaths', []));
+      setCommunicationPaths(loadFromStorage('communicationPaths', []));
+      setControlActions(loadFromStorage('controlActions', []));
+      setUcas(loadFromStorage('ucas', []));
+      setUccas(loadFromStorage('uccas', []));
+      setScenarios(loadFromStorage('scenarios', []));
+      setRequirements(loadFromStorage('requirements', []));
+      setActiveContexts(loadFromStorage('activeContexts', {}));
+      setHardwareComponents(loadFromStorage('hardwareComponents', []));
+      setFailureModes(loadFromStorage('failureModes', []));
+      setUnsafeInteractions(loadFromStorage('unsafeInteractions', []));
+      setHardwareAnalysisSession(loadFromStorage('hardwareAnalysisSession', null));
+    } else {
+      // Clear state when no analysis is selected
+      _setCastStep2SubStep(0);
+      setCastStep2MaxReachedSubStep(0);
+      setLosses([]);
+      setHazards([]);
+      setSystemConstraints([]);
+      setSequenceOfEvents([]);
+      setSystemComponents([]);
+      setControllers([]);
+      setControlPaths([]);
+      setFeedbackPaths([]);
+      setCommunicationPaths([]);
+      setControlActions([]);
+      setUcas([]);
+      setUccas([]);
+      setScenarios([]);
+      setRequirements([]);
+      setActiveContexts({});
+      setHardwareComponents([]);
+      setFailureModes([]);
+      setUnsafeInteractions([]);
+      setHardwareAnalysisSession(null);
+    }
+  }, [currentAnalysis?.id]);
 
 
-  useEffect(() => { if (analysisSession) localStorage.setItem('analysisSession', JSON.stringify(analysisSession)); else localStorage.removeItem('analysisSession'); }, [analysisSession]);
-  useEffect(() => { localStorage.setItem('castStep2SubStep', castStep2SubStep.toString()); }, [castStep2SubStep]);
-  useEffect(() => { localStorage.setItem('castStep2MaxReachedSubStep', castStep2MaxReachedSubStep.toString()); }, [castStep2MaxReachedSubStep]);
-  useEffect(() => { localStorage.setItem('losses', JSON.stringify(losses)); }, [losses]);
-  useEffect(() => { localStorage.setItem('hazards', JSON.stringify(hazards)); }, [hazards]);
-  useEffect(() => { localStorage.setItem('systemConstraints', JSON.stringify(systemConstraints)); }, [systemConstraints]);
-  useEffect(() => { localStorage.setItem('sequenceOfEvents', JSON.stringify(sequenceOfEvents)); }, [sequenceOfEvents]);
-  useEffect(() => { localStorage.setItem('systemComponents', JSON.stringify(systemComponents)); }, [systemComponents]);
-  useEffect(() => { localStorage.setItem('controllers', JSON.stringify(controllers)); }, [controllers]);
-  useEffect(() => { localStorage.setItem('controlPaths', JSON.stringify(controlPaths)); }, [controlPaths]);
-  useEffect(() => { localStorage.setItem('feedbackPaths', JSON.stringify(feedbackPaths)); }, [feedbackPaths]);
-  useEffect(() => { localStorage.setItem('communicationPaths', JSON.stringify(communicationPaths)); }, [communicationPaths]);
-  useEffect(() => { localStorage.setItem('controlActions', JSON.stringify(controlActions)); }, [controlActions]);
-  useEffect(() => { localStorage.setItem('ucas', JSON.stringify(ucas)); }, [ucas]);
-  useEffect(() => { localStorage.setItem('uccas', JSON.stringify(uccas)); }, [uccas]);
-  useEffect(() => { localStorage.setItem('scenarios', JSON.stringify(scenarios)); }, [scenarios]);
-  useEffect(() => { localStorage.setItem('requirements', JSON.stringify(requirements)); }, [requirements]);
-  useEffect(() => { localStorage.setItem('activeContexts', JSON.stringify(activeContexts)); }, [activeContexts]);
-  useEffect(() => { localStorage.setItem('hardwareComponents', JSON.stringify(hardwareComponents)); }, [hardwareComponents]);
-  useEffect(() => { localStorage.setItem('failureModes', JSON.stringify(failureModes)); }, [failureModes]);
-  useEffect(() => { localStorage.setItem('unsafeInteractions', JSON.stringify(unsafeInteractions)); }, [unsafeInteractions]);
-  useEffect(() => { if (hardwareAnalysisSession) localStorage.setItem('hardwareAnalysisSession', JSON.stringify(hardwareAnalysisSession)); else localStorage.removeItem('hardwareAnalysisSession'); }, [hardwareAnalysisSession]);
+  // Save data to localStorage with analysis-specific keys
+  useEffect(() => {
+    const key = getStorageKey('castStep2SubStep');
+    if (key) localStorage.setItem(key, castStep2SubStep.toString());
+  }, [castStep2SubStep, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('castStep2MaxReachedSubStep');
+    if (key) localStorage.setItem(key, castStep2MaxReachedSubStep.toString());
+  }, [castStep2MaxReachedSubStep, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('losses');
+    if (key) localStorage.setItem(key, JSON.stringify(losses));
+  }, [losses, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('hazards');
+    if (key) localStorage.setItem(key, JSON.stringify(hazards));
+  }, [hazards, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('systemConstraints');
+    if (key) localStorage.setItem(key, JSON.stringify(systemConstraints));
+  }, [systemConstraints, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('sequenceOfEvents');
+    if (key) localStorage.setItem(key, JSON.stringify(sequenceOfEvents));
+  }, [sequenceOfEvents, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('systemComponents');
+    if (key) localStorage.setItem(key, JSON.stringify(systemComponents));
+  }, [systemComponents, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('controllers');
+    if (key) localStorage.setItem(key, JSON.stringify(controllers));
+  }, [controllers, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('controlPaths');
+    if (key) localStorage.setItem(key, JSON.stringify(controlPaths));
+  }, [controlPaths, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('feedbackPaths');
+    if (key) localStorage.setItem(key, JSON.stringify(feedbackPaths));
+  }, [feedbackPaths, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('communicationPaths');
+    if (key) localStorage.setItem(key, JSON.stringify(communicationPaths));
+  }, [communicationPaths, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('controlActions');
+    if (key) localStorage.setItem(key, JSON.stringify(controlActions));
+  }, [controlActions, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('ucas');
+    if (key) localStorage.setItem(key, JSON.stringify(ucas));
+  }, [ucas, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('uccas');
+    if (key) localStorage.setItem(key, JSON.stringify(uccas));
+  }, [uccas, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('scenarios');
+    if (key) localStorage.setItem(key, JSON.stringify(scenarios));
+  }, [scenarios, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('requirements');
+    if (key) localStorage.setItem(key, JSON.stringify(requirements));
+  }, [requirements, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('activeContexts');
+    if (key) localStorage.setItem(key, JSON.stringify(activeContexts));
+  }, [activeContexts, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('hardwareComponents');
+    if (key) localStorage.setItem(key, JSON.stringify(hardwareComponents));
+  }, [hardwareComponents, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('failureModes');
+    if (key) localStorage.setItem(key, JSON.stringify(failureModes));
+  }, [failureModes, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('unsafeInteractions');
+    if (key) localStorage.setItem(key, JSON.stringify(unsafeInteractions));
+  }, [unsafeInteractions, currentAnalysis?.id]);
+  
+  useEffect(() => {
+    const key = getStorageKey('hardwareAnalysisSession');
+    if (key && hardwareAnalysisSession) {
+      localStorage.setItem(key, JSON.stringify(hardwareAnalysisSession));
+    }
+  }, [hardwareAnalysisSession, currentAnalysis?.id]);
 
   const setCastStep2SubStep = useCallback((stepUpdater: number | ((prevStep: number) => number)) => {
     _setCastStep2SubStep(prevStep => {
@@ -202,38 +358,35 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     });
   }, []);
 
-  const setAnalysisType = useCallback((type: AnalysisType, initialStep: string) => {
-    // Keep resetAnalysis separate to be called explicitly
-    const now = new Date().toISOString();
-    setAnalysisSession({
-      id: uuidv4(),
-      analysisType: type,
-      title: `${type} Analysis - ${new Date().toLocaleDateString()}`,
-      createdBy: 'Analyst',
-      createdAt: now,
-      updatedAt: now,
-      currentStep: initialStep,
-    });
+  const setAnalysisType = useCallback((type: AnalysisType) => {
+    // This method now creates a new analysis in the current project
+    if (currentProjectId) {
+      createAnalysis(currentProjectId, type, `${type} Analysis - ${new Date().toLocaleDateString()}`);
+    }
     // Reset progress for the specific step
     setCastStep2SubStep(0);
     setCastStep2MaxReachedSubStep(0);
-  }, []);
+  }, [currentProjectId, createAnalysis]);
 
   const updateAnalysisSession = useCallback((data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => {
-    setAnalysisSession(prev => prev ? ({ ...prev, ...data, updatedAt: new Date().toISOString() }) : null);
-  }, []);
+    if (currentAnalysis && currentProjectId) {
+      updateProjectAnalysis(currentProjectId, currentAnalysis.id, data);
+    }
+  }, [currentAnalysis, currentProjectId, updateProjectAnalysis]);
 
   const setCurrentStep = useCallback((stepPath: string) => {
-    setAnalysisSession(prev => prev ? ({ ...prev, currentStep: stepPath, updatedAt: new Date().toISOString() }) : null);
-  }, []);
+    if (currentAnalysis && currentProjectId) {
+      updateProjectAnalysis(currentProjectId, currentAnalysis.id, { currentStep: stepPath });
+    }
+  }, [currentAnalysis, currentProjectId, updateProjectAnalysis]);
 
   const setActiveContext = useCallback((controllerId: string, contextId: string) => {
     setActiveContexts(prev => ({...prev, [controllerId]: contextId}));
   }, []);
 
   const resetAnalysis = useCallback(() => {
-    setAnalysisSession(null);
-    setCastStep2SubStep(0);
+    // Clear all state
+    _setCastStep2SubStep(0);
     setCastStep2MaxReachedSubStep(0);
     setLosses([]);
     setHazards([]);
@@ -254,8 +407,23 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     setFailureModes([]);
     setUnsafeInteractions([]);
     setHardwareAnalysisSession(null);
-    localStorage.clear();
-  }, []);
+    
+    // Clear localStorage for current analysis
+    if (currentAnalysis) {
+      const keysToRemove = [
+        'castStep2SubStep', 'castStep2MaxReachedSubStep', 'losses', 'hazards',
+        'systemConstraints', 'sequenceOfEvents', 'systemComponents', 'controllers',
+        'controlPaths', 'feedbackPaths', 'communicationPaths', 'controlActions',
+        'ucas', 'uccas', 'scenarios', 'requirements', 'activeContexts',
+        'hardwareComponents', 'failureModes', 'unsafeInteractions', 'hardwareAnalysisSession'
+      ];
+      
+      keysToRemove.forEach(key => {
+        const storageKey = getStorageKey(key);
+        if (storageKey) localStorage.removeItem(storageKey);
+      });
+    }
+  }, [currentAnalysis, getStorageKey]);
 
   const createCrudOperations = <T extends {id: string}>(
       setter: React.Dispatch<React.SetStateAction<T[]>>,

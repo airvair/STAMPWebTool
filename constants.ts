@@ -164,11 +164,6 @@ export const SCENARIO_CLASSES_BY_CONTROLLER: Record<ControllerType, { classType:
   ],
 };
 
-export const START_STEP: StepDefinition = {
-  path: '/start',
-  title: 'Select CAST or STPA',
-  shortTitle: 'Choose Method',
-};
 
 export const STEPS_BASE: StepDefinition[] = [
   { path: 'step3', title: 'Control Structure & Actions', shortTitle: 'Structure & Actions' },
@@ -179,14 +174,12 @@ export const STEPS_BASE: StepDefinition[] = [
 ];
 
 export const CAST_STEPS: StepDefinition[] = [
-  START_STEP,
-  { path: '/cast/step2', title: 'CAST: Scope, Events, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses (CAST)' },
+  { path: '/cast/step2', title: 'Scope, Events, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses' },
   ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}`}))
 ];
 
 export const STPA_STEPS: StepDefinition[] = [
-  START_STEP,
-  { path: '/stpa/step2', title: 'STPA: Scope, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses (STPA)' },
+  { path: '/stpa/step2', title: 'Scope, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses' },
   ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}`}))
 ];
 

@@ -952,7 +952,7 @@ export class IndustryTemplatesManager {
    */
   private instantiateLosses(
     template: IndustryTemplate,
-    customization: TemplateCustomization
+    _customization: TemplateCustomization
   ): Loss[] {
     return template.template.losses.map((loss, index) => ({
       id: `loss_${Date.now()}_${index}`,
@@ -965,7 +965,7 @@ export class IndustryTemplatesManager {
 
   private instantiateHazards(
     template: IndustryTemplate,
-    customization: TemplateCustomization
+    _customization: TemplateCustomization
   ): Hazard[] {
     const hazards = template.template.hazards.map((hazard, index) => ({
       ...hazard,
@@ -980,7 +980,7 @@ export class IndustryTemplatesManager {
     }));
 
     // Add industry-specific hazards if requested
-    if (customization.includeIndustryHazards) {
+    if (_customization.includeIndustryHazards) {
       // Additional hazards based on industry
       // This would be expanded with more comprehensive lists
     }
@@ -990,7 +990,7 @@ export class IndustryTemplatesManager {
 
   private instantiateControllers(
     template: IndustryTemplate,
-    customization: TemplateCustomization
+    _customization: TemplateCustomization
   ): Controller[] {
     return template.template.controllers.map((controller, index) => ({
       ...controller,
@@ -1003,10 +1003,10 @@ export class IndustryTemplatesManager {
 
   private instantiateControlActions(
     template: IndustryTemplate,
-    customization: TemplateCustomization
+    _customization: TemplateCustomization
   ): ControlAction[] {
     const actions: ControlAction[] = [];
-    const controllers = this.instantiateControllers(template, customization);
+    const controllers = this.instantiateControllers(template, _customization);
 
     template.template.controlActions.forEach((action, index) => {
       // Create action for each applicable controller
@@ -1030,7 +1030,7 @@ export class IndustryTemplatesManager {
 
   private instantiateUCAs(
     template: IndustryTemplate,
-    customization: TemplateCustomization
+    _customization: TemplateCustomization
   ): UnsafeControlAction[] {
     const ucas: UnsafeControlAction[] = [];
     
@@ -1054,7 +1054,7 @@ export class IndustryTemplatesManager {
 
   private instantiateUCCAs(
     template: IndustryTemplate,
-    customization: TemplateCustomization
+    _customization: TemplateCustomization
   ): UCCA[] {
     return template.template.commonUCCAs.map((ucca, index) => ({
       ...ucca,
@@ -1071,7 +1071,7 @@ export class IndustryTemplatesManager {
 
   private instantiateScenarios(
     template: IndustryTemplate,
-    customization: TemplateCustomization
+    _customization: TemplateCustomization
   ): CausalScenario[] {
     return template.template.typicalScenarios.map((scenario, index) => ({
       ...scenario,

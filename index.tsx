@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { ProjectsProvider } from './contexts/ProjectsContext';
 import { AnalysisProvider } from './contexts/AnalysisContext';
 import './src/styles/main.css';
 
@@ -15,9 +16,11 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <AnalysisProvider>
-        <App />
-      </AnalysisProvider>
+      <ProjectsProvider>
+        <AnalysisProvider>
+          <App />
+        </AnalysisProvider>
+      </ProjectsProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

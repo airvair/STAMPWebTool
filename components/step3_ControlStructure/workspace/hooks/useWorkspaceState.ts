@@ -92,6 +92,11 @@ export const useWorkspaceState = () => {
         section
       ]
     }));
+    
+    // Emit event to keep sidebar in sync
+    window.dispatchEvent(new CustomEvent('workspace-section-change', { 
+      detail: { section } 
+    }));
   }, []);
 
   const markSectionComplete = useCallback((_section: string, _isComplete: boolean = true) => {

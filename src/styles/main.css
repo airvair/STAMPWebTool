@@ -131,8 +131,52 @@
   }
 }
 
+@keyframes slotMachineUp {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-120%);
+    opacity: 0.3;
+  }
+  51% {
+    transform: translateY(120%);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slotMachineDown {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(120%);
+    opacity: 0.3;
+  }
+  51% {
+    transform: translateY(-120%);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @utilities {
   .animate-shine {
     animation: shine var(--duration) infinite linear;
+  }
+
+  .slot-machine-up .slot-machine-content {
+    animation: slotMachineUp var(--slot-duration, 600ms) cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+
+  .slot-machine-down .slot-machine-content {
+    animation: slotMachineDown var(--slot-duration, 600ms) cubic-bezier(0.4, 0.0, 0.2, 1);
   }
 }

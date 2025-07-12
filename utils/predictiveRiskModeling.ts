@@ -5,12 +5,12 @@
 
 import {
   UnsafeControlAction,
-  UCCA,
+  // UCCA, - removed unused import
   CausalScenario,
   Hazard,
   Controller,
   ControlAction,
-  ControllerType,
+  // ControllerType, - removed unused import
   UCAType
 } from '../types';
 
@@ -82,8 +82,7 @@ export interface PredictiveModel {
  */
 export class PredictiveRiskModeling {
   private models = new Map<string, PredictiveModel>();
-  private historicalData = new Map<string, RiskTimeSeries[]>();
-  private patterns = new Map<string, RiskPattern>();
+  // Historical data and patterns removed - were unused
 
   constructor() {
     this.initializeModels();
@@ -161,7 +160,7 @@ export class PredictiveRiskModeling {
    * Generate time series predictions
    */
   generateTimeSeriesPrediction(
-    entityId: string,
+    _entityId: string,
     historicalData: Array<{ date: Date; score: number }>,
     days: number = 90
   ): RiskTimeSeries[] {
@@ -295,7 +294,7 @@ export class PredictiveRiskModeling {
       return Math.min(100, baseSeverity * contextFactor);
     } else {
       // Scenario risk score - aggregate from associated UCAs
-      const ucaScores = (entity.ucaIds || []).map(ucaId => {
+      const ucaScores = (entity.ucaIds || []).map(_ucaId => {
         // Simplified - would need actual UCA lookup
         return 50 + Math.random() * 30;
       });
@@ -359,7 +358,7 @@ export class PredictiveRiskModeling {
   }
 
   private analyzeTrend(
-    entityId: string,
+    _entityId: string,
     currentScore: number,
     historicalScores?: Array<{ date: Date; score: number }>
   ): 'increasing' | 'decreasing' | 'stable' {
@@ -453,7 +452,7 @@ export class PredictiveRiskModeling {
   private categorizeRisks(
     predictions: RiskPrediction[],
     ucas: UnsafeControlAction[],
-    scenarios: CausalScenario[]
+    _scenarios: CausalScenario[]
   ): Record<string, number> {
     const categories: Record<string, number> = {
       'Human Error': 0,
@@ -606,17 +605,17 @@ export class PredictiveRiskModeling {
     return Math.min(1, complexity);
   }
 
-  private assessHistoricalRisk(entity: any, context: any): number {
+  private assessHistoricalRisk(_entity: any, _context: any): number {
     // Simulate historical risk assessment
     return Math.floor(Math.random() * 3);
   }
 
-  private assessMitigation(entity: any, context: any): number {
+  private assessMitigation(_entity: any, _context: any): number {
     // Simulate mitigation effectiveness
     return 0.3 + Math.random() * 0.6;
   }
 
-  private assessEnvironmental(entity: any, context: any): number {
+  private assessEnvironmental(_entity: any, _context: any): number {
     // Simulate environmental factor assessment
     return (Math.random() - 0.5) * 2;
   }
@@ -636,7 +635,7 @@ export class PredictiveRiskModeling {
   }
 
   private findCascadingRisks(
-    ucas: UnsafeControlAction[],
+    _ucas: UnsafeControlAction[],
     scenarios: CausalScenario[]
   ): string[] {
     // Find UCAs that could trigger other UCAs
@@ -653,7 +652,7 @@ export class PredictiveRiskModeling {
 
   private findCommonModeFailures(
     ucas: UnsafeControlAction[],
-    context: any
+    _context: any
   ): string[] {
     // Find UCAs with similar contexts that could fail together
     const commonModes: string[] = [];

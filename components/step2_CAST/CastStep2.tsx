@@ -7,7 +7,6 @@ import HazardsBuilder from './partials/HazardsBuilder';
 import LossesBuilder from './partials/LossesBuilder';
 import ScopeBuilder from './partials/ScopeBuilder';
 import SequenceOfEventsBuilder from './partials/SequenceOfEventsBuilder';
-import SubStepperEnhanced from './partials/SubStepperEnhanced';
 import SystemConstraintsBuilder from './partials/SystemConstraintsBuilder';
 
 const CAST_SUB_STEPS = ['Scope', 'Events', 'Losses', 'Hazards', 'Constraints'];
@@ -15,7 +14,7 @@ const CAST_SUB_STEPS = ['Scope', 'Events', 'Losses', 'Hazards', 'Constraints'];
 const CastStep2: React.FC = () => {
   const {
     analysisSession, updateAnalysisSession,
-    castStep2SubStep, setCastStep2SubStep, castStep2MaxReachedSubStep,
+    castStep2SubStep, setCastStep2SubStep,
     losses, addLoss, deleteLoss,
     hazards, addHazard, updateHazard, deleteHazard,
     systemConstraints, addSystemConstraint, updateSystemConstraint, deleteSystemConstraint,
@@ -33,28 +32,21 @@ const CastStep2: React.FC = () => {
   const [linkedLossIds, setLinkedLossIds] = useState<string[]>([]);
   const [parentHazardForSubHazard, setParentHazardForSubHazard] = useState<string | null>(null);
   const [subHazardDescription, setSubHazardDescription] = useState<string>('');
-  const [validationStatus, setValidationStatus] = useState<boolean[]>([]);
+  // Validation status removed - was unused after removing stepper
 
-  const validateSteps = useCallback(() => {
-    const status = CAST_SUB_STEPS.map((_, index) => {
-      switch (index) {
-        case 0: return scope.trim() !== '';
-        case 1: return sequenceOfEvents.length > 0;
-        case 2: return losses.length > 0;
-        case 3: {
-          const allLossesCovered = losses.every(l => hazards.some(h => h.linkedLossIds.includes(l.id)));
-          return hazards.length > 0 && allLossesCovered;
-        }
-        case 4: return systemConstraints.length >= hazards.length && hazards.length > 0;
-        default: return false;
-      }
-    });
-    setValidationStatus(status);
-  }, [scope, sequenceOfEvents, losses, hazards, systemConstraints]);
+  // Validation removed - was only used by stepper
 
+  // Listen for substep changes from sidebar
   useEffect(() => {
-    validateSteps();
-  }, [scope, sequenceOfEvents, losses, hazards, systemConstraints, validateSteps]);
+    const handleSubstepChange = (event: CustomEvent) => {
+      setCastStep2SubStep(event.detail.substep);
+    };
+
+    window.addEventListener('cast-substep-change', handleSubstepChange as EventListener);
+    return () => {
+      window.removeEventListener('cast-substep-change', handleSubstepChange as EventListener);
+    };
+  }, [setCastStep2SubStep]);
 
 
   useEffect(() => { setScope(analysisSession?.scope || ''); }, [analysisSession?.scope]);
@@ -184,27 +176,7 @@ const CastStep2: React.FC = () => {
 
   return (
       <div>
-        <SubStepperEnhanced 
-          steps={CAST_SUB_STEPS} 
-          currentStep={castStep2SubStep} 
-          maxReachedStep={castStep2MaxReachedSubStep} 
-          setStep={setCastStep2SubStep} 
-          validationStatus={validationStatus}
-          variant="hybrid"
-          size="md"
-          showProgress={true}
-          enableAnimations={true}
-          theme="minimal"
-          stepDescriptions={[
-            'Define the scope and purpose of the analysis',
-            'Document the sequence of events that occurred',
-            'Identify the losses and unacceptable outcomes',
-            'Analyze hazardous system states',
-            'Develop safety constraints and requirements'
-          ]}
-          ariaLabel="CAST Analysis Progress"
-        />
-        <div className="mt-8 bg-slate-50 dark:bg-slate-800/50 p-6 sm:p-8 rounded-xl shadow-md border border-slate-200 dark:border-slate-700/50">
+        <div className="bg-slate-50 dark:bg-slate-800/50 p-6 sm:p-8 rounded-xl shadow-md border border-slate-200 dark:border-slate-700/50">
           {renderSubStep()}
         </div>
         <div className="flex justify-between items-center mt-8">

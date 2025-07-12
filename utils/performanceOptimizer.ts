@@ -565,7 +565,7 @@ export class STPAOptimizer {
    * Calculate traceability links efficiently
    */
   calculateTraceability = memoize((
-    losses: Loss[],
+    _losses: Loss[],
     hazards: Hazard[],
     ucas: UnsafeControlAction[],
     scenarios: CausalScenario[],

@@ -540,28 +540,28 @@ Tool: STAMP Web Tool v1.0`;
   }
 
   // Similar parsing methods for other entity types...
-  private parseControllersFromXML(xmlDoc: Document): Controller[] {
+  private parseControllersFromXML(_xmlDoc: Document): Controller[] {
     // Implementation would follow similar pattern
     return [];
   }
 
-  private parseControlActionsFromXML(xmlDoc: Document): ControlAction[] {
+  private parseControlActionsFromXML(_xmlDoc: Document): ControlAction[] {
     return [];
   }
 
-  private parseUCAsFromXML(xmlDoc: Document): UnsafeControlAction[] {
+  private parseUCAsFromXML(_xmlDoc: Document): UnsafeControlAction[] {
     return [];
   }
 
-  private parseUCCAsFromXML(xmlDoc: Document): UCCA[] {
+  private parseUCCAsFromXML(_xmlDoc: Document): UCCA[] {
     return [];
   }
 
-  private parseScenariosFromXML(xmlDoc: Document): CausalScenario[] {
+  private parseScenariosFromXML(_xmlDoc: Document): CausalScenario[] {
     return [];
   }
 
-  private parseRequirementsFromXML(xmlDoc: Document): Requirement[] {
+  private parseRequirementsFromXML(_xmlDoc: Document): Requirement[] {
     return [];
   }
 

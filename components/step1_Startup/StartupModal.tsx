@@ -78,7 +78,7 @@ const StartupPage: React.FC = () => {
 
     const handleSelectType = (type: AnalysisType) => {
         const initialStep = type === AnalysisType.CAST ? CAST_STEPS[1].path : STPA_STEPS[1].path;
-        setAnalysisType(type, initialStep);
+        setAnalysisType(type);
         navigate(initialStep);
     };
 

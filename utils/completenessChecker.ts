@@ -491,7 +491,7 @@ export class CompletenessChecker {
     const checks: CompletenessCheck[] = [];
 
     // Check 1: Multi-controller analysis
-    const _hasMultiControllerAnalysis = controllers.length > 1 && uccas.length > 0;
+    // Multi-controller analysis check removed - was unused
     const expectedUCCAs = Math.max(0, (controllers.length * (controllers.length - 1)) / 4); // Rough estimate
 
     checks.push({

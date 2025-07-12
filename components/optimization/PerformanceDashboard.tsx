@@ -113,18 +113,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
     .sort((a, b) => b.avg - a.avg)
     .slice(0, 10);
 
-  const _memoryChartData = memoryUsage ? [
-    {
-      name: 'Used',
-      value: memoryUsage.used / 1024 / 1024,
-      percentage: (memoryUsage.used / memoryUsage.total) * 100
-    },
-    {
-      name: 'Available',
-      value: (memoryUsage.total - memoryUsage.used) / 1024 / 1024,
-      percentage: ((memoryUsage.total - memoryUsage.used) / memoryUsage.total) * 100
-    }
-  ] : [];
+  // Memory chart data removed - was unused
 
   const getPerformanceScore = () => {
     if (metricsChartData.length === 0) return 100;

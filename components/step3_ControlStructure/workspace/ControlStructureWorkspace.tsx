@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { useWorkspaceState } from './hooks/useWorkspaceState';
 import WorkspaceContent from './WorkspaceContent';
-import WorkspaceNavigation from './WorkspaceNavigation';
 import WorkspaceVisualization from './WorkspaceVisualization';
 
 interface ResponsiveBreakpoints {
@@ -55,13 +54,10 @@ const ControlStructureWorkspace: React.FC = () => {
     setActiveSection,
     setVisualizationState,
     markUnsavedChanges,
-    saveWorkspaceState,
-    getSectionStatus,
-    getSectionDataCount
+    saveWorkspaceState
   } = useWorkspaceState();
 
   const { screenSize } = useResponsiveLayout();
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   // Auto-determine visualization layout based on screen size
   useEffect(() => {
@@ -80,13 +76,7 @@ const ControlStructureWorkspace: React.FC = () => {
     }
   }, [screenSize, workspaceState.visualizationState.layout, setVisualizationState]);
 
-  // Handle section switching with mobile navigation
-  const handleSectionChange = useCallback((section: string) => {
-    setActiveSection(section);
-    if (screenSize === 'mobile') {
-      setIsMobileNavOpen(false);
-    }
-  }, [setActiveSection, screenSize]);
+  // Section switching handled by event listener
 
   // Handle visualization toggle for mobile
   const handleVisualizationToggle = useCallback(() => {
@@ -94,6 +84,18 @@ const ControlStructureWorkspace: React.FC = () => {
       isVisible: !workspaceState.visualizationState.isVisible
     });
   }, [workspaceState.visualizationState.isVisible, setVisualizationState]);
+
+  // Listen for section changes from sidebar
+  useEffect(() => {
+    const handleSectionChange = (event: CustomEvent) => {
+      setActiveSection(event.detail.section);
+    };
+
+    window.addEventListener('workspace-section-change', handleSectionChange as EventListener);
+    return () => {
+      window.removeEventListener('workspace-section-change', handleSectionChange as EventListener);
+    };
+  }, [setActiveSection]);
 
   // Auto-save functionality
   useEffect(() => {
@@ -112,15 +114,6 @@ const ControlStructureWorkspace: React.FC = () => {
   const renderMobileHeader = () => (
     <div className="lg:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-          aria-label="Toggle navigation"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
         <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           Control Structure
         </h1>
@@ -153,17 +146,6 @@ const ControlStructureWorkspace: React.FC = () => {
 
   const renderDesktopLayout = () => (
     <div className="h-[calc(100vh-200px)] flex overflow-hidden -m-6 md:-m-8 rounded-xl">
-      {/* Navigation Sidebar */}
-      <div className="flex-shrink-0">
-        <WorkspaceNavigation
-          activeSection={workspaceState.activeSection}
-          onSectionChange={handleSectionChange}
-          getSectionStatus={getSectionStatus}
-          getSectionDataCount={getSectionDataCount}
-          workspaceState={workspaceState}
-        />
-      </div>
-
       {/* Main Content Area */}
       <div className="flex-1 flex min-w-0 h-full">
         <div className="flex-1">
@@ -194,21 +176,6 @@ const ControlStructureWorkspace: React.FC = () => {
     <div className="h-screen flex flex-col">
       {renderMobileHeader()}
       
-      {/* Mobile Navigation Drawer */}
-      {isMobileNavOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileNavOpen(false)} />
-          <div className="fixed left-0 top-0 bottom-0 w-80 max-w-sm">
-            <WorkspaceNavigation
-              activeSection={workspaceState.activeSection}
-              onSectionChange={handleSectionChange}
-              getSectionStatus={getSectionStatus}
-              getSectionDataCount={getSectionDataCount}
-              workspaceState={workspaceState}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">

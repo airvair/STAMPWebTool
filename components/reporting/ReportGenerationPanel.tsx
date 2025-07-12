@@ -1,3 +1,4 @@
+
 /**
  * Report Generation Panel Component
  * UI for generating STPA analysis reports

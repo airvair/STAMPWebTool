@@ -29,7 +29,6 @@ import {
 import Card from '../shared/Card';
 import Button from '../shared/Button';
 import Progress from '../shared/Progress';
-import { useAnalysis } from '@/hooks/useAnalysis';
 
 interface InteractiveTutorialProps {
   tutorialId: string;
@@ -56,7 +55,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
   const [highlightedElements, setHighlightedElements] = useState<string[]>([]);
   const [disabledElements, setDisabledElements] = useState<string[]>([]);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const __analysisData = useAnalysis();
+  // Analysis data hook removed - was unused
 
   // Initialize session
   useEffect(() => {

@@ -110,7 +110,7 @@ export class CollaborationManager {
   private locks = new Map<string, EntityLock>();
   private eventHandlers = new Map<string, Set<(event: CollaborationEvent) => void>>();
   private presenceHandlers = new Set<(presence: PresenceInfo[]) => void>();
-  private _reconnectAttempts = 0;
+  // Reconnect attempts counter removed - was unused
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
 
@@ -149,7 +149,6 @@ export class CollaborationManager {
         // Handle connection success
         this.socket.on('connect', () => {
           console.log('Connected to collaboration server');
-          this._reconnectAttempts = 0;
           
           // Join project session
           this.socket?.emit('join_project', {
