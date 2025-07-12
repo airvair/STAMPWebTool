@@ -13,6 +13,7 @@ import ItemListPanel from '../shared/ItemListPanel';
 import FormPanel from '../shared/FormPanel';
 import CardGrid, { ViewSettings, SortOption } from '../shared/CardGrid';
 import { HardwareComponentCard, UnsafeInteractionCard } from '../shared/CardLayouts';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 
 interface HardwareComponentForm {
   name: string;
@@ -210,6 +211,11 @@ const HardwareAnalysis: React.FC = () => {
   const [showTemplateSelectionModal, setShowTemplateSelectionModal] = useState(false);
   const [selectedSystemComponents, setSelectedSystemComponents] = useState<Set<string>>(new Set());
   const [currentSystemComponentId, setCurrentSystemComponentId] = useState<string | null>(null);
+  
+  // Confirmation dialog states
+  const [deleteComponentDialog, setDeleteComponentDialog] = useState(false);
+  const [deleteFailureModeDialog, setDeleteFailureModeDialog] = useState(false);
+  const [deleteInteractionDialog, setDeleteInteractionDialog] = useState(false);
 
   const [componentForm, setComponentForm] = useState<HardwareComponentForm>({
     name: '',
@@ -729,6 +735,42 @@ const HardwareAnalysis: React.FC = () => {
     }
   };
 
+  const handleDeleteComponent = () => {
+    setDeleteComponentDialog(true);
+  };
+
+  const confirmDeleteComponent = () => {
+    if (selectedComponent) {
+      deleteHardwareComponent(selectedComponent.id);
+      setSelectedComponent(null);
+      setFormMode('view');
+    }
+  };
+
+  const handleDeleteFailureMode = () => {
+    setDeleteFailureModeDialog(true);
+  };
+
+  const confirmDeleteFailureMode = () => {
+    if (selectedFailureMode) {
+      deleteFailureMode(selectedFailureMode.id);
+      setSelectedFailureMode(null);
+      setFormMode('view');
+    }
+  };
+
+  const handleDeleteInteraction = () => {
+    setDeleteInteractionDialog(true);
+  };
+
+  const confirmDeleteInteraction = () => {
+    if (selectedInteraction) {
+      deleteUnsafeInteraction(selectedInteraction.id);
+      setSelectedInteraction(null);
+      setFormMode('view');
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
@@ -1093,13 +1135,7 @@ const HardwareAnalysis: React.FC = () => {
                   title={formMode === 'edit' ? 'Edit Hardware Component' : 'Create Hardware Component'}
                   onSave={handleSaveComponent}
                   onCancel={handleCancelForm}
-                  onDelete={formMode === 'edit' && selectedComponent ? () => {
-                    if (selectedComponent && window.confirm('Are you sure you want to delete this component?')) {
-                      deleteHardwareComponent(selectedComponent.id);
-                      setSelectedComponent(null);
-                      setFormMode('view');
-                    }
-                  } : undefined}
+                  onDelete={formMode === 'edit' && selectedComponent ? handleDeleteComponent : undefined}
                   isEditing={formMode === 'edit'}
                   isSaving={isSaving}
                 >
@@ -1142,13 +1178,7 @@ const HardwareAnalysis: React.FC = () => {
                   title={formMode === 'edit' ? 'Edit Failure Mode' : 'Create Failure Mode'}
                   onSave={handleSaveFailureMode}
                   onCancel={handleCancelForm}
-                  onDelete={formMode === 'edit' && selectedFailureMode ? () => {
-                    if (selectedFailureMode && window.confirm('Are you sure you want to delete this failure mode?')) {
-                      deleteFailureMode(selectedFailureMode.id);
-                      setSelectedFailureMode(null);
-                      setFormMode('view');
-                    }
-                  } : undefined}
+                  onDelete={formMode === 'edit' && selectedFailureMode ? handleDeleteFailureMode : undefined}
                   isEditing={formMode === 'edit'}
                   isSaving={isSaving}
                 >
@@ -1202,13 +1232,7 @@ const HardwareAnalysis: React.FC = () => {
                   title={formMode === 'edit' ? 'Edit Unsafe Interaction' : 'Create Unsafe Interaction'}
                   onSave={handleSaveInteraction}
                   onCancel={handleCancelForm}
-                  onDelete={formMode === 'edit' && selectedInteraction ? () => {
-                    if (selectedInteraction && window.confirm('Are you sure you want to delete this interaction?')) {
-                      deleteUnsafeInteraction(selectedInteraction.id);
-                      setSelectedInteraction(null);
-                      setFormMode('view');
-                    }
-                  } : undefined}
+                  onDelete={formMode === 'edit' && selectedInteraction ? handleDeleteInteraction : undefined}
                   isEditing={formMode === 'edit'}
                   isSaving={isSaving}
                 >
@@ -1730,6 +1754,36 @@ const HardwareAnalysis: React.FC = () => {
           })()}
         </div>
       </Modal>
+
+      <ConfirmationDialog
+        open={deleteComponentDialog}
+        onOpenChange={setDeleteComponentDialog}
+        title="Delete Component"
+        description="Are you sure you want to delete this component?"
+        confirmText="Delete"
+        onConfirm={confirmDeleteComponent}
+        variant="destructive"
+      />
+
+      <ConfirmationDialog
+        open={deleteFailureModeDialog}
+        onOpenChange={setDeleteFailureModeDialog}
+        title="Delete Failure Mode"
+        description="Are you sure you want to delete this failure mode?"
+        confirmText="Delete"
+        onConfirm={confirmDeleteFailureMode}
+        variant="destructive"
+      />
+
+      <ConfirmationDialog
+        open={deleteInteractionDialog}
+        onOpenChange={setDeleteInteractionDialog}
+        title="Delete Interaction"
+        description="Are you sure you want to delete this interaction?"
+        confirmText="Delete"
+        onConfirm={confirmDeleteInteraction}
+        variant="destructive"
+      />
     </div>
   );
 };

@@ -16,7 +16,6 @@ import {
   PencilIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import HoldToDeleteButton from '../ui/HoldToDeleteButton';
 import { AuroraText } from '@/src/components/magicui/aurora-text';
 import { APP_TITLE, CAST_STEPS, STPA_STEPS } from '@/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';

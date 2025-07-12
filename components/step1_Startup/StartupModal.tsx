@@ -1,86 +1,25 @@
-import { ClipboardDocumentCheckIcon, CubeTransparentIcon, ArrowPathIcon, SparklesIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { CAST_STEPS, STPA_STEPS, APP_TITLE, GLOSSARY } from '@/constants';
+import { CAST_STEPS, STPA_STEPS, APP_TITLE } from '@/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { AnalysisType } from '@/types';
 import Button from '../shared/Button';
-import Tooltip from '../shared/Tooltip';
-import { ShineBorder } from '@/src/components/magicui/shine-border';
+import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 
-// A dedicated component for the choice cards with Apple/Google-style design
-const ChoiceCard: React.FC<{
-    icon: React.ReactNode;
-    question: React.ReactNode;
-    title: string;
-    description: string;
-    onClick: () => void;
-    delay?: number;
-}> = ({ icon, question, title, description, onClick, delay = 0 }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay, ease: "easeOut" }}
-        className="relative group"
-    >
-        <button
-            onClick={onClick}
-            className="relative w-full bg-white/80 dark:bg-neutral-900/30 backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 rounded-3xl p-8 lg:p-10 flex flex-col items-start text-left space-y-6 transition-all duration-500 hover:scale-[1.02] hover:bg-white/90 dark:hover:bg-neutral-900/40 overflow-hidden"
-        >
-            <ShineBorder
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                borderWidth={2}
-                duration={8}
-                shineColor={["#3b82f6", "#8b5cf6", "#ec4899"]}
-            />
-            
-            <div className="relative z-10 w-full">
-                <div className="flex items-start justify-between">
-                    <div className="flex-1 pr-12">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 dark:from-sky-500 dark:to-blue-700 p-3 mb-6 group-hover:scale-110 transition-transform duration-300">
-                            <div className="w-full h-full text-white">
-                                {icon}
-                            </div>
-                        </div>
-                        
-                        <h3 className="text-3xl lg:text-4xl font-semibold text-neutral-900 dark:text-white mb-3 tracking-tight">
-                            {title}
-                        </h3>
-                        
-                        <p className="text-base lg:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4">
-                            {question}
-                        </p>
-                        
-                        <p className="text-sm text-neutral-500 dark:text-neutral-500 leading-relaxed">
-                            {description}
-                        </p>
-                    </div>
-                    
-                    <div className="absolute top-1/2 right-8 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                        <ArrowRightIcon className="w-6 h-6 text-sky-500 dark:text-sky-400" />
-                    </div>
-                </div>
-            </div>
-        </button>
-    </motion.div>
-);
 
 
 const StartupPage: React.FC = () => {
-    const { analysisSession, setAnalysisType, resetAnalysis } = useAnalysis();
+    const { analysisSession, resetAnalysis } = useAnalysis();
     const navigate = useNavigate();
     const [isVisible, setIsVisible] = useState(false);
+    const [showResetDialog, setShowResetDialog] = useState(false);
     
     useEffect(() => {
         setIsVisible(true);
     }, []);
 
-    const handleSelectType = (type: AnalysisType) => {
-        const initialStep = type === AnalysisType.CAST ? CAST_STEPS[1].path : STPA_STEPS[1].path;
-        setAnalysisType(type);
-        navigate(initialStep);
-    };
 
     const handleContinueSession = () => {
         if (analysisSession?.currentStep) {
@@ -96,10 +35,12 @@ const StartupPage: React.FC = () => {
     };
 
     const handleReset = () => {
-        if (window.confirm("Are you sure you want to discard your previous session and start a new one? This action cannot be undone.")) {
-            resetAnalysis();
-            // The component will re-render to show the choice cards
-        }
+        setShowResetDialog(true);
+    };
+
+    const confirmReset = () => {
+        resetAnalysis();
+        // The component will re-render to show the choice cards
     };
 
     // If a session exists, show the "Welcome Back" screen with Apple-style design
@@ -164,12 +105,22 @@ const StartupPage: React.FC = () => {
                             </motion.div>
                         </div>
                     </motion.div>
+                    
+                    <ConfirmationDialog
+                        open={showResetDialog}
+                        onOpenChange={setShowResetDialog}
+                        title="Start New Analysis"
+                        description="Are you sure you want to discard your previous session and start a new one? This action cannot be undone."
+                        confirmText="Start New"
+                        onConfirm={confirmReset}
+                        variant="destructive"
+                    />
                 </motion.div>
             </AnimatePresence>
         );
     }
 
-    // Show the new analysis choice screen with Apple/Google-style design
+    // Show the "No project selected" screen
     return (
         <AnimatePresence mode="wait">
             <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-neutral-100 dark:from-black dark:via-neutral-950 dark:to-neutral-900 overflow-hidden">
@@ -184,16 +135,18 @@ const StartupPage: React.FC = () => {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : -20 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
-                        className="text-center mb-16 max-w-4xl mx-auto"
+                        className="text-center max-w-4xl mx-auto"
                     >
-                        <motion.h1 
+                        <motion.div 
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-                            className="text-6xl lg:text-7xl font-bold bg-gradient-to-r from-neutral-900 via-neutral-700 to-neutral-900 dark:from-white dark:via-neutral-200 dark:to-white bg-clip-text text-transparent mb-6 tracking-tight"
+                            className="mb-8"
                         >
-                            {APP_TITLE}
-                        </motion.h1>
+                            <h1 className="text-6xl lg:text-7xl font-bold bg-gradient-to-r from-neutral-900 via-neutral-700 to-neutral-900 dark:from-white dark:via-neutral-200 dark:to-white bg-clip-text text-transparent tracking-tight">
+                                {APP_TITLE}
+                            </h1>
+                        </motion.div>
                         
                         <motion.p 
                             initial={{ opacity: 0 }}
@@ -201,46 +154,8 @@ const StartupPage: React.FC = () => {
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="text-xl lg:text-2xl text-neutral-600 dark:text-neutral-400 font-light"
                         >
-                            Choose your safety analysis approach
+                            No project selected
                         </motion.p>
-                    </motion.div>
-                    
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: isVisible ? 1 : 0 }}
-                        transition={{ duration: 0.8, delay: 0.3 }}
-                        className="mx-auto max-w-6xl w-full px-4"
-                    >
-                        <div className="grid gap-6 lg:gap-8 md:grid-cols-2">
-                            <ChoiceCard
-                                onClick={() => handleSelectType(AnalysisType.CAST)}
-                                icon={<ClipboardDocumentCheckIcon className="w-full h-full" />}
-                                question="Investigating an incident or accident that has already occurred?"
-                                title="CAST Analysis"
-                                description="Analyze past events to identify systemic causal factors and prevent future incidents."
-                                delay={0.4}
-                            />
-                            
-                            <ChoiceCard
-                                onClick={() => handleSelectType(AnalysisType.STPA)}
-                                icon={<CubeTransparentIcon className="w-full h-full" />}
-                                question={<>Designing or analyzing a new or existing <Tooltip content={GLOSSARY['System']}>system</Tooltip>?</>}
-                                title="STPA Analysis"
-                                description="Proactively identify hazards and specify safety constraints for system design."
-                                delay={0.5}
-                            />
-                        </div>
-                    </motion.div>
-                    
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.6 }}
-                        className="mt-16 text-center"
-                    >
-                        <p className="text-sm text-neutral-500 dark:text-neutral-600">
-                            Powered by STAMP methodology
-                        </p>
                     </motion.div>
                 </div>
             </div>
