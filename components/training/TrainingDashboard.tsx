@@ -16,19 +16,16 @@ import {
   CheckCircleIcon,
   BookOpenIcon,
   SparklesIcon,
-  CertificateIcon,
   PuzzlePieceIcon,
   BeakerIcon,
   RocketLaunchIcon
 } from '@heroicons/react/24/outline';
-import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 import {
   trainingModeManager,
   Tutorial,
   TutorialCategory,
   UserProgress,
-  UserStats,
-  Achievement
+  UserStats
 } from '@/utils/trainingMode';
 import Card from '../shared/Card';
 import Button from '../shared/Button';
@@ -96,7 +93,7 @@ const TrainingDashboard: React.FC<TrainingDashboardProps> = ({
   };
 
   const getCategoryIcon = (category: TutorialCategory) => {
-    const icons: Record<TutorialCategory, JSX.Element> = {
+    const icons: Record<TutorialCategory, React.ReactElement> = {
       [TutorialCategory.STPA_BASICS]: <BookOpenIcon className="w-5 h-5" />,
       [TutorialCategory.LOSS_HAZARD]: <FireIcon className="w-5 h-5" />,
       [TutorialCategory.CONTROL_STRUCTURE]: <PuzzlePieceIcon className="w-5 h-5" />,
@@ -116,7 +113,7 @@ const TrainingDashboard: React.FC<TrainingDashboardProps> = ({
     ).join(' ');
   };
 
-  const getDifficultyColor = (difficulty: string) => {
+  const _getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'beginner':
         return 'text-green-600 bg-green-100 dark:bg-green-900/30';
@@ -236,8 +233,9 @@ const TrainingDashboard: React.FC<TrainingDashboardProps> = ({
               size="sm"
               variant="secondary"
               onClick={() => setShowAchievements(true)}
-              leftIcon={<TrophyIcon className="w-4 h-4" />}
+              className="inline-flex items-center gap-2"
             >
+              <TrophyIcon className="w-4 h-4" />
               {userStats.achievements} Achievements
             </Button>
             
@@ -245,8 +243,9 @@ const TrainingDashboard: React.FC<TrainingDashboardProps> = ({
               size="sm"
               variant="secondary"
               onClick={() => setShowCertificates(true)}
-              leftIcon={<AcademicCapIcon className="w-4 h-4" />}
+              className="inline-flex items-center gap-2"
             >
+              <AcademicCapIcon className="w-4 h-4" />
               {userStats.certificates} Certificates
             </Button>
           </div>
@@ -553,7 +552,7 @@ const TutorialCard: React.FC<TutorialCardProps> = ({
   onStart
 }) => {
   const getCategoryIcon = (category: TutorialCategory) => {
-    const icons: Record<TutorialCategory, JSX.Element> = {
+    const icons: Record<TutorialCategory, React.ReactElement> = {
       [TutorialCategory.STPA_BASICS]: <BookOpenIcon className="w-5 h-5" />,
       [TutorialCategory.LOSS_HAZARD]: <FireIcon className="w-5 h-5" />,
       [TutorialCategory.CONTROL_STRUCTURE]: <PuzzlePieceIcon className="w-5 h-5" />,
@@ -650,9 +649,9 @@ const TutorialCard: React.FC<TutorialCardProps> = ({
         onClick={onStart}
         disabled={locked}
         size="sm"
-        fullWidth
-        leftIcon={<PlayCircleIcon className="w-4 h-4" />}
+        className="w-full inline-flex items-center justify-center gap-2"
       >
+        <PlayCircleIcon className="w-4 h-4" />
         {progress === 0 ? 'Start' : progress === 100 ? 'Review' : 'Continue'}
       </Button>
     </Card>

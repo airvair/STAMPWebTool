@@ -5,15 +5,13 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  ChartBarIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
   ExclamationTriangleIcon,
   ShieldCheckIcon,
-  ClockIcon,
   SparklesIcon,
   ArrowPathIcon,
-  InformationCircleIcon
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import {
@@ -25,14 +23,9 @@ import {
 import Card from '../shared/Card';
 import Button from '../shared/Button';
 import Select from '../shared/Select';
-import Tooltip from '../shared/Tooltip';
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
@@ -53,7 +46,7 @@ import { format, addDays } from 'date-fns';
 
 interface PredictiveRiskDashboardProps {
   className?: string;
-  onRiskSelect?: (risk: any) => void;
+  onRiskSelect?: (risk: RiskPrediction) => void;
 }
 
 const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
@@ -62,10 +55,10 @@ const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
 }) => {
   const analysisData = useAnalysis();
   const [timeframe, setTimeframe] = useState(30);
-  const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
+  const [_selectedEntity, _setSelectedEntity] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [systemProfile, setSystemProfile] = useState<SystemRiskProfile | null>(null);
-  const [predictions, setPredictions] = useState<RiskPrediction[]>([]);
+  const [_predictions, _setPredictions] = useState<RiskPrediction[]>([]);
   const [timeSeries, setTimeSeries] = useState<RiskTimeSeries[]>([]);
 
   // Generate predictions
@@ -86,7 +79,7 @@ const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
       // Generate system-wide predictions
       const profile = predictiveRiskModeling.predictSystemRisk(
         analysisData.ucas || [],
-        analysisData.causalScenarios || [],
+        analysisData.scenarios || [],
         context,
         timeframe
       );
@@ -97,17 +90,17 @@ const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
         predictiveRiskModeling.predictRisk(uca, context, timeframe)
       );
       
-      const scenarioPredictions = (analysisData.causalScenarios || []).slice(0, 5).map(scenario =>
+      const scenarioPredictions = (analysisData.scenarios || []).slice(0, 5).map(scenario =>
         predictiveRiskModeling.predictRisk(scenario, context, timeframe)
       );
 
-      setPredictions([...ucaPredictions, ...scenarioPredictions]);
+      _setPredictions([...ucaPredictions, ...scenarioPredictions]);
 
       // Generate time series for selected entity or overall system
-      if (selectedEntity) {
+      if (_selectedEntity) {
         const historicalData = generateMockHistoricalData();
         const series = predictiveRiskModeling.generateTimeSeriesPrediction(
-          selectedEntity,
+          _selectedEntity,
           historicalData,
           90
         );
@@ -122,8 +115,8 @@ const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
   };
 
   // Mock historical data generator
-  const generateMockHistoricalData = () => {
-    const data = [];
+  const generateMockHistoricalData = (): { date: Date; score: number }[] => {
+    const data: { date: Date; score: number }[] = [];
     const baseScore = 50 + Math.random() * 20;
     
     for (let i = 90; i >= 0; i--) {
@@ -170,9 +163,9 @@ const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
   const riskHeatmapData = useMemo(() => {
     if (!systemProfile) return [];
     
-    const data = [];
-    systemProfile.riskHeatmap.forEach((row, i) => {
-      row.forEach((cell, j) => {
+    const data: { x: number; y: number; z: number }[] = [];
+    systemProfile.riskHeatmap.forEach((row, _i) => {
+      row.forEach((cell, _j) => {
         if (cell.count > 0) {
           data.push({
             x: cell.likelihood,
@@ -190,10 +183,10 @@ const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
     switch (trend) {
       case 'up':
       case 'increasing':
-        return <TrendingUpIcon className="w-5 h-5 text-red-600" />;
+        return <ArrowTrendingUpIcon className="w-5 h-5 text-red-600" />;
       case 'down':
       case 'decreasing':
-        return <TrendingDownIcon className="w-5 h-5 text-green-600" />;
+        return <ArrowTrendingDownIcon className="w-5 h-5 text-green-600" />;
       default:
         return <div className="w-5 h-5 bg-yellow-500 rounded-full" />;
     }
@@ -280,7 +273,7 @@ const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
                 Emerging Risks
               </p>
-              <TrendingUpIcon className="w-5 h-5 text-orange-500" />
+              <ArrowTrendingUpIcon className="w-5 h-5 text-orange-500" />
             </div>
             <p className="text-3xl font-bold text-orange-600">
               {systemProfile.emergingRisks.length}
@@ -436,7 +429,18 @@ const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
                 <div
                   key={risk.id}
                   className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors"
-                  onClick={() => onRiskSelect && onRiskSelect(risk)}
+                  onClick={() => onRiskSelect && onRiskSelect({
+                    id: risk.id,
+                    entityType: 'system' as const,
+                    predictedRiskScore: risk.score,
+                    currentRiskScore: risk.score,
+                    riskTrend: risk.trend === 'up' ? 'increasing' : risk.trend === 'down' ? 'decreasing' : 'stable',
+                    confidence: 0.8,
+                    timeframe: 30,
+                    factors: [],
+                    recommendations: [`Monitor ${risk.description}`, `Review ${risk.type} controls`],
+                    predictedDate: new Date()
+                  })}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-lg font-bold text-slate-400">#{idx + 1}</span>
@@ -479,7 +483,7 @@ const PredictiveRiskDashboard: React.FC<PredictiveRiskDashboardProps> = ({
                         Velocity: +{risk.velocity.toFixed(1)} points/day
                       </p>
                     </div>
-                    <TrendingUpIcon className="w-5 h-5 text-orange-600" />
+                    <ArrowTrendingUpIcon className="w-5 h-5 text-orange-600" />
                   </div>
                 ))}
               </div>

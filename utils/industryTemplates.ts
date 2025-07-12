@@ -14,8 +14,9 @@ import {
   Requirement,
   ControllerType,
   UCAType,
-  UCCAType
-} from '@/types';
+  UCCAType,
+  ScenarioClass
+} from '../types';
 
 export interface IndustryTemplate {
   id: string;
@@ -29,7 +30,7 @@ export interface IndustryTemplate {
   bestPractices: string[];
   template: {
     losses: Partial<Loss>[];
-    hazards: Partial<Hazard>[];
+    hazards: Array<Partial<Hazard> & { linkedLossIds?: string[] }>;
     controllers: Partial<Controller>[];
     controlActions: Partial<ControlAction>[];
     commonUCAs: Partial<UnsafeControlAction>[];
@@ -277,12 +278,12 @@ export class IndustryTemplatesManager {
           },
           {
             name: 'Autopilot System',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Automated flight control system'
           },
           {
             name: 'Flight Management System',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Navigation and performance management'
           },
           {
@@ -310,24 +311,24 @@ export class IndustryTemplatesManager {
         ],
         commonUCAs: [
           {
-            ucaType: 'Not Providing' as UCAType,
+            ucaType: UCAType.NotProvided,
             context: 'when aircraft deviates from safe flight envelope',
             description: 'Pilot does not provide corrective control input'
           },
           {
-            ucaType: 'Providing' as UCAType,
+            ucaType: UCAType.ProvidedUnsafe,
             context: 'when aircraft is in normal flight',
             description: 'Pilot provides excessive control input'
           }
         ],
         commonUCCAs: [
           {
-            uccaType: '1a' as UCCAType,
+            uccaType: UCCAType.Team,
             description: 'Pilot mental model does not match aircraft state',
             specificCause: 'Inadequate instrument scan or spatial disorientation'
           },
           {
-            uccaType: '2a' as UCCAType,
+            uccaType: UCCAType.Role,
             description: 'Attitude indicator provides incorrect information',
             specificCause: 'Sensor failure or calibration error'
           }
@@ -340,7 +341,7 @@ export class IndustryTemplatesManager {
         ],
         standardRequirements: [
           {
-            type: 'functional',
+            type: 'Requirement' as const,
             description: 'System shall provide clear mode annunciation to pilots',
             verificationMethod: 'Simulation and flight test'
           }
@@ -435,17 +436,17 @@ export class IndustryTemplatesManager {
           },
           {
             name: 'Autonomous Driving System',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'AI-based driving automation'
           },
           {
             name: 'Vehicle Dynamics Controller',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Low-level vehicle control (steering, braking, acceleration)'
           },
           {
             name: 'Sensor Fusion Module',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Combines data from multiple sensors'
           }
         ],
@@ -468,19 +469,19 @@ export class IndustryTemplatesManager {
         ],
         commonUCAs: [
           {
-            ucaType: 'Not Providing' as UCAType,
+            ucaType: UCAType.NotProvided,
             context: 'when obstacle detected in path',
             description: 'System does not apply brakes'
           },
           {
-            ucaType: 'Too Early/Late' as UCAType,
+            ucaType: UCAType.TooLate,
             context: 'when approaching intersection',
             description: 'System applies brakes too late'
           }
         ],
         commonUCCAs: [
           {
-            uccaType: '2a' as UCCAType,
+            uccaType: UCCAType.Role,
             description: 'Camera provides degraded image',
             specificCause: 'Adverse weather conditions or sensor contamination'
           }
@@ -493,7 +494,7 @@ export class IndustryTemplatesManager {
         ],
         standardRequirements: [
           {
-            type: 'safety_constraint',
+            type: 'Requirement' as const,
             description: 'System shall detect and respond to sensor degradation',
             verificationMethod: 'Environmental testing'
           }
@@ -563,17 +564,17 @@ export class IndustryTemplatesManager {
           },
           {
             name: 'Pump Controller',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Embedded software controlling pump operation'
           },
           {
             name: 'Drug Library System',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Database of drug parameters and limits'
           },
           {
             name: 'Hospital Pharmacy',
-            ctrlType: ControllerType.Organization,
+            ctrlType: ControllerType.Organisation,
             description: 'Provides drug information and protocols'
           }
         ],
@@ -596,14 +597,14 @@ export class IndustryTemplatesManager {
         ],
         commonUCAs: [
           {
-            ucaType: 'Providing' as UCAType,
+            ucaType: UCAType.ProvidedUnsafe,
             context: 'when incorrect drug selected',
             description: 'User starts infusion with wrong medication'
           }
         ],
         commonUCCAs: [
           {
-            uccaType: '1a' as UCCAType,
+            uccaType: UCCAType.Team,
             description: 'User mental model incorrect',
             specificCause: 'Similar drug names or concentrations'
           }
@@ -616,7 +617,7 @@ export class IndustryTemplatesManager {
         ],
         standardRequirements: [
           {
-            type: 'design',
+            type: 'Requirement' as const,
             description: 'Interface shall clearly display units for all parameters',
             verificationMethod: 'Usability testing'
           }
@@ -680,12 +681,12 @@ export class IndustryTemplatesManager {
           },
           {
             name: 'Reactor Protection System',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Automatic safety system'
           },
           {
             name: 'Plant Computer',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Monitoring and control system'
           }
         ],
@@ -703,14 +704,14 @@ export class IndustryTemplatesManager {
         ],
         commonUCAs: [
           {
-            ucaType: 'Not Providing' as UCAType,
+            ucaType: UCAType.NotProvided,
             context: 'when reactor power exceeds limits',
             description: 'Protection system fails to scram reactor'
           }
         ],
         commonUCCAs: [
           {
-            uccaType: '1b' as UCCAType,
+            uccaType: UCCAType.Organizational,
             description: 'Control rod drive mechanism fails',
             specificCause: 'Mechanical binding or electrical failure'
           }
@@ -723,7 +724,7 @@ export class IndustryTemplatesManager {
         ],
         standardRequirements: [
           {
-            type: 'safety_constraint',
+            type: 'Requirement' as const,
             description: 'Protection system shall be independent from control system',
             verificationMethod: 'Design review and testing'
           }
@@ -780,7 +781,7 @@ export class IndustryTemplatesManager {
           },
           {
             name: 'Signaling System',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Trackside signaling equipment'
           }
         ],
@@ -843,7 +844,7 @@ export class IndustryTemplatesManager {
           },
           {
             name: 'Basic Process Control System',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'DCS/PLC control system'
           }
         ],
@@ -917,12 +918,12 @@ export class IndustryTemplatesManager {
           },
           {
             name: 'Load Balancer',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Distributes traffic across servers'
           },
           {
             name: 'Auto-scaling Service',
-            ctrlType: ControllerType.Automated,
+            ctrlType: ControllerType.Software,
             description: 'Dynamically adjusts resources'
           }
         ],
@@ -967,13 +968,15 @@ export class IndustryTemplatesManager {
     customization: TemplateCustomization
   ): Hazard[] {
     const hazards = template.template.hazards.map((hazard, index) => ({
+      ...hazard,
       id: `hazard_${Date.now()}_${index}`,
       code: hazard.code || `H-${index + 1}`,
       title: hazard.title || '',
+      systemComponent: '', // Required field
+      systemState: '', // Required field
       systemCondition: hazard.systemCondition || '',
-      environmentalCondition: hazard.environmentalCondition,
-      lossIds: [], // Will be linked later
-      ...hazard
+      environmentalCondition: hazard.environmentalCondition || '',
+      linkedLossIds: [] // Will be linked later
     }));
 
     // Add industry-specific hazards if requested
@@ -990,11 +993,11 @@ export class IndustryTemplatesManager {
     customization: TemplateCustomization
   ): Controller[] {
     return template.template.controllers.map((controller, index) => ({
+      ...controller,
       id: `controller_${Date.now()}_${index}`,
       name: controller.name || '',
-      ctrlType: controller.ctrlType || ControllerType.Automated,
-      description: controller.description,
-      ...controller
+      ctrlType: controller.ctrlType || ControllerType.Software,
+      description: controller.description
     }));
   }
 
@@ -1008,14 +1011,17 @@ export class IndustryTemplatesManager {
     template.template.controlActions.forEach((action, index) => {
       // Create action for each applicable controller
       controllers.forEach((controller, ctrlIndex) => {
-        actions.push({
-          id: `action_${Date.now()}_${index}_${ctrlIndex}`,
-          controllerId: controller.id,
-          verb: action.verb || '',
-          object: action.object || '',
-          description: action.description,
-          ...action
-        });
+        if (controller.id) {
+          actions.push({
+            ...action,
+            id: `action_${Date.now()}_${index}_${ctrlIndex}`,
+            controllerId: controller.id,
+            verb: action.verb || '',
+            object: action.object || '',
+            description: action.description || '',
+            isOutOfScope: false
+          });
+        }
       });
     });
 
@@ -1030,15 +1036,16 @@ export class IndustryTemplatesManager {
     
     template.template.commonUCAs.forEach((uca, index) => {
       ucas.push({
+        ...uca,
         id: `uca_${Date.now()}_${index}`,
         code: uca.code || `UCA-${index + 1}`,
         controllerId: '', // Would need to be linked
         controlActionId: '', // Would need to be linked
-        ucaType: uca.ucaType || 'Not Providing',
+        ucaType: uca.ucaType || UCAType.NotProvided,
         context: uca.context || '',
         description: uca.description || '',
         hazardIds: [], // Would need to be linked
-        ...uca
+        riskCategory: 'Medium' // Required field
       });
     });
 
@@ -1050,15 +1057,15 @@ export class IndustryTemplatesManager {
     customization: TemplateCustomization
   ): UCCA[] {
     return template.template.commonUCCAs.map((ucca, index) => ({
+      ...ucca,
       id: `ucca_${Date.now()}_${index}`,
       code: ucca.code || `UCCA-${index + 1}`,
-      uccaType: ucca.uccaType || '1a',
+      uccaType: ucca.uccaType || UCCAType.Team,
       description: ucca.description || '',
-      context: ucca.context,
+      context: ucca.context || '',
       involvedControllerIds: [], // Would need to be linked
       hazardIds: [], // Would need to be linked
-      specificCause: ucca.specificCause,
-      ...ucca
+      specificCause: ucca.specificCause || ''
     }));
   }
 
@@ -1067,13 +1074,15 @@ export class IndustryTemplatesManager {
     customization: TemplateCustomization
   ): CausalScenario[] {
     return template.template.typicalScenarios.map((scenario, index) => ({
+      ...scenario,
       id: `scenario_${Date.now()}_${index}`,
       code: scenario.code || `CS-${index + 1}`,
       title: scenario.title || '',
       description: scenario.description || '',
+      ucaId: '', // Required field
       ucaIds: [], // Would need to be linked
       uccaIds: [], // Would need to be linked
-      ...scenario
+      classType: scenario.classType || ScenarioClass.Class1
     }));
   }
 
@@ -1082,13 +1091,14 @@ export class IndustryTemplatesManager {
     customization: TemplateCustomization
   ): Requirement[] {
     const requirements = template.template.standardRequirements.map((req, index) => ({
+      ...req,
       id: `req_${Date.now()}_${index}`,
       code: req.code || `REQ-${index + 1}`,
-      type: req.type || 'functional',
+      type: (req.type as 'Requirement' | 'Mitigation') || 'Requirement',
+      text: req.description || '', // Required field
       description: req.description || '',
       verificationMethod: req.verificationMethod,
-      scenarioIds: [], // Would need to be linked
-      ...req
+      linkedScenarioIds: [] // Would need to be linked
     }));
 
     // Add regulatory requirements if requested
@@ -1099,10 +1109,11 @@ export class IndustryTemplatesManager {
           requirements.push({
             id: `req_reg_${Date.now()}_${index}_${reqIndex}`,
             code: `REQ-${reg}-${reqIndex + 1}`,
-            type: 'regulatory',
+            type: 'Requirement' as const,
+            text: reqText,
             description: reqText,
             verificationMethod: 'Compliance audit',
-            scenarioIds: []
+            linkedScenarioIds: []
           });
         });
       });
@@ -1115,9 +1126,9 @@ export class IndustryTemplatesManager {
     // Link hazards to losses (simplified - would use more sophisticated matching)
     result.hazards.forEach((hazard: Hazard) => {
       if (result.losses.length > 0) {
-        hazard.lossIds = [result.losses[0].id];
-        if (hazard.title.toLowerCase().includes('collision') && result.losses.length > 1) {
-          hazard.lossIds.push(result.losses[1].id);
+        hazard.linkedLossIds = [result.losses[0].id];
+        if (hazard.title?.toLowerCase().includes('collision') && result.losses.length > 1) {
+          hazard.linkedLossIds?.push(result.losses[1].id);
         }
       }
     });

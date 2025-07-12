@@ -9,10 +9,10 @@ import {
   CausalScenario,
   Hazard,
   Loss,
-  Requirement,
-  Controller,
-  ControlAction
-} from '@/types';
+  Requirement
+} from '../types';
+
+// Type for decorator (removed - unused)
 
 /**
  * Memoization decorator for expensive computations
@@ -36,7 +36,9 @@ export function memoize<T extends (...args: any[]) => any>(
     // Limit cache size to prevent memory leaks
     if (cache.size > 1000) {
       const firstKey = cache.keys().next().value;
-      cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        cache.delete(firstKey);
+      }
     }
     
     return result;
@@ -495,13 +497,22 @@ export const ReactOptimizations = {
    */
   createSelector<T, R>(
     selector: (state: T) => R,
-    equalityFn = this.shallowEqual
+    equalityFn?: (a: any, b: any) => boolean
   ): (state: T) => R {
     let lastState: T;
     let lastResult: R;
     
+    const compareFn = equalityFn || ((a: any, b: any) => {
+      if (a === b) return true;
+      if (!a || !b) return false;
+      const aKeys = Object.keys(a);
+      const bKeys = Object.keys(b);
+      if (aKeys.length !== bKeys.length) return false;
+      return aKeys.every(key => a[key] === b[key]);
+    });
+    
     return (state: T) => {
-      if (!lastState || !equalityFn(state, lastState)) {
+      if (!lastState || !compareFn(state, lastState)) {
         lastState = state;
         lastResult = selector(state);
       }
@@ -520,9 +531,9 @@ export class STPAOptimizer {
   private scenarioIndex: IndexedDataStore<CausalScenario>;
   
   constructor() {
-    this.ucaIndex = new IndexedDataStore(['controllerId', 'controlActionId', 'hazardId']);
-    this.uccaIndex = new IndexedDataStore(['ucaId', 'abstractionLevel']);
-    this.scenarioIndex = new IndexedDataStore(['ucaId', 'uccaId']);
+    this.ucaIndex = new IndexedDataStore(['controllerId', 'controlActionId']);
+    this.uccaIndex = new IndexedDataStore(['context', 'uccaType']);
+    this.scenarioIndex = new IndexedDataStore(['ucaId']);
   }
   
   /**
@@ -535,35 +546,36 @@ export class STPAOptimizer {
   /**
    * Find UCAs by controller
    */
-  @memoize
-  findUCAsByController(controllerId: string): UnsafeControlAction[] {
+  findUCAsByController = memoize((controllerId: string): UnsafeControlAction[] => {
     return this.ucaIndex.findByIndex('controllerId', controllerId);
-  }
+  })
   
   /**
    * Find UCAs by hazard
    */
-  @memoize
-  findUCAsByHazard(hazardId: string): UnsafeControlAction[] {
-    return this.ucaIndex.findByIndex('hazardId', hazardId);
-  }
+  /**
+   * Find UCAs by hazard
+   */
+  findUCAsByHazard = memoize((hazardId: string): UnsafeControlAction[] => {
+    // Since hazardIds is an array, we need to find UCAs that include this hazard
+    return this.ucaIndex.getAll().filter(uca => uca.hazardIds.includes(hazardId));
+  })
   
   /**
    * Calculate traceability links efficiently
    */
-  @memoize
-  calculateTraceability(
+  calculateTraceability = memoize((
     losses: Loss[],
     hazards: Hazard[],
     ucas: UnsafeControlAction[],
     scenarios: CausalScenario[],
     requirements: Requirement[]
-  ) {
+  ) => {
     const links = new Map<string, Set<string>>();
     
     // Loss -> Hazard links
     hazards.forEach(hazard => {
-      hazard.linkedLosses?.forEach(lossId => {
+      hazard.linkedLossIds?.forEach(lossId => {
         const key = `loss-${lossId}`;
         if (!links.has(key)) links.set(key, new Set());
         links.get(key)!.add(`hazard-${hazard.id}`);
@@ -572,7 +584,7 @@ export class STPAOptimizer {
     
     // Hazard -> UCA links
     ucas.forEach(uca => {
-      uca.linkedHazards?.forEach(hazardId => {
+      uca.hazardIds?.forEach(hazardId => {
         const key = `hazard-${hazardId}`;
         if (!links.has(key)) links.set(key, new Set());
         links.get(key)!.add(`uca-${uca.id}`);
@@ -590,7 +602,7 @@ export class STPAOptimizer {
     
     // Scenario -> Requirement links
     requirements.forEach(req => {
-      req.linkedScenarios?.forEach(scenarioId => {
+      req.linkedScenarioIds?.forEach(scenarioId => {
         const key = `scenario-${scenarioId}`;
         if (!links.has(key)) links.set(key, new Set());
         links.get(key)!.add(`requirement-${req.id}`);
@@ -598,7 +610,7 @@ export class STPAOptimizer {
     });
     
     return links;
-  }
+  })
   
   /**
    * Clear caches

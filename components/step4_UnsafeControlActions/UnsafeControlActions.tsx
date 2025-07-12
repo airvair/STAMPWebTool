@@ -146,6 +146,7 @@ const UnsafeControlActions: React.FC = () => {
       ucaType: selectedUcaType,
       context: formState.context,
       hazardIds: formState.hazardIds,
+      riskCategory: 'Medium' // Default risk category
     };
 
     if (editingUcaId) {

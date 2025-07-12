@@ -13,11 +13,8 @@ import {
   QuestionMarkCircleIcon,
   XMarkIcon,
   PlayIcon,
-  PauseIcon,
   BookOpenIcon,
-  TrophyIcon,
   SparklesIcon,
-  ClockIcon,
   ChevronDownIcon,
   ChevronUpIcon
 } from '@heroicons/react/24/outline';
@@ -27,12 +24,10 @@ import {
   TutorialSession,
   TutorialStep,
   StepType,
-  Quiz,
   FocusArea
 } from '@/utils/trainingMode';
 import Card from '../shared/Card';
 import Button from '../shared/Button';
-import Modal from '../shared/Modal';
 import Progress from '../shared/Progress';
 import { useAnalysis } from '@/hooks/useAnalysis';
 
@@ -61,7 +56,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({
   const [highlightedElements, setHighlightedElements] = useState<string[]>([]);
   const [disabledElements, setDisabledElements] = useState<string[]>([]);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const analysisData = useAnalysis();
+  const __analysisData = useAnalysis();
 
   // Initialize session
   useEffect(() => {

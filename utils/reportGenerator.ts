@@ -11,8 +11,7 @@ import {
   UnsafeControlAction,
   UCCA,
   CausalScenario,
-  Requirement,
-  ControllerType
+  Requirement
 } from '@/types';
 import { completenessChecker } from './completenessChecker';
 import { versionControlManager } from './versionControl';
@@ -174,7 +173,7 @@ This report was generated using the STAMP Web Tool, implementing the System-Theo
    * Generate table of contents
    */
   private generateTableOfContents(
-    data: any,
+    _data: any,
     options: ReportOptions
   ): ReportSection {
     const sections = [];
@@ -233,9 +232,9 @@ This STPA analysis identified **${data.losses.length} losses**, **${data.hazards
 - **Requirements:** ${data.requirements.length} safety requirements identified
 
 ### Completeness Assessment
-- **Overall Completeness:** ${completenessReport.overallCompleteness.toFixed(1)}%
-- **Critical Issues:** ${completenessReport.issues.filter(i => i.severity === 'critical').length}
-- **Recommendations:** ${completenessReport.suggestions.length} improvement suggestions
+- **Overall Completeness:** ${(completenessReport.overallScore || 0).toFixed(1)}%
+- **Critical Issues:** ${completenessReport.criticalIssues || 0}
+- **Recommendations:** ${(completenessReport.suggestions || []).length} improvement suggestions
 
 ### Risk Summary
 ${this.generateRiskSummary(data)}
@@ -253,7 +252,7 @@ ${this.generateRiskSummary(data)}
    */
   private generateMainContent(
     data: any,
-    options: ReportOptions
+    _options: ReportOptions
   ): ReportSection[] {
     const sections: ReportSection[] = [];
 
@@ -437,7 +436,7 @@ ${data.hazards.map((hazard: Hazard, idx: number) => `
 **System Condition:** ${hazard.systemCondition}
 ${hazard.environmentalCondition ? `**Environmental Condition:** ${hazard.environmentalCondition}` : ''}
 
-**Associated Losses:** ${hazard.lossIds.map(id => {
+**Associated Losses:** ${(hazard.lossIds || hazard.linkedLossIds || []).map(id => {
   const loss = data.losses.find((l: Loss) => l.id === id);
   return loss ? loss.code || loss.title : id;
 }).join(', ')}
@@ -611,15 +610,15 @@ ${req.implementation ? `**Implementation Notes:** ${req.implementation}` : ''}
     matrix.push('|------|---------|------|-----------|--------------|');
     
     data.losses.forEach((loss: Loss) => {
-      const hazards = data.hazards.filter((h: Hazard) => h.lossIds.includes(loss.id));
+      const hazards = data.hazards.filter((h: Hazard) => (h.lossIds || h.linkedLossIds || []).includes(loss.id));
       const ucas = data.ucas.filter((u: UnsafeControlAction) => 
-        hazards.some(h => u.hazardIds.includes(h.id))
+        hazards.some((h: Hazard) => u.hazardIds.includes(h.id))
       );
       const scenarios = data.scenarios.filter((s: CausalScenario) =>
-        ucas.some(u => s.ucaIds?.includes(u.id))
+        ucas.some((u: UnsafeControlAction) => s.ucaIds?.includes(u.id))
       );
       const requirements = data.requirements.filter((r: Requirement) =>
-        scenarios.some(s => r.scenarioIds?.includes(s.id))
+        scenarios.some((s: CausalScenario) => r.scenarioIds?.includes(s.id))
       );
       
       matrix.push(`| ${loss.code || loss.title} | ${hazards.length} | ${ucas.length} | ${scenarios.length} | ${requirements.length} |`);
@@ -675,8 +674,8 @@ ${history.map(version => `
    */
   private generateMarkdownReport(
     sections: ReportSection[],
-    data: any,
-    options: ReportOptions
+    _data: any,
+    _options: ReportOptions
   ): string {
     return sections.map(section => {
       const content = typeof section.content === 'function' 
@@ -689,7 +688,7 @@ ${history.map(version => `
 
   private generateHTMLReport(
     sections: ReportSection[],
-    data: any,
+    _data: any,
     options: ReportOptions
   ): string {
     const html = `
@@ -772,7 +771,7 @@ ${sections.map(section => {
       const associatedUCAs = data.ucas.filter((u: UnsafeControlAction) => 
         u.hazardIds.includes(h.id)
       );
-      return associatedUCAs.some(u => u.riskCategory === 'Critical' || u.riskCategory === 'High');
+      return associatedUCAs.some((u: UnsafeControlAction) => u.riskCategory === 'Critical' || u.riskCategory === 'High');
     }).length;
     
     const ucasWithScenarios = new Set(

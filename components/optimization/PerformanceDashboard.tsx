@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  ChartBarIcon,
+  // ChartBarIcon,
   CpuChipIcon,
   ClockIcon,
   ArrowTrendingUpIcon,
@@ -21,8 +21,6 @@ import Switch from '../shared/Switch';
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -50,7 +48,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
     enableBatching: true,
     debugMode: false
   });
-  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timer | null>(null);
+  const [_refreshInterval, setRefreshInterval] = useState<NodeJS.Timer | null>(null);
 
   useEffect(() => {
     updateMetrics();
@@ -115,7 +113,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
     .sort((a, b) => b.avg - a.avg)
     .slice(0, 10);
 
-  const memoryChartData = memoryUsage ? [
+  const _memoryChartData = memoryUsage ? [
     {
       name: 'Used',
       value: memoryUsage.used / 1024 / 1024,

@@ -14,7 +14,7 @@ import {
   Requirement,
   UCAType,
   UCCAType
-} from '@/types';
+} from '../types';
 import { smartContextBuilder } from './smartContextBuilder';
 import { completenessChecker } from './completenessChecker';
 import { riskScoringEngine } from './riskScoring';
@@ -157,8 +157,8 @@ export class AIAssistant {
     issues: string[];
     suggestions: string[];
   } {
-    const issues: string[] = [];
-    const suggestions: string[] = [];
+    // const issues: string[] = [];
+    // const suggestions: string[] = [];
 
     switch (entityType) {
       case 'loss':
@@ -231,7 +231,7 @@ export class AIAssistant {
     const insights: AnalysisInsight[] = [];
 
     // Check for hazards without associated losses
-    const orphanedHazards = context.hazards.filter(h => h.lossIds.length === 0);
+    const orphanedHazards = context.hazards.filter(h => !h.lossIds || h.lossIds.length === 0);
     if (orphanedHazards.length > 0) {
       insights.push({
         id: 'missing-loss-links',
@@ -290,13 +290,13 @@ export class AIAssistant {
     const insights: AnalysisInsight[] = [];
     const report = completenessChecker.checkCompleteness(context);
 
-    if (report.overallCompleteness < 60) {
+    if (report.overallScore < 60) {
       insights.push({
         id: 'low-completeness',
         type: 'warning',
         category: InsightCategory.INCOMPLETE_ANALYSIS,
         title: 'Low analysis completeness',
-        description: `Overall completeness is only ${report.overallCompleteness.toFixed(1)}%`,
+        description: `Overall completeness is only ${report.overallScore.toFixed(1)}%`,
         severity: 'critical',
         actionable: true,
         suggestedAction: 'Focus on completing the steps with lowest scores',
@@ -304,16 +304,16 @@ export class AIAssistant {
       });
     }
 
-    // Step-specific insights
-    Object.entries(report.stepCompleteness).forEach(([step, score]) => {
-      if (score < 50) {
+    // Check-specific insights
+    report.checks.forEach((check) => {
+      if (check.coverage < 50) {
         insights.push({
-          id: `incomplete-${step}`,
+          id: `incomplete-${check.id}`,
           type: 'warning',
           category: InsightCategory.INCOMPLETE_ANALYSIS,
-          title: `Incomplete ${step.replace(/([A-Z])/g, ' $1').toLowerCase()}`,
-          description: `This step is only ${score.toFixed(1)}% complete`,
-          severity: score < 25 ? 'high' : 'medium',
+          title: `Incomplete ${check.name}`,
+          description: `This check is only ${check.coverage.toFixed(1)}% complete`,
+          severity: check.coverage < 25 ? 'high' : 'medium',
           actionable: true,
           confidence: 0.9
         });
@@ -329,7 +329,7 @@ export class AIAssistant {
     // Pattern: Similar UCAs across multiple controllers
     const ucaDescriptions = new Map<string, UnsafeControlAction[]>();
     context.ucas.forEach(uca => {
-      const key = uca.description.toLowerCase();
+      const key = (uca.description || '').toLowerCase();
       if (!ucaDescriptions.has(key)) {
         ucaDescriptions.set(key, []);
       }
@@ -369,7 +369,15 @@ export class AIAssistant {
 
     ucaTypeCount.forEach((typeMap, actionId) => {
       const missingTypes: UCAType[] = [];
-      const allTypes: UCAType[] = ['Not Providing', 'Providing', 'Too Early/Late', 'Stopped Too Soon/Applied Too Long'];
+      const allTypes: UCAType[] = [
+        UCAType.NotProvided,
+        UCAType.ProvidedUnsafe,
+        UCAType.TooEarly,
+        UCAType.TooLate,
+        UCAType.WrongOrder,
+        UCAType.TooLong,
+        UCAType.TooShort
+      ];
       
       allTypes.forEach(type => {
         if (!typeMap.has(type)) {
@@ -465,6 +473,7 @@ export class AIAssistant {
 
     // Check hazard format
     const poorlyFormattedHazards = context.hazards.filter(hazard =>
+      hazard.systemCondition &&
       !hazard.systemCondition.includes('when') &&
       !hazard.systemCondition.includes('while') &&
       !hazard.systemCondition.includes('during')
@@ -486,7 +495,7 @@ export class AIAssistant {
 
     // Check requirement specificity
     const vagueRequirements = context.requirements.filter(req =>
-      req.description.length < 30 ||
+      (req.description || '').length < 30 ||
       !req.verificationMethod ||
       req.verificationMethod === 'TBD'
     );
@@ -575,7 +584,7 @@ export class AIAssistant {
     ];
 
     // Filter out patterns already used
-    const existingPatterns = context.hazards.map(h => h.systemCondition.toLowerCase());
+    const existingPatterns = context.hazards.map(h => (h.systemCondition || '').toLowerCase());
     patterns.forEach(pattern => {
       if (!existingPatterns.some(ep => ep.includes(pattern.toLowerCase()))) {
         suggestions.push(pattern);
@@ -603,47 +612,55 @@ export class AIAssistant {
       context.ucas
     );
 
-    return suggestions.map(s => s.description);
+    return suggestions.map(s => s.text);
   }
 
   private generateUCCASuggestions(
-    context: AssistantContext,
+    _context: AssistantContext,
     currentUCCA?: Partial<UCCA>
   ): string[] {
     const suggestions: string[] = [];
 
     if (currentUCCA?.uccaType) {
       switch (currentUCCA.uccaType) {
-        case '1a':
+        case UCCAType.Team:
           suggestions.push(
-            'Controller receives incorrect feedback about process state',
-            'Controller\'s process model does not match actual process state',
-            'Controller algorithm contains flaws or bugs',
-            'Controller is missing required information'
+            'Team members have conflicting mental models',
+            'Communication breakdown between team members',
+            'Unclear roles and responsibilities',
+            'Team coordination failure'
           );
           break;
-        case '1b':
+        case UCCAType.Role:
           suggestions.push(
-            'Actuator fails to execute command correctly',
-            'Control action is delayed in transmission',
-            'Control action is corrupted during transmission',
-            'Actuator is in failed or degraded state'
+            'Role boundaries are unclear or overlapping',
+            'Authority misalignment with responsibility',
+            'Role handoff procedures are inadequate',
+            'Training insufficient for role requirements'
           );
           break;
-        case '2a':
+        case UCCAType.CrossController:
           suggestions.push(
-            'Sensor provides incorrect feedback',
-            'Feedback is delayed beyond acceptable limits',
-            'Feedback path is interrupted or broken',
-            'Sensor calibration is incorrect'
+            'Controllers have inconsistent process models',
+            'Control actions conflict between controllers',
+            'Feedback loops create unintended interactions',
+            'Timing dependencies between controllers'
           );
           break;
-        case '2b':
+        case UCCAType.Organizational:
           suggestions.push(
-            'External information source provides wrong data',
-            'Communication with external systems is lost',
-            'External information is outdated or stale',
-            'Data format mismatch with external systems'
+            'Organizational culture discourages safety reporting',
+            'Resource constraints limit safety measures',
+            'Conflicting organizational priorities',
+            'Inadequate safety management structure'
+          );
+          break;
+        case UCCAType.Temporal:
+          suggestions.push(
+            'Time delays exceed safe operational windows',
+            'Synchronization failures between components',
+            'Race conditions in control sequences',
+            'Temporal dependencies not properly managed'
           );
           break;
       }
@@ -727,7 +744,7 @@ export class AIAssistant {
     };
   }
 
-  private validateHazard(hazard: Hazard, context: AssistantContext): {
+  private validateHazard(hazard: Hazard, _context: AssistantContext): {
     isValid: boolean;
     issues: string[];
     suggestions: string[];
@@ -740,7 +757,7 @@ export class AIAssistant {
       suggestions.push('Describe the specific system state or condition');
     }
 
-    if (hazard.lossIds.length === 0) {
+    if (!hazard.lossIds || hazard.lossIds.length === 0) {
       issues.push('Hazard is not linked to any losses');
       suggestions.push('Link to at least one loss');
     }
@@ -756,7 +773,7 @@ export class AIAssistant {
     };
   }
 
-  private validateUCA(uca: UnsafeControlAction, context: AssistantContext): {
+  private validateUCA(uca: UnsafeControlAction, _context: AssistantContext): {
     isValid: boolean;
     issues: string[];
     suggestions: string[];
@@ -785,7 +802,7 @@ export class AIAssistant {
     };
   }
 
-  private validateUCCA(ucca: UCCA, context: AssistantContext): {
+  private validateUCCA(ucca: UCCA, _context: AssistantContext): {
     isValid: boolean;
     issues: string[];
     suggestions: string[];
@@ -813,7 +830,7 @@ export class AIAssistant {
     };
   }
 
-  private validateScenario(scenario: CausalScenario, context: AssistantContext): {
+  private validateScenario(scenario: CausalScenario, _context: AssistantContext): {
     isValid: boolean;
     issues: string[];
     suggestions: string[];
@@ -838,7 +855,7 @@ export class AIAssistant {
     };
   }
 
-  private validateRequirement(requirement: Requirement, context: AssistantContext): {
+  private validateRequirement(requirement: Requirement, _context: AssistantContext): {
     isValid: boolean;
     issues: string[];
     suggestions: string[];
@@ -879,7 +896,7 @@ export class AIAssistant {
     // Auto-generate code if missing
     if (!completed.code && completed.controllerId && completed.controlActionId) {
       const controller = context.controllers.find(c => c.id === completed.controllerId);
-      const action = context.controlActions.find(ca => ca.id === completed.controlActionId);
+      const _action = context.controlActions.find(ca => ca.id === completed.controlActionId);
       const ucaCount = context.ucas.filter(u => 
         u.controllerId === completed.controllerId &&
         u.controlActionId === completed.controlActionId
@@ -891,14 +908,19 @@ export class AIAssistant {
     // Suggest risk scoring
     if (!completed.riskScore && completed.hazardIds && completed.hazardIds.length > 0) {
       const hazards = context.hazards.filter(h => completed.hazardIds!.includes(h.id));
-      const suggestedScore = riskScoringEngine.calculateRiskScore({
-        ...completed,
-        riskScore: 0,
-        riskCategory: 'Medium'
-      } as UnsafeControlAction, hazards);
+      const suggestedScore = riskScoringEngine.calculateUCARisk(
+        {
+          ...completed,
+          riskScore: 0,
+          riskCategory: 'Medium'
+        } as UnsafeControlAction,
+        hazards,
+        context.controllers.find(c => c.id === completed.controllerId)!,
+        context.controlActions.find(ca => ca.id === completed.controlActionId)!
+      );
       
-      completed.riskScore = suggestedScore.score;
-      completed.riskCategory = suggestedScore.category;
+      completed.riskScore = suggestedScore.overall;
+      completed.riskCategory = suggestedScore.category as any;
     }
 
     return completed;
@@ -942,7 +964,7 @@ export class AIAssistant {
     if (!completed.title && completed.ucaIds && completed.ucaIds.length > 0) {
       const uca = context.ucas.find(u => u.id === completed.ucaIds![0]);
       if (uca) {
-        completed.title = `Scenario leading to: ${uca.description.substring(0, 50)}...`;
+        completed.title = `Scenario leading to: ${(uca.description || '').substring(0, 50)}...`;
       }
     }
 
@@ -975,7 +997,7 @@ export class AIAssistant {
             return ucaTypes.size < 4;
           });
         },
-        generateInsights: (context) => {
+        generateInsights: (_context) => {
           const insights: AnalysisInsight[] = [];
           // Implementation provided in detectPatterns method
           return insights;

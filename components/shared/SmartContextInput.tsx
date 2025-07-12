@@ -3,9 +3,7 @@ import {
   LightBulbIcon,
   SparklesIcon,
   CheckIcon,
-  XMarkIcon,
-  ChevronDownIcon,
-  ChevronUpIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import {
   ContextSuggestion,
@@ -13,7 +11,7 @@ import {
   SuggestionSource,
   smartContextBuilder
 } from '@/utils/smartContextBuilder';
-import { Controller, ControlAction, Hazard, UnsafeControlAction, UCCA, UCAType } from '@/types';
+import { Controller, ControlAction, Hazard, UnsafeControlAction, UCAType } from '@/types';
 
 interface SmartContextInputProps {
   value: string;
@@ -88,7 +86,11 @@ const SmartContextInput: React.FC<SmartContextInputProps> = ({
         } else if (controllers && controllers.length > 0) {
           // UCCA context suggestions
           newSuggestions = smartContextBuilder.generateUCCASuggestions(
-            { temporalRelationship, uccaType, hazardIds: [] },
+            { 
+              temporalRelationship: temporalRelationship as "Simultaneous" | "Sequential" | "Within-Timeframe" | undefined, 
+              uccaType: uccaType as import('@/types').UCCAType | undefined, 
+              hazardIds: [] 
+            },
             controllers,
             hazards
           );

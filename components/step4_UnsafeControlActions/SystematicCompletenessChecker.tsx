@@ -3,11 +3,10 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   XCircleIcon,
-  InformationCircleIcon,
   ArrowPathIcon,
   DocumentArrowDownIcon,
-  ChartBarIcon,
-  ClipboardDocumentCheckIcon
+  ClipboardDocumentCheckIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import {
@@ -16,8 +15,7 @@ import {
   CompletenessCheck,
   CheckCategory,
   CheckStatus,
-  CheckSeverity,
-  CompletnessSuggestion
+  CheckSeverity
 } from '@/utils/completenessChecker';
 import Button from '../shared/Button';
 import Modal from '../shared/Modal';
@@ -44,7 +42,7 @@ const SystematicCompletenessChecker: React.FC = () => {
         controlActions: analysisData.controlActions || [],
         ucas: analysisData.ucas || [],
         uccas: analysisData.uccas || [],
-        scenarios: analysisData.causalScenarios || [],
+        scenarios: analysisData.scenarios || [],
         requirements: analysisData.requirements || []
       });
       
@@ -68,7 +66,7 @@ const SystematicCompletenessChecker: React.FC = () => {
     analysisData.controlActions?.length,
     analysisData.ucas?.length,
     analysisData.uccas?.length,
-    analysisData.causalScenarios?.length,
+    analysisData.scenarios?.length,
     analysisData.requirements?.length
   ]);
 
@@ -99,7 +97,7 @@ const SystematicCompletenessChecker: React.FC = () => {
     const scores = new Map<CheckCategory, number>();
     
     checksByCategory.forEach((checks, category) => {
-      const totalCoverage = checks.reduce((sum, check) => sum + check.coverage, 0);
+      const totalCoverage = checks.reduce((sum: number, check: CompletenessCheck) => sum + check.coverage, 0);
       scores.set(category, checks.length > 0 ? totalCoverage / checks.length : 0);
     });
     
@@ -121,7 +119,7 @@ const SystematicCompletenessChecker: React.FC = () => {
   };
 
   // Get status icon
-  const getStatusIcon = (status: CheckStatus) => {
+  const getStatusIcon = (status: CheckStatus): React.JSX.Element => {
     switch (status) {
       case CheckStatus.COMPLETE:
         return <CheckCircleIcon className="w-5 h-5 text-green-600" />;
@@ -135,7 +133,7 @@ const SystematicCompletenessChecker: React.FC = () => {
   };
 
   // Get severity badge color
-  const getSeverityColor = (severity: CheckSeverity) => {
+  const getSeverityColor = (severity: CheckSeverity): string => {
     switch (severity) {
       case CheckSeverity.CRITICAL:
         return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';

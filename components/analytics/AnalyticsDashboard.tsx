@@ -5,10 +5,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  ChartBarIcon,
-  ChartPieIcon,
-  TrendingUpIcon,
-  ClockIcon,
   ExclamationTriangleIcon,
   ShieldCheckIcon,
   DocumentChartBarIcon,
@@ -17,19 +13,11 @@ import {
   ArrowTrendingDownIcon
 } from '@heroicons/react/24/outline';
 import { useAnalysis } from '@/hooks/useAnalysis';
-import {
-  Loss,
-  Hazard,
-  UnsafeControlAction,
-  UCCA,
-  CausalScenario,
-  Requirement
-} from '@/types';
+import {} from '@/types';
 import { versionControlManager } from '@/utils/versionControl';
 import { collaborationManager } from '@/utils/collaboration';
 import { completenessChecker } from '@/utils/completenessChecker';
 import Select from '../shared/Select';
-import DateRangePicker from '../shared/DateRangePicker';
 import Card from '../shared/Card';
 import {
   LineChart,
@@ -92,13 +80,13 @@ interface CollaborationMetric {
 }
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
-  projectId,
+  projectId: _projectId,
   refreshInterval = 30
 }) => {
   const analysisData = useAnalysis();
   const [selectedTimeRange, setSelectedTimeRange] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
   const [selectedMetric, setSelectedMetric] = useState<'overview' | 'risk' | 'completeness' | 'collaboration' | 'trends'>('overview');
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, _setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Auto-refresh
@@ -114,7 +102,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const overviewMetrics = useMemo(() => {
     const ucas = analysisData.ucas || [];
     const uccas = analysisData.uccas || [];
-    const scenarios = analysisData.causalScenarios || [];
+    const scenarios = analysisData.scenarios || [];
     const requirements = analysisData.requirements || [];
 
     // Risk categories
@@ -209,59 +197,96 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       controlActions: analysisData.controlActions || [],
       ucas: analysisData.ucas || [],
       uccas: analysisData.uccas || [],
-      scenarios: analysisData.causalScenarios || [],
+      scenarios: analysisData.scenarios || [],
       requirements: analysisData.requirements || []
+    });
+
+    // Extract category-specific scores from the checks
+    const categoryScores = {
+      hazardIdentification: 0,
+      controlStructure: 0,
+      ucaIdentification: 0,
+      causalAnalysis: 0,
+      requirements: 0
+    };
+
+    report.checks.forEach(check => {
+      switch (check.category) {
+        case 'Hazards':
+          categoryScores.hazardIdentification = Math.max(categoryScores.hazardIdentification, check.coverage);
+          break;
+        case 'Control Structure':
+          categoryScores.controlStructure = Math.max(categoryScores.controlStructure, check.coverage);
+          break;
+        case 'UCA Coverage':
+          categoryScores.ucaIdentification = Math.max(categoryScores.ucaIdentification, check.coverage);
+          break;
+        case 'Causal Scenarios':
+          categoryScores.causalAnalysis = Math.max(categoryScores.causalAnalysis, check.coverage);
+          break;
+        case 'Requirements':
+          categoryScores.requirements = Math.max(categoryScores.requirements, check.coverage);
+          break;
+      }
     });
 
     const metrics: CompletenessMetric[] = [
       {
         metric: 'Overall Completeness',
-        value: report.overallCompleteness,
+        value: report.overallScore,
         target: 80,
-        status: report.overallCompleteness >= 80 ? 'good' : 
-                report.overallCompleteness >= 60 ? 'warning' : 'critical'
+        status: report.overallScore >= 80 ? 'good' : 
+                report.overallScore >= 60 ? 'warning' : 'critical'
       },
       {
         metric: 'Hazard Coverage',
-        value: report.stepCompleteness.hazardIdentification,
+        value: categoryScores.hazardIdentification,
         target: 100,
-        status: report.stepCompleteness.hazardIdentification >= 90 ? 'good' :
-                report.stepCompleteness.hazardIdentification >= 70 ? 'warning' : 'critical'
+        status: categoryScores.hazardIdentification >= 90 ? 'good' :
+                categoryScores.hazardIdentification >= 70 ? 'warning' : 'critical'
       },
       {
         metric: 'Control Structure',
-        value: report.stepCompleteness.controlStructure,
+        value: categoryScores.controlStructure,
         target: 100,
-        status: report.stepCompleteness.controlStructure >= 90 ? 'good' :
-                report.stepCompleteness.controlStructure >= 70 ? 'warning' : 'critical'
+        status: categoryScores.controlStructure >= 90 ? 'good' :
+                categoryScores.controlStructure >= 70 ? 'warning' : 'critical'
       },
       {
         metric: 'UCA Identification',
-        value: report.stepCompleteness.ucaIdentification,
+        value: categoryScores.ucaIdentification,
         target: 90,
-        status: report.stepCompleteness.ucaIdentification >= 80 ? 'good' :
-                report.stepCompleteness.ucaIdentification >= 60 ? 'warning' : 'critical'
+        status: categoryScores.ucaIdentification >= 80 ? 'good' :
+                categoryScores.ucaIdentification >= 60 ? 'warning' : 'critical'
       },
       {
         metric: 'Causal Analysis',
-        value: report.stepCompleteness.causalAnalysis,
+        value: categoryScores.causalAnalysis,
         target: 85,
-        status: report.stepCompleteness.causalAnalysis >= 75 ? 'good' :
-                report.stepCompleteness.causalAnalysis >= 55 ? 'warning' : 'critical'
+        status: categoryScores.causalAnalysis >= 75 ? 'good' :
+                categoryScores.causalAnalysis >= 55 ? 'warning' : 'critical'
       },
       {
         metric: 'Requirements',
-        value: report.stepCompleteness.requirements,
+        value: categoryScores.requirements,
         target: 90,
-        status: report.stepCompleteness.requirements >= 80 ? 'good' :
-                report.stepCompleteness.requirements >= 60 ? 'warning' : 'critical'
+        status: categoryScores.requirements >= 80 ? 'good' :
+                categoryScores.requirements >= 60 ? 'warning' : 'critical'
       }
     ];
 
+    // Transform issues from checks to the format expected
+    const issues = report.checks
+      .filter(check => check.status !== 'complete' && check.severity === 'critical')
+      .map(check => ({
+        message: check.details.join('. '),
+        severity: check.severity
+      }));
+
     return {
       metrics,
-      issues: report.issues,
-      suggestions: report.suggestions
+      issues,
+      suggestions: report.suggestions.map(s => s.action)
     };
   }, [analysisData]);
 
@@ -281,7 +306,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         hazards: Math.max(0, (analysisData.hazards?.length || 0) - i * 0.3),
         ucas: Math.max(0, (analysisData.ucas?.length || 0) - i * 0.8),
         uccas: Math.max(0, (analysisData.uccas?.length || 0) - i * 0.5),
-        scenarios: Math.max(0, (analysisData.causalScenarios?.length || 0) - i * 0.4),
+        scenarios: Math.max(0, (analysisData.scenarios?.length || 0) - i * 0.4),
         requirements: Math.max(0, (analysisData.requirements?.length || 0) - i * 0.3)
       });
     }
@@ -352,7 +377,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       },
       {
         name: 'Scenarios',
-        size: analysisData.causalScenarios?.length || 0,
+        size: analysisData.scenarios?.length || 0,
         color: '#10B981'
       },
       {
@@ -644,7 +669,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">Issues & Suggestions</h3>
               <div className="space-y-4 max-h-96 overflow-y-auto">
-                {completenessMetrics.issues.map((issue, idx) => (
+                {completenessMetrics.issues.map((issue: {message: string, severity: string}, idx: number) => (
                   <div key={idx} className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                     <p className="text-sm text-red-800 dark:text-red-200">
                       {issue.message}
@@ -655,7 +680,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                   </div>
                 ))}
                 
-                {completenessMetrics.suggestions.map((suggestion, idx) => (
+                {completenessMetrics.suggestions.map((suggestion: string, idx: number) => (
                   <div key={idx} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <p className="text-sm text-blue-800 dark:text-blue-200">
                       {suggestion}

@@ -13,7 +13,6 @@ import {
   CheckIcon
 } from '@heroicons/react/24/outline';
 import Card from '../shared/Card';
-import Button from '../shared/Button';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 

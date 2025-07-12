@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { APIClient, APIConfig, APIResponse, QueryParams, PaginatedResponse } from '@/utils/apiClient';
+import { STAPAnalysisData } from '@/utils/importExport';
 import { useAnalysis } from './useAnalysis';
 
 interface UseAPIOptions {
@@ -35,7 +36,7 @@ export function useAPI(
   const [error, setError] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const analysisData = useAnalysis();
-  const syncIntervalRef = useRef<NodeJS.Timeout>();
+  const syncIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Initialize client
   useEffect(() => {
@@ -67,15 +68,19 @@ export function useAPI(
       const projectId = 'current-project'; // This should be dynamic
 
       // Export current data
-      const exportData = {
+      const exportData: STAPAnalysisData = {
         losses: analysisData.losses || [],
         hazards: analysisData.hazards || [],
         controllers: analysisData.controllers || [],
         controlActions: analysisData.controlActions || [],
         ucas: analysisData.ucas || [],
         uccas: analysisData.uccas || [],
-        scenarios: analysisData.causalScenarios || [],
-        requirements: analysisData.requirements || []
+        causalScenarios: analysisData.scenarios || [],
+        requirements: analysisData.requirements || [],
+        feedbackPaths: analysisData.feedbackPaths || [],
+        controlPaths: analysisData.controlPaths || [],
+        communicationPaths: analysisData.communicationPaths || [],
+        systemComponents: analysisData.systemComponents || []
       };
 
       // Import to API
@@ -173,7 +178,7 @@ export function usePaginatedAPI<T>(
   // Fetch on mount and when page changes
   useEffect(() => {
     fetchData();
-  }, [page]);
+  }, [page, fetchData]);
 
   const goToPage = (newPage: number) => {
     setPage(newPage);

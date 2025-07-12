@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   UsersIcon,
-  StatusOnlineIcon,
+  SignalIcon,
   LockClosedIcon,
-  ChatBubbleLeftRightIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import {
   CollaborationUser,
@@ -15,7 +13,6 @@ import {
 } from '@/utils/collaboration';
 import Button from './Button';
 import Modal from './Modal';
-import Textarea from './Textarea';
 
 interface CollaborationPanelProps {
   projectId: string;
@@ -35,7 +32,6 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<CollaborationUser[]>([]);
   const [userPresence, setUserPresence] = useState<Map<string, PresenceInfo>>(new Map());
-  const [activeLocks, setActiveLocks] = useState<EntityLock[]>([]);
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
@@ -137,7 +133,7 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
         <div className="flex items-center gap-4">
           {/* Connection Status */}
           <div className="flex items-center gap-2">
-            <StatusOnlineIcon className={`w-4 h-4 ${
+            <SignalIcon className={`w-4 h-4 ${
               isConnected ? 'text-green-600' : 'text-red-600'
             }`} />
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">

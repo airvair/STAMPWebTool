@@ -14,7 +14,7 @@ import {
   Requirement,
   UCAType,
   ControllerType
-} from '@/types';
+} from '../types';
 
 export interface CompletenessCheck {
   id: string;
@@ -224,7 +224,7 @@ export class CompletenessChecker {
 
     // Check 1: At least one hazard per loss
     const lossesWithoutHazards = losses.filter(loss =>
-      !hazards.some(hazard => hazard.lossIds.includes(loss.id))
+      !hazards.some(hazard => hazard.lossIds?.includes(loss.id))
     );
 
     checks.push({
@@ -380,7 +380,7 @@ export class CompletenessChecker {
   private checkUCACoverage(
     ucas: UnsafeControlAction[],
     controlActions: ControlAction[],
-    hazards: Hazard[]
+    _hazards: Hazard[]
   ): CompletenessCheck[] {
     const checks: CompletenessCheck[] = [];
 
@@ -486,12 +486,12 @@ export class CompletenessChecker {
   private checkUCCACoverage(
     uccas: UCCA[],
     controllers: Controller[],
-    hazards: Hazard[]
+    _hazards: Hazard[]
   ): CompletenessCheck[] {
     const checks: CompletenessCheck[] = [];
 
     // Check 1: Multi-controller analysis
-    const hasMultiControllerAnalysis = controllers.length > 1 && uccas.length > 0;
+    const _hasMultiControllerAnalysis = controllers.length > 1 && uccas.length > 0;
     const expectedUCCAs = Math.max(0, (controllers.length * (controllers.length - 1)) / 4); // Rough estimate
 
     checks.push({
@@ -552,7 +552,7 @@ export class CompletenessChecker {
   private checkCausalScenarios(
     scenarios: CausalScenario[],
     ucas: UnsafeControlAction[],
-    uccas: UCCA[]
+    _uccas: UCCA[]
   ): CompletenessCheck[] {
     const checks: CompletenessCheck[] = [];
 
@@ -626,8 +626,8 @@ export class CompletenessChecker {
   private checkRequirements(
     requirements: Requirement[],
     scenarios: CausalScenario[],
-    ucas: UnsafeControlAction[],
-    uccas: UCCA[]
+    _ucas: UnsafeControlAction[],
+    _uccas: UCCA[]
   ): CompletenessCheck[] {
     const checks: CompletenessCheck[] = [];
 
@@ -755,7 +755,7 @@ export class CompletenessChecker {
     // Losses -> Hazards
     data.losses.forEach((loss: Loss) => {
       totalLinks++;
-      if (data.hazards.some((h: Hazard) => h.lossIds.includes(loss.id))) {
+      if (data.hazards.some((h: Hazard) => h.lossIds?.includes(loss.id))) {
         presentLinks++;
       }
     });
@@ -844,7 +844,7 @@ export class CompletenessChecker {
    */
   private generateSuggestions(
     checks: CompletenessCheck[],
-    data: any
+    _data: any
   ): CompletnessSuggestion[] {
     const suggestions: CompletnessSuggestion[] = [];
 

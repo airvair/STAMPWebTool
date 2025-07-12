@@ -3,15 +3,7 @@
  * Enables multiple users to work on the same analysis simultaneously
  */
 
-import { io, Socket } from 'socket.io-client';
-import { 
-  Loss, 
-  Hazard, 
-  Controller, 
-  ControlAction, 
-  UnsafeControlAction, 
-  UCCA 
-} from '@/types';
+const io = require('socket.io-client');
 
 export interface CollaborationUser {
   id: string;
@@ -111,14 +103,14 @@ export interface PresenceInfo {
  * Collaboration Manager for real-time sync
  */
 export class CollaborationManager {
-  private socket: Socket | null = null;
+  private socket: any | null = null;
   private sessionId: string | null = null;
   private currentUser: CollaborationUser | null = null;
   private users = new Map<string, CollaborationUser>();
   private locks = new Map<string, EntityLock>();
   private eventHandlers = new Map<string, Set<(event: CollaborationEvent) => void>>();
   private presenceHandlers = new Set<(presence: PresenceInfo[]) => void>();
-  private reconnectAttempts = 0;
+  private _reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
 
@@ -157,24 +149,24 @@ export class CollaborationManager {
         // Handle connection success
         this.socket.on('connect', () => {
           console.log('Connected to collaboration server');
-          this.reconnectAttempts = 0;
+          this._reconnectAttempts = 0;
           
           // Join project session
-          this.socket!.emit('join_project', {
+          this.socket?.emit('join_project', {
             projectId,
             user: this.currentUser
           });
         });
 
         // Handle session joined
-        this.socket.on('session_joined', (session: CollaborationSession) => {
+        this.socket?.on('session_joined', (session: CollaborationSession) => {
           this.sessionId = session.id;
           session.users.forEach(u => this.users.set(u.id, u));
           resolve(session);
         });
 
         // Handle connection errors
-        this.socket.on('connect_error', (error) => {
+        this.socket?.on('connect_error', (error: any) => {
           console.error('Connection error:', error);
           reject(error);
         });
@@ -396,7 +388,7 @@ export class CollaborationManager {
     this.socket.on('user_left', (userId: string) => {
       this.users.delete(userId);
       // Remove locks held by user
-      for (const [key, lock] of this.locks.entries()) {
+      for (const [key, lock] of Array.from(this.locks.entries())) {
         if (lock.userId === userId) {
           this.locks.delete(key);
         }

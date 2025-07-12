@@ -222,7 +222,8 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
       controlActionId: currentControlAction.id,
       ucaType: currentUcaType.type,
       context: formData.context,
-      hazardIds: formData.hazardIds
+      hazardIds: formData.hazardIds,
+      riskCategory: 'Medium' // Default risk category
     };
 
     // Validate UCA using MIT STPA compliance framework
@@ -319,7 +320,8 @@ const GuidedUCAWorkflow: React.FC<GuidedUCAWorkflowProps> = ({ hardwareMappings 
       controlActionId: currentControlAction.id,
       ucaType: currentUcaType.type,
       context: formData.context,
-      hazardIds: formData.hazardIds
+      hazardIds: formData.hazardIds,
+      riskCategory: 'Medium' // Default risk category
     };
 
     // Validate UCA using MIT STPA compliance framework

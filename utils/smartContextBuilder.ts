@@ -11,7 +11,7 @@ import {
   Hazard,
   UCAType,
   ControllerType
-} from '@/types';
+} from '../types';
 
 export interface ContextSuggestion {
   id: string;
@@ -320,12 +320,12 @@ export class SmartContextBuilder {
    */
   private generateHazardBasedSuggestions(
     hazards: Hazard[],
-    controller: Controller,
-    action: ControlAction
+    _controller: Controller,
+    _action: ControlAction
   ): ContextSuggestion[] {
     const suggestions: ContextSuggestion[] = [];
 
-    hazards.forEach((hazard, index) => {
+    hazards.forEach((hazard, _index) => {
       const hazardKeywords = this.extractKeywords(hazard.title);
       
       // Generate context that links the action to hazard conditions
@@ -382,7 +382,7 @@ export class SmartContextBuilder {
    */
   private generateHumanControllerSuggestions(
     controller: Controller,
-    action: ControlAction
+    _action: ControlAction
   ): ContextSuggestion[] {
     return [
       {
@@ -417,7 +417,7 @@ export class SmartContextBuilder {
    */
   private generateSoftwareControllerSuggestions(
     controller: Controller,
-    action: ControlAction
+    _action: ControlAction
   ): ContextSuggestion[] {
     return [
       {
@@ -451,8 +451,8 @@ export class SmartContextBuilder {
    * Team controller specific suggestions
    */
   private generateTeamControllerSuggestions(
-    controller: Controller,
-    action: ControlAction
+    _controller: Controller,
+    _action: ControlAction
   ): ContextSuggestion[] {
     return [
       {
@@ -478,8 +478,8 @@ export class SmartContextBuilder {
    * Organizational controller specific suggestions
    */
   private generateOrganizationalSuggestions(
-    controller: Controller,
-    action: ControlAction
+    _controller: Controller,
+    _action: ControlAction
   ): ContextSuggestion[] {
     return [
       {
@@ -546,7 +546,7 @@ export class SmartContextBuilder {
    */
   private generateTemporalRelationshipSuggestions(
     relationship: string,
-    controllers: Controller[]
+    _controllers: Controller[]
   ): ContextSuggestion[] {
     const suggestions: ContextSuggestion[] = [];
 
@@ -593,7 +593,7 @@ export class SmartContextBuilder {
    */
   private generateUCCATypeSpecificSuggestions(
     uccaType: string,
-    controllers: Controller[]
+    _controllers: Controller[]
   ): ContextSuggestion[] {
     const suggestions: ContextSuggestion[] = [];
 
@@ -640,7 +640,7 @@ export class SmartContextBuilder {
    */
   private generateMultiControllerHazardSuggestions(
     hazards: Hazard[],
-    controllers: Controller[]
+    _controllers: Controller[]
   ): ContextSuggestion[] {
     const suggestions: ContextSuggestion[] = [];
 
@@ -745,7 +745,7 @@ export class SmartContextBuilder {
       .split(/\s+/)
       .filter(word => word.length > 2 && !stopWords.has(word));
 
-    return [...new Set(words)];
+    return Array.from(new Set(words));
   }
 
   private areActionsSimilar(action1: ControlAction, action2: { verb: string; object: string }): boolean {

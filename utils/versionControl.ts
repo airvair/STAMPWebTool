@@ -3,16 +3,6 @@
  * Tracks changes, enables history viewing, and supports branching/merging
  */
 
-import { 
-  Loss, 
-  Hazard, 
-  Controller, 
-  ControlAction, 
-  UnsafeControlAction, 
-  UCCA,
-  CausalScenario,
-  Requirement
-} from '@/types';
 import { STAPAnalysisData } from './importExport';
 
 export interface Version {
@@ -113,7 +103,7 @@ export class VersionControlManager {
   private currentBranch = 'main';
   private currentVersion: string | null = null;
   private uncommittedChanges: EntityChange[] = [];
-  private baseSnapshot: STAPAnalysisData | null = null;
+  // private baseSnapshot: STAPAnalysisData | null = null;
 
   constructor() {
     // Initialize with main branch
@@ -248,7 +238,7 @@ export class VersionControlManager {
     sourceBranch: string,
     targetBranch: string,
     author: { id: string; name: string; email?: string },
-    strategy: 'merge' | 'rebase' = 'merge'
+    _strategy: 'merge' | 'rebase' = 'merge'
   ): Promise<MergeResult> {
     const source = this.branches.get(sourceBranch);
     const target = this.branches.get(targetBranch);
@@ -617,7 +607,7 @@ export class VersionControlManager {
     return this.organizeChanges(merged);
   }
 
-  private async reconstructState(versionId: string): Promise<STAPAnalysisData | null> {
+  private async reconstructState(_versionId: string): Promise<STAPAnalysisData | null> {
     // This would reconstruct the full state by applying all changes
     // from the initial state up to the specified version
     // For now, return null (would be implemented with actual state reconstruction)

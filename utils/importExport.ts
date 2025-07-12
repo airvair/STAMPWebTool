@@ -14,7 +14,7 @@ import {
   Requirement,
   FeedbackPath,
   ControlPath,
-  CommunicationLink,
+  CommunicationPath,
   SystemComponent
 } from '@/types';
 
@@ -46,7 +46,7 @@ export interface STAPAnalysisData {
   controlActions: ControlAction[];
   feedbackPaths: FeedbackPath[];
   controlPaths: ControlPath[];
-  communicationLinks: CommunicationLink[];
+  communicationPaths: CommunicationPath[];
   systemComponents: SystemComponent[];
   ucas: UnsafeControlAction[];
   uccas: UCCA[];
@@ -222,7 +222,7 @@ Tool: STAMP Web Tool v1.0`;
       hazardEl.appendChild(titleEl);
       
       const systemCondEl = xmlDoc.createElement('SystemCondition');
-      systemCondEl.textContent = hazard.systemCondition;
+      systemCondEl.textContent = hazard.systemCondition || '';
       hazardEl.appendChild(systemCondEl);
       
       const envCondEl = xmlDoc.createElement('EnvironmentalCondition');
@@ -230,7 +230,7 @@ Tool: STAMP Web Tool v1.0`;
       hazardEl.appendChild(envCondEl);
       
       // Add loss links
-      hazard.lossIds.forEach(lossId => {
+      hazard.linkedLossIds?.forEach(lossId => {
         const linkEl = xmlDoc.createElement('LossLink');
         linkEl.setAttribute('lossId', lossId);
         hazardEl.appendChild(linkEl);
@@ -305,7 +305,7 @@ Tool: STAMP Web Tool v1.0`;
   /**
    * Import from CSV format
    */
-  private async importFromCSV(content: string, options: ImportOptions): Promise<ImportResult> {
+  private async importFromCSV(_content: string, _options: ImportOptions): Promise<ImportResult> {
     // CSV import would require parsing multiple CSV files
     // This is a simplified implementation
     return {
@@ -324,7 +324,7 @@ Tool: STAMP Web Tool v1.0`;
   /**
    * Import from STPA-ML format
    */
-  private async importFromSTPAML(content: string, options: ImportOptions): Promise<ImportResult> {
+  private async importFromSTPAML(content: string, _options: ImportOptions): Promise<ImportResult> {
     try {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(content, 'text/xml');
@@ -340,7 +340,7 @@ Tool: STAMP Web Tool v1.0`;
         controlActions: this.parseControlActionsFromXML(xmlDoc),
         feedbackPaths: [],
         controlPaths: [],
-        communicationLinks: [],
+        communicationPaths: [],
         systemComponents: [],
         ucas: this.parseUCAsFromXML(xmlDoc),
         uccas: this.parseUCCAsFromXML(xmlDoc),
@@ -419,9 +419,9 @@ Tool: STAMP Web Tool v1.0`;
       hazard.id,
       hazard.code,
       hazard.title,
-      hazard.systemCondition,
+      hazard.systemCondition || '',
       hazard.environmentalCondition || '',
-      hazard.lossIds.join(';')
+      hazard.linkedLossIds?.join(';') || ''
     ];
   }
 
@@ -451,8 +451,8 @@ Tool: STAMP Web Tool v1.0`;
       uca.controllerId,
       uca.controlActionId,
       uca.ucaType,
-      uca.description,
-      uca.context,
+      uca.description || '',
+      uca.context || '',
       uca.hazardIds.join(';')
     ];
   }
@@ -473,8 +473,8 @@ Tool: STAMP Web Tool v1.0`;
     return [
       scenario.id,
       scenario.code || '',
-      scenario.title,
-      scenario.description,
+      scenario.title || '',
+      scenario.description || '',
       scenario.ucaIds?.join(';') || '',
       scenario.uccaIds?.join(';') || ''
     ];
@@ -485,7 +485,7 @@ Tool: STAMP Web Tool v1.0`;
       requirement.id,
       requirement.code || '',
       requirement.type,
-      requirement.description,
+      requirement.description || '',
       requirement.scenarioIds?.join(';') || ''
     ];
   }
@@ -528,9 +528,11 @@ Tool: STAMP Web Tool v1.0`;
         id: el.getAttribute('id') || '',
         code: el.getAttribute('code') || '',
         title: el.querySelector('Title')?.textContent || '',
+        systemComponent: '', // Add required field
+        systemState: '', // Add required field
         systemCondition: el.querySelector('SystemCondition')?.textContent || '',
         environmentalCondition: el.querySelector('EnvironmentalCondition')?.textContent || '',
-        lossIds
+        linkedLossIds: lossIds
       });
     }
     
@@ -586,7 +588,8 @@ Tool: STAMP Web Tool v1.0`;
     // Check required arrays
     const requiredArrays = [
       'losses', 'hazards', 'controllers', 'controlActions',
-      'ucas', 'uccas', 'causalScenarios', 'requirements'
+      'ucas', 'uccas', 'causalScenarios', 'requirements',
+      'feedbackPaths', 'controlPaths', 'communicationPaths', 'systemComponents'
     ];
 
     requiredArrays.forEach(key => {
@@ -609,6 +612,10 @@ Tool: STAMP Web Tool v1.0`;
       data.hazards.length +
       data.controllers.length +
       data.controlActions.length +
+      data.feedbackPaths.length +
+      data.controlPaths.length +
+      data.communicationPaths.length +
+      data.systemComponents.length +
       data.ucas.length +
       data.uccas.length +
       data.causalScenarios.length +

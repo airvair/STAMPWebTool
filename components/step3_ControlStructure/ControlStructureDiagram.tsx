@@ -8,7 +8,7 @@ import ControlStructureGraph from './ControlStructureGraph';
  */
 const ControlStructureDiagram: React.FC = () => {
     return (
-        <div style={{ height: '100%', width: '100%' }}>
+        <div style={{ height: '100%', width: '100%', position: 'relative' }}>
             <ControlStructureGraph />
         </div>
     );

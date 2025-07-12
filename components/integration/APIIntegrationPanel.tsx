@@ -101,7 +101,7 @@ const APIIntegrationPanel: React.FC<APIIntegrationPanelProps> = ({
     createWebhook,
     updateWebhook,
     deleteWebhook,
-    refresh: refreshWebhooks
+    refresh: _refreshWebhooks
   } = useAPIWebhooks(client);
 
   const handleSaveConfiguration = () => {
@@ -229,22 +229,36 @@ const APIIntegrationPanel: React.FC<APIIntegrationPanelProps> = ({
         </div>
 
         <div className="space-y-4">
-          <Input
-            label="API Base URL"
-            value={baseURL}
-            onChange={(e) => setBaseURL(e.target.value)}
-            placeholder="https://api.example.com"
-            leftIcon={<LinkIcon className="w-5 h-5 text-slate-400" />}
-          />
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">API Base URL</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <LinkIcon className="w-5 h-5 text-slate-400" />
+              </div>
+              <Input
+                value={baseURL}
+                onChange={(e) => setBaseURL(e.target.value)}
+                placeholder="https://api.example.com"
+                className="pl-10"
+              />
+            </div>
+          </div>
 
-          <Input
-            label="API Key"
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter your API key"
-            leftIcon={<KeyIcon className="w-5 h-5 text-slate-400" />}
-          />
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">API Key</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <KeyIcon className="w-5 h-5 text-slate-400" />
+              </div>
+              <Input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter your API key"
+                className="pl-10"
+              />
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -280,8 +294,9 @@ const APIIntegrationPanel: React.FC<APIIntegrationPanelProps> = ({
                 <Button
                   onClick={handleTestConnection}
                   variant="secondary"
-                  leftIcon={<BoltIcon className="w-4 h-4" />}
+                  className="inline-flex items-center gap-2"
                 >
+                  <BoltIcon className="w-4 h-4" />
                   Test Connection
                 </Button>
               )}
@@ -331,9 +346,10 @@ const APIIntegrationPanel: React.FC<APIIntegrationPanelProps> = ({
               <Button
                 onClick={sync}
                 variant="secondary"
-                leftIcon={<ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />}
+                className="inline-flex items-center gap-2"
                 disabled={isLoading}
               >
+                <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                 {isLoading ? 'Syncing...' : 'Sync Now'}
               </Button>
 
@@ -362,8 +378,9 @@ const APIIntegrationPanel: React.FC<APIIntegrationPanelProps> = ({
             <Button
               onClick={() => setShowWebhookModal(true)}
               size="sm"
-              leftIcon={<LinkIcon className="w-4 h-4" />}
+              className="inline-flex items-center gap-2"
             >
+              <LinkIcon className="w-4 h-4" />
               Add Webhook
             </Button>
           </div>
@@ -393,6 +410,8 @@ const APIIntegrationPanel: React.FC<APIIntegrationPanelProps> = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox
+                      id={`webhook-active-${webhook.id}`}
+                      label=""
                       checked={webhook.active}
                       onChange={(e) => handleToggleWebhook(webhook.id, e.target.checked)}
                     />

@@ -113,7 +113,6 @@ function OptimizedGridInner<T>({
 }: OptimizedGridProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const rowHeight = itemHeight + gap;
-  const rows = Math.ceil(items.length / columns);
   const containerHeight = typeof height === 'number' ? height : 400;
   
   // Group items into rows

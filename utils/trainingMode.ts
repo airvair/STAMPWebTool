@@ -424,19 +424,19 @@ export class TrainingModeManager {
         solution: {
           ucas: [
             {
-              type: UCAType.NOT_PROVIDED,
+              type: UCAType.NotProvided,
               context: 'During landing approach when gear deployment is required'
             },
             {
-              type: UCAType.PROVIDED,
+              type: UCAType.ProvidedUnsafe,
               context: 'At cruise altitude when gear deployment would cause structural damage'
             },
             {
-              type: UCAType.WRONG_TIME,
+              type: UCAType.TooLate,
               context: 'Too late during landing approach, insufficient time to lock'
             },
             {
-              type: UCAType.WRONG_DURATION,
+              type: UCAType.TooShort,
               context: 'Stopped before fully deployed and locked'
             }
           ]

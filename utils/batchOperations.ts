@@ -8,10 +8,10 @@ import {
   UCCA, 
   Controller, 
   ControlAction, 
-  Hazard,
+  // Hazard,
   UCAType,
   UCCAType
-} from '@/types';
+} from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface BatchOperation<T> {
@@ -92,7 +92,7 @@ export class BatchOperationsManager {
           // Check if already exists
           if (options.skipExisting && this.ucaExists(combo, existingUCAs)) {
             results.push({
-              item: combo,
+              item: combo as UnsafeControlAction,
               success: false,
               error: 'UCA already exists'
             });
@@ -107,11 +107,11 @@ export class BatchOperationsManager {
           }
 
           // Create the UCA
-          const newUCA: UnsafeControlAction = {
+          const newUCA = {
             ...combo,
             id: uuidv4(),
             code: options.autoGenerateCode ? this.generateUCACode(combo, processed + 1) : combo.code || ''
-          };
+          } as UnsafeControlAction;
 
           results.push({
             item: newUCA,
@@ -127,7 +127,7 @@ export class BatchOperationsManager {
             item: combo
           });
           results.push({
-            item: combo,
+            item: combo as any,
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error'
           });
@@ -185,7 +185,7 @@ export class BatchOperationsManager {
           // Check for duplicates
           if (this.uccaExists(combo, existingUCCAs)) {
             results.push({
-              item: combo,
+              item: combo as UCCA,
               success: false,
               error: 'UCCA already exists'
             });
@@ -194,11 +194,11 @@ export class BatchOperationsManager {
           }
 
           // Create the UCCA
-          const newUCCA: UCCA = {
+          const newUCCA = {
             ...combo,
             id: uuidv4(),
             code: options.autoGenerateCode ? this.generateUCCACode(combo, processed + 1) : combo.code || ''
-          };
+          } as UCCA;
 
           results.push({
             item: newUCCA,
@@ -214,7 +214,7 @@ export class BatchOperationsManager {
             item: combo
           });
           results.push({
-            item: combo,
+            item: combo as any,
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error'
           });
@@ -314,7 +314,7 @@ export class BatchOperationsManager {
 
     // In a real implementation, this would handle actual deletion
     // For now, we'll simulate successful deletion
-    items.forEach((item, index) => {
+    items.forEach((item, _index) => {
       results.push({
         item,
         success: true,
@@ -469,7 +469,7 @@ export class BatchOperationsManager {
    * Generate UCCA description
    */
   private generateUCCADescription(
-    pair: { controller1Id: string; controller2Id: string },
+    _pair: { controller1Id: string; controller2Id: string },
     uccaType: UCCAType
   ): string {
     return `${uccaType} interaction between controllers`;
@@ -605,7 +605,7 @@ export class BatchOperationsManager {
     csvRows.push('Status,Item ID,Error,Details');
     
     // Data rows
-    result.results.forEach((itemResult, index) => {
+    result.results.forEach((itemResult, _index) => {
       const status = itemResult.success ? 'Success' : 'Failed';
       const id = itemResult.id || 'N/A';
       const error = itemResult.error || '';

@@ -70,11 +70,11 @@ const ImportExportPanel: React.FC<ImportExportPanelProps> = ({
         controlActions: analysisData.controlActions || [],
         feedbackPaths: analysisData.feedbackPaths || [],
         controlPaths: analysisData.controlPaths || [],
-        communicationLinks: analysisData.communicationLinks || [],
+        communicationPaths: analysisData.communicationPaths || [],
         systemComponents: analysisData.systemComponents || [],
         ucas: analysisData.ucas || [],
         uccas: analysisData.uccas || [],
-        causalScenarios: analysisData.causalScenarios || [],
+        causalScenarios: analysisData.scenarios || [],
         requirements: analysisData.requirements || []
       };
 
@@ -136,7 +136,7 @@ const ImportExportPanel: React.FC<ImportExportPanelProps> = ({
         // Import data into the analysis context
         if (!mergeWithExisting) {
           // Clear existing data first
-          analysisData.clearAllData?.();
+          analysisData.resetAnalysis();
         }
 
         // Import each entity type
@@ -146,7 +146,7 @@ const ImportExportPanel: React.FC<ImportExportPanelProps> = ({
         result.data.controlActions.forEach(action => analysisData.addControlAction?.(action));
         result.data.ucas.forEach(uca => analysisData.addUCA?.(uca));
         result.data.uccas.forEach(ucca => analysisData.addUCCA?.(ucca));
-        result.data.causalScenarios.forEach(scenario => analysisData.addCausalScenario?.(scenario));
+        result.data.causalScenarios.forEach(scenario => analysisData.addScenario?.(scenario));
         result.data.requirements.forEach(req => analysisData.addRequirement?.(req));
 
         if (onImportComplete) {
@@ -195,7 +195,7 @@ const ImportExportPanel: React.FC<ImportExportPanelProps> = ({
       controlActions: analysisData.controlActions?.length || 0,
       ucas: analysisData.ucas?.length || 0,
       uccas: analysisData.uccas?.length || 0,
-      scenarios: analysisData.causalScenarios?.length || 0,
+      scenarios: analysisData.scenarios?.length || 0,
       requirements: analysisData.requirements?.length || 0
     };
   };

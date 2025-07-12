@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/solid';
 import { useRobustAnalysis } from '@/hooks/useRobustAnalysis';
 import Button from './Button';
+import { SpinningText } from '../../src/components/magicui/spinning-text';
 
 interface AnalysisStatusIndicatorProps {
   showDetails?: boolean;
@@ -115,9 +116,19 @@ const AnalysisStatusIndicator: React.FC<AnalysisStatusIndicatorProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   {getStatusIcon()}
-                  <span className="text-sm text-slate-700 dark:text-slate-300">
-                    {getStatusMessage()}
-                  </span>
+                  {state.syncStatus === 'syncing' ? (
+                    <SpinningText 
+                      duration={3}
+                      radius={6}
+                      className="text-sm text-blue-600 dark:text-blue-400 font-medium"
+                    >
+                      Saving...
+                    </SpinningText>
+                  ) : (
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                      {getStatusMessage()}
+                    </span>
+                  )}
                 </div>
 
                 {hasUnsavedChanges && (
@@ -209,7 +220,17 @@ const AnalysisStatusIndicator: React.FC<AnalysisStatusIndicatorProps> = ({
         </div>
         
         <div className="text-sm text-slate-600 dark:text-slate-300">
-          {getStatusMessage()}
+          {state.syncStatus === 'syncing' ? (
+            <SpinningText 
+              duration={3}
+              radius={6}
+              className="text-sm text-blue-600 dark:text-blue-400 font-medium"
+            >
+              Saving...
+            </SpinningText>
+          ) : (
+            getStatusMessage()
+          )}
         </div>
       </div>
 

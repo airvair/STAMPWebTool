@@ -60,10 +60,10 @@ export function useBatchedState<T extends { id: string }>(
   flush: () => void;
 } {
   const [items, setItems] = useState<T[]>(initialItems);
-  const batchProcessorRef = useRef<BatchProcessor<{ type: string; payload: any }>>();
+  const batchProcessorRef = useRef<BatchProcessor<{ type: string; payload: any }> | undefined>(undefined);
   
   useEffect(() => {
-    batchProcessorRef.current = new BatchProcessor((updates) => {
+    batchProcessorRef.current = new BatchProcessor<{ type: string; payload: any }>((updates) => {
       setItems(prevItems => {
         let newItems = [...prevItems];
         
@@ -279,7 +279,7 @@ export function useIntersectionObserver(
     observer.observe(element);
     
     return () => observer.disconnect();
-  }, [ref, options]);
+  }, [ref, options?.root, options?.rootMargin, options?.threshold]);
   
   return isIntersecting;
 }
@@ -289,7 +289,7 @@ export function useIntersectionObserver(
  */
 export function usePerformance(componentName: string) {
   const renderCount = useRef(0);
-  const renderStartTime = useRef<number>();
+  const renderStartTime = useRef<number | undefined>(undefined);
   
   useEffect(() => {
     renderCount.current += 1;

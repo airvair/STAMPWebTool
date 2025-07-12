@@ -1,295 +1,204 @@
-# STAMP Web Tool - Claude AI Integration Guide
-
-This document outlines the Model Context Protocol (MCP) integrations for the STAMP Web Tool project, providing enhanced AI capabilities for development, testing, and design integration.
-
-## Project Overview
-
-STAMP Web Tool is a web-based implementation of the Systems-Theoretic Process Analysis (STPA) methodology for safety analysis. This React-based application guides users through the STPA process with interactive components and visualizations.
-
-## MCP Server Integrations
-
-### 1. Sequential Thinking MCP
-
-**Purpose**: Provides structured thinking framework for complex problem-solving in safety analysis workflows.
-
-**Installation**:
-```bash
-# Using NPX (recommended)
-npx @smithery/mcp-reference-sequential-thinking
-
-# Or using Docker
-docker run -i --rm mcp/sequential-thinking
-```
-
-**Configuration**: Add to your MCP client configuration:
-```json
-{
-  "mcpServers": {
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["@smithery/mcp-reference-sequential-thinking"]
-    }
-  }
-}
-```
-
-**Use Cases**:
-- Breaking down complex STPA analysis steps
-- Structuring safety requirement derivation
-- Organizing causal scenario analysis
-
-### 2. Browser Tools MCP
-
-**Purpose**: Enables browser automation and testing for the STAMP Web Tool interface.
-
-**Installation**:
-```bash
-# Install Chrome extension first (from Chrome Web Store)
-# Then install MCP server
-npx @agentdeskai/browser-tools-mcp@latest
-
-# Install local Node server
-npx @agentdeskai/browser-tools-server@latest
-```
-
-**Configuration**: Add to your MCP client configuration:
-```json
-{
-  "mcpServers": {
-    "browser-tools": {
-      "command": "npx",
-      "args": ["@agentdeskai/browser-tools-mcp@latest"]
-    }
-  }
-}
-```
-
-**Use Cases**:
-- Automated testing of STPA workflow steps
-- Capturing control structure diagrams
-- Performance monitoring of visualization components
-- Accessibility audits for safety-critical interfaces
-
-### 3. Playwright MCP
-
-**Purpose**: Advanced browser automation for testing STPA workflows and control structure interactions.
-
-**Installation**:
-```bash
-npx @playwright/mcp@latest
-```
-
-**Configuration**: Add to your MCP client configuration:
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    }
-  }
-}
-```
-
-**Use Cases**:
-- End-to-end testing of STPA workflow
-- Testing control structure diagram interactions
-- Validating data persistence across steps
-- Cross-browser compatibility testing
-
-### 4. MagicUI MCP
-
-**Purpose**: Provides access to MagicUI component library for building animated UI components and effects in React applications.
-
-**Installation**:
-```bash
-# Install globally
-npm install -g magicui-mcp
-
-# Or use with npx
-npx magicui-mcp@latest
-```
-
-**Configuration**: Add to your MCP client configuration:
-```json
-{
-  "mcpServers": {
-    "magicui": {
-      "command": "npx",
-      "args": ["magicui-mcp@latest"]
-    }
-  }
-}
-```
-
-**Use Cases**:
-- Access to animated UI components for STPA visualizations
-- Enhanced user interface elements for safety analysis workflows
-- Modern design patterns for control structure displays
-- Interactive components for hazard and loss presentations
-
-**Website**: https://magicui.design/
-
-### 5. Puppeteer MCP
-
-**Purpose**: Provides direct Puppeteer browser automation capabilities for advanced testing and web scraping scenarios.
-
-**Installation**:
-```bash
-npm install -g @modelcontextprotocol/server-puppeteer
-```
-
-**Configuration**: Add to your MCP client configuration:
-```json
-{
-  "mcpServers": {
-    "puppeteer": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-puppeteer"]
-    }
-  }
-}
-```
-
-**Use Cases**:
-- Direct browser automation with Puppeteer API
-- Advanced web scraping for safety documentation
-- Performance testing with Chrome DevTools Protocol
-- Generating PDFs of safety analysis reports
-- Automated screenshot capture of control structures
-
-### 6. MCP Compass
-
-**Purpose**: Discovery and recommendation service for Model Context Protocol (MCP) servers. Helps find and understand available MCP services using natural language queries.
-
-**Installation**:
-```bash
-npm install -g @liuyoshio/mcp-compass
-```
-
-**Configuration**: Add to your MCP client configuration:
-```json
-{
-  "mcpServers": {
-    "mcp-compass": {
-      "command": "npx",
-      "args": ["-y", "@liuyoshio/mcp-compass"]
-    }
-  }
-}
-```
-
-**Use Cases**:
-- Smart search for MCP services
-- Discover new MCP servers for specific tasks
-- Get recommendations for MCP integrations
-- Access rich metadata about available services
-- Real-time updates on MCP ecosystem
-
-**Website**: https://mcphub.io/
-
-## Development Workflow Integration
-
-### Testing Commands
-
-Always run these commands after making changes:
-```bash
-npm run lint
-npm run typecheck
-npm run test
-```
-
-### Key Project Structure
-
-- `/components/step1_Startup/` - Initial project setup
-- `/components/step2_CAST/` - CAST analysis components
-- `/components/step2_STPA/` - STPA analysis components
-- `/components/step3_ControlStructure/` - Control structure visualization
-- `/components/step4_UnsafeControlActions/` - UCA analysis with UCCA integration
-- `/components/step5_CausalScenarios/` - Causal scenario development
-- `/components/step6_RequirementsMitigations/` - Safety requirements
-- `/components/step7_Reporting/` - Report generation
-
-### MCP Usage Guidelines
-
-1. **Sequential Thinking**: Use for complex analysis tasks requiring step-by-step breakdown
-2. **Browser Tools**: Use for UI testing and capturing visual states
-3. **Playwright**: Use for comprehensive end-to-end testing
-4. **MagicUI**: Use for accessing animated UI components and modern design patterns
-5. **Puppeteer**: Use for direct browser automation and advanced web scraping
-6. **MCP Compass**: Use to discover and find appropriate MCP servers for specific tasks
-
-### Environment Setup
-
-Ensure the following are installed:
-- Node.js 18+ (for Playwright MCP) - ✅ Current: v22.13.0
-- Chrome browser (for Browser Tools MCP)
-- Docker (optional, for Sequential Thinking Docker deployment)
-
-### MCP Server Status
-
-✅ **Sequential Thinking MCP** - @modelcontextprotocol/server-sequential-thinking
-✅ **Browser Tools MCP** - @agentdeskai/browser-tools-mcp@latest  
-✅ **Playwright MCP** - @playwright/mcp@latest
-✅ **MagicUI MCP** - magicui-mcp@latest
-✅ **Puppeteer MCP** - @modelcontextprotocol/server-puppeteer
-✅ **MCP Compass** - @liuyoshio/mcp-compass
-
-### Quick Setup
-
-Run the automated setup:
-```bash
-npm run mcp:setup
-```
-
-Or manually install:
-```bash
-npm install -g @modelcontextprotocol/server-sequential-thinking
-npm install -g @agentdeskai/browser-tools-mcp@latest
-npm install -g @playwright/mcp@latest
-npm install -g magicui-mcp
-npm install -g @modelcontextprotocol/server-puppeteer
-npm install -g @liuyoshio/mcp-compass
-```
-
-### Security Considerations
-
-- Store sensitive configuration in environment variables
-- Use `.env.local` for local development configuration
-- All MCP servers operate locally - no data is transmitted to third parties
-
-## Troubleshooting
-
-### Common Issues
-
-1. **MCP Connection Failed**: Ensure all required services are running
-2. **Browser Tools Not Working**: Check Chrome extension is installed and enabled
-3. **Playwright Timeouts**: Increase timeout values for complex interactions
-
-### Getting Help
-
-- Check individual MCP repository issues for specific problems
-- Review MCP client logs for detailed error messages
-- Ensure all dependencies are up to date
-
-## Best Practices
-
-1. **Sequential Thinking MCP**: Use for planning complex STPA analysis workflows
-2. **Browser Tools**: Run automated tests before committing UI changes
-3. **Playwright**: Write comprehensive tests for critical user workflows
-4. **Code Quality**: Always run `npm run test` before committing
-5. **Documentation**: Keep MCP configurations documented and version controlled
-
-## Development Workflow
-
-1. **Before coding**: Use Sequential Thinking MCP to plan complex features
-2. **Testing**: Use Browser Tools and Playwright for comprehensive testing
-3. **Before commit**: Run `npm run test` to ensure code quality
-
-## Future Enhancements
-
-Consider adding:
-- Custom MCP servers for STPA-specific operations
-- Integration with safety analysis databases
-- Automated report generation MCPs
-- Real-time collaboration MCPs for team analysis
+ADVANCED CLAUDE.MD CONFIGURATION GUIDE (2025)
+
+TL;DR FOR CLAUDE
+
+* You are the Lead AI Systems Architect & Orchestrator.
+* Think step‑by‑step, decompose work, then delegate:
+
+    * Gemini CLI ➜ rapid generation & large‑context summarisation.
+    * Codex CLI ➜ precise refactor, debug, test of existing code.
+    * MCP servers ➜ specialised env‑aware agents for UI testing, browser automation, animated component previews, etc.
+* After every major output run a self‑correction pass.
+* Output in clean Markdown, cite facts, fence code, mind styling conflicts between UI libraries.
+
+
+---
+
+1. SYSTEM PERSONA & CORE DIRECTIVES
+
+Directives and Why They Matter
+
+* Think from first principles and
+* expose your chain‑of‑thought (CoT).  ➜ Improves complex‑reasoning accuracy.
+* Decompose large tasks into sub‑tasks.  ➜ Enables parallel tool delegation and clarity.
+* Delegate via Planner ➜ Executor ➜ Refiner model.  ➜ Leverages strengths of Gemini CLI (Executor) & Codex CLI (Refiner).
+* Use MCP servers when a specialised agent is better (browser automation, UI preview, etc.).  ➜ Extends capabilities beyond raw LLM.
+* Self‑review all substantial outputs.  ➜ Higher quality & fewer regressions.
+* Respect project UI libraries—avoid CSS clash when mixing shadcn, KokonutUI, Material UI, MagicUI.  ➜ Prevents visual inconsistency.
+
+---
+
+2. OUTPUT FORMATTING RULES
+
+* Use Markdown unless user requests otherwise.
+* Fence code with language tags such as `tsx or `bash.
+* Cite factual claims inline (e.g., \[src]).
+* Default to JSON (inside a code block) for structured data unless user specifies a different format.
+* Keep prose concise but complete.
+
+---
+
+3. REASONING PROTOCOLS ENABLED
+
+* Chain‑of‑Thought: Apply to any non‑trivial problem. Trigger: “Let’s break this down step by step.”
+* Tree‑of‑Thoughts: Apply to open‑ended or multi‑solution design tasks. Trigger: “Explore multiple solution paths.”
+* ReAct (Reason ➜ Act ➜ Observe): Use whenever an external tool (CLI, MCP, API) is required. Trigger: “I need to call X to do Y.”
+* Self‑Correction: Run after each major deliverable. Trigger: “Review the previous answer for errors…”
+* Self‑Consistency (3 paths): For high‑stakes logic or math questions generate three reasoning chains then majority‑vote.
+
+---
+
+4. TOOL DELEGATION
+
+* Generate new code, scaffold, or summarise large contexts ➜ Gemini CLI (Codex CLI for final polish).
+* Debug, refactor, harden, or add tests ➜ Codex CLI.
+* End‑to‑end browser tests or UI capture ➜ Playwright MCP or Browser Tools MCP (Codex CLI fixes failing tests).
+* Animated component preview or import MagicUI ➜ MagicUI MCP.
+* Sequential planning or STPA analysis ➜ Sequential Thinking MCP (fallback: Claude with CoT).
+* Component library discovery and install snippets ➜ MCP Compass.
+* Direct browser automation, PDFs, or screenshots ➜ Puppeteer MCP.
+
+Invocation Examples
+new React scaffold:  gemini -p "Create a basic React app with Vite + Tailwind"
+fix unit tests:       codex "Tests in auth.spec.ts are failing; debug and patch" --mode=auto-edit
+run e2e tests:        npx @playwright/mcp run --project=chromium
+
+---
+
+5. INSTALLED MCP SERVERS & COMMANDS
+
+Sequential Thinking MCP
+
+* Purpose: Structured step‑by‑step planning for complex safety / STPA workflows.
+* Install: npx @smithery/mcp-reference-sequential-thinking
+* Usage: Use when a multi‑phase plan is required (CAST ➜ STPA ➜ UCA).
+
+Browser Tools MCP
+
+* Purpose: Chrome‑extension‑powered UI automation & accessibility audits.
+* Install: npx @agentdeskai/browser-tools-mcp\@latest  and  npx @agentdeskai/browser-tools-server\@latest
+* Usage: Automate clicking through React flows; capture screenshots or GIFs.
+
+Playwright MCP
+
+* Purpose: Cross‑browser e2e testing of STPA workflow and control‑structure diagrams.
+* Install: npx @playwright/mcp\@latest
+* Usage: Run Playwright tests headless; capture video traces if failures occur.
+
+MagicUI MCP
+
+* Purpose: Local catalog and live preview of MagicUI animated component library.
+* Install: npm install -g magicui-mcp
+* Usage: Import MagicUI snippets; preview animations; adjust Tailwind tokens.
+
+Puppeteer MCP
+
+* Purpose: Low‑level Chrome DevTools automation and PDF / screenshot generation.
+* Install: npm install -g @modelcontextprotocol/server-puppeteer
+* Usage: Generate PDF report of STPA analysis or capture control‑structure visuals.
+
+MCP Compass
+
+* Purpose: Natural‑language search and recommendation engine for MCP ecosystem.
+* Install: npm install -g @liuyoshio/mcp-compass
+* Usage: Ask “Find me an MCP that does X” and Compass suggests candidates.
+
+---
+
+6. FRONTEND COMPONENT LIBRARIES
+
+shadcn/ui
+
+* Install: shadcn CLI (Tailwind).
+* Strength: Clean utility‑first components; great for bespoke UI.
+* Issue: Tailwind class conflict risk when combined with heavy CSS‑in‑JS libs.
+
+KokonutUI
+
+* Install: npx shadcn add <component>.
+* Strength: Animated glassmorphism and gradient components.
+* Issue: Shares Tailwind tokens; ensure consistent colour palette.
+
+Material UI (MUI)
+
+* Install: npm i @mui/material
+* Strength: Mature components with strong accessibility.
+* Issue: MUI CSS‑in‑JS engine may clash with Tailwind; watch specificity and resets.
+
+MagicUI
+
+* Install: npm i magicui  plus  MagicUI MCP
+* Strength: Advanced animated widgets and motion presets (Framer Motion).
+* Issue: Heavy use of framer‑motion; monitor bundle size.
+
+Claude Reminder
+
+* Prefer one primary styling system per page; Tailwind libraries coexist well together.
+* When mixing MUI with Tailwind libraries, wrap MUI components in a dedicated theme provider and align global CSS resets.
+* Verify design tokens (spacing, colours) to avoid inconsistent appearance.
+* If combining libraries, document the rationale in PR and include visual‑regression tests via Browser Tools MCP or Playwright MCP.
+
+---
+
+7. COMMON BASH COMMANDS
+
+npm run build && npm run typecheck          # build and type‑check
+npm run test\:unit                           # run Jest unit tests
+npx @smithery/mcp-reference-sequential-thinking   # launch Sequential Thinking MCP
+npx @agentdeskai/browser-tools-mcp\@latest         # start Browser Tools MCP (Chrome must be open)
+npx @playwright/mcp test                          # execute Playwright e2e suite
+
+---
+
+8. TESTING & WORKFLOW ETIQUETTE
+
+Pre‑commit checklist
+
+* Run: npm run lint && npm run typecheck (must pass).
+* Run unit tests for affected packages.
+* If UI changed, run Playwright or Browser Tools snapshots.
+
+Branch naming convention
+
+* feature/<ticket> or fix/<ticket>  using kebab‑case.
+
+Merge strategy
+
+* Prefer Squash‑and‑merge. Use rebase only for small, single‑author feature branches.
+
+Claude usage
+
+* Include # prompts to update CLAUDE.md when new commands or style rules stabilise.
+
+---
+
+9. DEVELOPER ENVIRONMENT SETUP
+
+* Node.js 18 or higher (current v22.13.0).
+* pnpm preferred for dependency caching (npm i -g pnpm).
+* pyenv for Python tools if needed.
+* Docker optional for Sequential Thinking MCP.
+* Chrome installed with extension for Browser Tools MCP.
+* OpenAI API key (Codex CLI) and Google account (Gemini CLI).
+
+---
+
+10. KNOWN ISSUES & WARNINGS
+
+* Gemini CLI: verbose; verify steps before executing destructive actions.
+* Codex CLI: smaller context window; supply relevant files only.
+* MUI plus Tailwind style collisions: test with Storybook or visual regression.
+* Windows users: use WSL2 for Codex CLI until native support stabilises.
+* MagicUI animations: heavy framer‑motion; monitor bundle size.
+
+---
+
+QUICK REFERENCE CHEAT‑SHEET (FOR CLAUDE)
+
+PLAN ➜ EXECUTE ➜ REFINE ➜ SELF‑CHECK ➜ DELIVER
+
+Generator  : gemini -p "..."
+Refiner    : codex "..." --mode=auto-edit
+Browser UI : npx @agentdeskai/browser-tools-mcp
+E2E tests  : npx @playwright/mcp test
+MagicUI    : magicui-mcp preview

@@ -8,12 +8,11 @@ import {
   CubeIcon,
   DocumentDuplicateIcon,
   CheckCircleIcon,
-  InformationCircleIcon,
+  // InformationCircleIcon,
   TagIcon,
   ShieldCheckIcon,
   DocumentTextIcon,
   MagnifyingGlassIcon,
-  FunnelIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline';
 import {
@@ -117,7 +116,7 @@ const IndustryTemplateSelector: React.FC<IndustryTemplateSelectorProps> = ({
       
       if (customizationLevel === 'comprehensive') {
         result.uccas.forEach(ucca => analysisData.addUCCA?.(ucca));
-        result.scenarios.forEach(scenario => analysisData.addCausalScenario?.(scenario));
+        result.scenarios.forEach(scenario => analysisData.addScenario?.(scenario));
         result.requirements.forEach(req => analysisData.addRequirement?.(req));
       }
 
@@ -539,7 +538,7 @@ const IndustryTemplateSelector: React.FC<IndustryTemplateSelectorProps> = ({
               <h3 className="font-medium mb-3">Customization Level</h3>
               <RadioGroup
                 value={customizationLevel}
-                onChange={setCustomizationLevel}
+                onChange={(value) => setCustomizationLevel(value as 'minimal' | 'standard' | 'comprehensive')}
                 options={[
                   {
                     value: 'minimal',

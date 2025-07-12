@@ -5,14 +5,14 @@
 
 import { 
   UnsafeControlAction, 
-  UCCA, 
   CausalScenario,
   Hazard,
   Loss,
   Requirement,
   Controller,
   ControlAction,
-  UCAType
+  UCAType,
+  UCCA
 } from '@/types';
 
 // Worker message types
@@ -78,7 +78,8 @@ function calculateRiskScores(data: {
   
   // Build hazard severity map
   hazards.forEach(hazard => {
-    hazardSeverityMap.set(hazard.id, hazard.severity || 5);
+    const severity = typeof hazard.severity === 'number' ? Number(hazard.severity) : 5;
+    hazardSeverityMap.set(hazard.id, severity);
   });
   
   // Calculate UCA risk scores
@@ -86,18 +87,22 @@ function calculateRiskScores(data: {
     let riskScore = 5; // Base score
     
     // Factor in hazard severity
-    if (uca.linkedHazards) {
-      const hazardSeverities = uca.linkedHazards
+    const linkedHazards = uca.linkedHazards || uca.hazardIds || [];
+    if (linkedHazards.length > 0) {
+      const hazardSeverities = linkedHazards
         .map(id => hazardSeverityMap.get(id) || 5);
       riskScore = Math.max(...hazardSeverities);
     }
     
     // Factor in UCA type
     const typeMultipliers: Record<UCAType, number> = {
-      [UCAType.NOT_PROVIDED]: 1.2,
-      [UCAType.PROVIDED]: 1.1,
-      [UCAType.WRONG_TIME]: 1.3,
-      [UCAType.WRONG_DURATION]: 1.15
+      [UCAType.NotProvided]: 1.2,
+      [UCAType.ProvidedUnsafe]: 1.1,
+      [UCAType.TooEarly]: 1.3,
+      [UCAType.TooLate]: 1.3,
+      [UCAType.WrongOrder]: 1.25,
+      [UCAType.TooLong]: 1.15,
+      [UCAType.TooShort]: 1.15
     };
     
     riskScore *= typeMultipliers[uca.ucaType] || 1;
@@ -173,7 +178,10 @@ function analyzeCompleteness(data: {
     ? data.hazards.length / data.losses.length 
     : 0;
     
-  const unlinkedHazards = data.hazards.filter(h => !h.linkedLosses || h.linkedLosses.length === 0);
+  const unlinkedHazards = data.hazards.filter(h => {
+    const linkedLosses = h.linkedLosses || h.lossIds || h.linkedLossIds || [];
+    return linkedLosses.length === 0;
+  });
   if (unlinkedHazards.length > 0) {
     issues.push(`${unlinkedHazards.length} hazards not linked to losses`);
   }
@@ -194,7 +202,7 @@ function analyzeCompleteness(data: {
     
   // Check UCA type coverage
   const ucaTypes = new Set(data.ucas.map(u => u.ucaType));
-  const missingTypes = Object.values(UCAType).filter(t => !ucaTypes.has(t));
+  const missingTypes = Object.values(UCAType).filter((t): t is UCAType => !ucaTypes.has(t));
   if (missingTypes.length > 0) {
     issues.push(`Missing UCA types: ${missingTypes.join(', ')}`);
   }
@@ -205,7 +213,7 @@ function analyzeCompleteness(data: {
     ? data.scenarios.length / data.ucas.length
     : 0;
     
-  const unlinkedScenarios = data.scenarios.filter(s => !s.ucaId);
+  const unlinkedScenarios = data.scenarios.filter(s => !s.ucaId && (!s.ucaIds || s.ucaIds.length === 0));
   if (unlinkedScenarios.length > 0) {
     issues.push(`${unlinkedScenarios.length} scenarios not linked to UCAs`);
   }
@@ -243,7 +251,7 @@ function analyzeCompleteness(data: {
 /**
  * Generate recommendations based on analysis
  */
-function generateRecommendations(metrics: Record<string, number>, issues: string[]): string[] {
+function generateRecommendations(metrics: Record<string, number>, _issues: string[]): string[] {
   const recommendations: string[] = [];
   
   if (metrics.hazardsPerLoss < 1) {
@@ -273,7 +281,7 @@ function generateSuggestions(data: {
   existingUCAs: UnsafeControlAction[];
   hazards: Hazard[];
 }) {
-  const { controlAction, existingUCAs, hazards } = data;
+  const { controlAction, existingUCAs, hazards: _hazards } = data;
   const suggestions: any[] = [];
   
   // Common context patterns
@@ -306,7 +314,7 @@ function generateSuggestions(data: {
         ucaType,
         context: pattern,
         confidence: 0.7 + Math.random() * 0.3,
-        reasoning: `Common hazardous context for ${controlAction.name}`
+        reasoning: `Common hazardous context for ${controlAction.verb} ${controlAction.object}`
       });
     });
   });
@@ -351,7 +359,8 @@ function findPatterns(data: {
   // Find UCA type distribution
   const ucaTypeCount = new Map<UCAType, number>();
   data.ucas.forEach(uca => {
-    ucaTypeCount.set(uca.ucaType, (ucaTypeCount.get(uca.ucaType) || 0) + 1);
+    const count = ucaTypeCount.get(uca.ucaType) || 0;
+    ucaTypeCount.set(uca.ucaType, count + 1);
   });
   
   patterns.push({
@@ -365,7 +374,7 @@ function findPatterns(data: {
   
   // Find scenarios without requirements
   const scenariosWithoutReqs = data.scenarios.filter(scenario => 
-    !data.requirements.some(req => req.linkedScenarios?.includes(scenario.id))
+    !data.requirements.some(req => (req.linkedScenarios || req.scenarioIds || []).includes(scenario.id))
   );
   
   if (scenariosWithoutReqs.length > 0) {

@@ -6,7 +6,7 @@ interface SortableEvent {
 }
 import { EventDetail } from '@/types';
 import Button from '../../shared/Button';
-import Input from '../../shared/Input';
+import AutoExpandingTextarea from '../../shared/AutoExpandingTextarea';
 import CastStepLayout from "./CastStepLayout";
 
 // TypeScript declaration for SortableJS since it&apos;s loaded from a CDN
@@ -100,38 +100,42 @@ const SequenceOfEventsBuilder: React.FC<SequenceOfEventsBuilderProps> = ({
                         <li
                             key={event.id}
                             data-id={event.id}
-                            className="flex items-center space-x-2 p-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900/50"
+                            className="flex items-start space-x-2 p-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900/50"
                         >
                             {/* Drag handle */}
-                            <div className="drag-handle text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1">
+                            <div className="drag-handle text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1 mt-1">
                                 <GripVerticalIcon />
                             </div>
-                            <span className="text-slate-500 dark:text-slate-400 w-6 text-right font-mono">{index + 1}.</span>
-                            <Input
+                            <span className="text-slate-500 dark:text-slate-400 w-6 text-right font-mono mt-2">{index + 1}.</span>
+                            <AutoExpandingTextarea
                                 value={event.description}
                                 onChange={(e) => updateEventDetail(event.id, { description: e.target.value })}
                                 className="flex-grow !mb-0"
                                 containerClassName="!mb-0 flex-grow"
                                 placeholder="e.g., 00:42:17 – The aircraft descended through 10,000 ft..."
+                                minRows={1}
+                                maxRows={5}
                             />
                             {/* Replaced up/down arrows with delete button */}
-                            <Button variant="ghost" size="sm" onClick={() => deleteEventDetail(event.id)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 p-1">
+                            <Button variant="ghost" size="sm" onClick={() => deleteEventDetail(event.id)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 p-1 mt-1">
                                 <PlaceholderTrashIcon />
                             </Button>
                         </li>
                     ))}
                 </ul>
             </div>
-            <div className="flex items-center space-x-2">
-                <Input
+            <div className="flex items-start space-x-2">
+                <AutoExpandingTextarea
                     value={newEventDesc}
                     onChange={(e) => setNewEventDesc(e.target.value)}
                     placeholder="Enter new event description..."
                     className="flex-grow !mb-0"
                     containerClassName="!mb-0 flex-grow"
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddEvent()}
+                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleAddEvent())}
+                    minRows={1}
+                    maxRows={5}
                 />
-                <Button onClick={handleAddEvent} leftIcon={<PlaceholderPlusIcon />}>Add Event</Button>
+                <Button onClick={handleAddEvent} leftIcon={<PlaceholderPlusIcon />} className="mt-1">Add Event</Button>
             </div>
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                 <strong>Tip:</strong> Avoid the word &apos;fail&apos; unless a mechanical part broke. (e.g., &quot;The pilot did not extend landing gear&quot; instead of &quot;The pilot failed to...&quot;).

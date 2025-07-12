@@ -26,6 +26,9 @@ export interface CommunicationPath {
   targetMemberId?: string; // NEW: For intra-team links
 }
 
+// Alias for backward compatibility
+export type CommunicationLink = CommunicationPath;
+
 export enum UCAType {
   NotProvided = 'Not Provided',
   ProvidedUnsafe = 'Provided Unsafe/Incorrectly/Excess',
@@ -77,8 +80,12 @@ export interface Hazard extends Identifiable {
   environmentalCondition: string;
   systemState: string;
   linkedLossIds: string[];
+  lossIds?: string[]; // Alternative property name used in some parts
+  linkedLosses?: string[]; // Alternative property name used in some parts
   parentHazardId?: string;
   subHazardDetails?: string;
+  severity?: string;
+  systemCondition?: string; // Used in completenessChecker
 }
 
 export interface SystemConstraint extends Identifiable {
@@ -177,6 +184,8 @@ export interface ControlAction extends Identifiable {
   object: string;
   description: string;
   isOutOfScope: boolean;
+  name?: string; // Alternative way to reference the action
+  feedbackIds?: string[]; // Referenced in completenessChecker
 }
 
 export interface UnsafeControlAction extends Identifiable {
@@ -186,6 +195,10 @@ export interface UnsafeControlAction extends Identifiable {
   context: string;
   hazardIds: string[];
   code: string;
+  riskCategory: string;
+  riskScore?: number;
+  description?: string;
+  linkedHazards?: string[];
 }
 
 export enum UCCAType {
@@ -207,19 +220,40 @@ export interface UCCA extends Identifiable {
   temporalRelationship?: 'Simultaneous' | 'Sequential' | 'Within-Timeframe';
   operationalContextId?: string;
   isSystematic?: boolean; // Whether this represents a systematic pattern vs single occurrence
+  specificCause?: string;
+  timingConstraints?: string;
 }
 
 export interface CausalScenario extends Identifiable {
   ucaId: string;
+  ucaIds?: string[]; // Some scenarios can be linked to multiple UCAs
+  uccaIds?: string[]; // Linked UCCAs
   classType: ScenarioClass;
   description: string;
   isAdditional?: boolean;
+  causalFactors?: string[];
+  code?: string;
+  title?: string;
+  triggers?: string;
+  conditions?: string;
+  consequences?: string;
+  controllerConstraints?: string;
+  inadequateFeedback?: string;
+  delaysAndLags?: string;
+  componentFailures?: string;
 }
 
 export interface Requirement extends Identifiable {
   text: string;
   linkedScenarioIds: string[];
+  scenarioIds?: string[]; // Alternative property name used in some parts
+  linkedScenarios?: string[]; // Alternative property name used in some parts
   type: 'Requirement' | 'Mitigation';
+  implementation?: string;
+  code?: string;
+  priority?: string;
+  description?: string;
+  verificationMethod?: string;
 }
 
 export interface StepDefinition {
@@ -277,4 +311,17 @@ export interface HardwareAnalysisSession extends Identifiable {
   completedAt?: string;
   analysisNotes?: string;
   importedProbabilityData?: boolean;
+}
+
+export interface CompletenessReport {
+  overallCompleteness: number;
+  stepCompleteness: Record<string, number>;
+  issues: any[];
+  // Additional properties from completenessChecker.ts implementation
+  overallScore?: number;
+  checks?: any[];
+  criticalIssues?: number;
+  warnings?: number;
+  suggestions?: any[];
+  timestamp?: Date;
 }

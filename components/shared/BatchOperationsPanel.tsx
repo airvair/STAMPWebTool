@@ -5,7 +5,6 @@ import {
   TrashIcon,
   ArrowPathIcon,
   CheckCircleIcon,
-  XCircleIcon,
   ExclamationTriangleIcon,
   ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
@@ -16,10 +15,10 @@ import {
   UCAbatchCreateOptions,
   UCCAbatchCreateOptions
 } from '@/utils/batchOperations';
-import { UCAType, UCCAType, Controller, ControlAction } from '@/types';
+import { UCAType, UCCAType } from '@/types';
 import Button from './Button';
 import Modal from './Modal';
-import Select from './Select';
+// import Select from './Select';
 import Checkbox from './Checkbox';
 import Textarea from './Textarea';
 
@@ -43,7 +42,7 @@ const BatchOperationsPanel: React.FC<BatchOperationsPanelProps> = ({
     addUCA,
     addUCCA,
     updateUCA,
-    updateUCCA,
+    // updateUCCA,
     deleteUCA,
     deleteUCCA
   } = useAnalysis();
@@ -55,10 +54,10 @@ const BatchOperationsPanel: React.FC<BatchOperationsPanelProps> = ({
 
   // Batch create options
   const [selectedControllers, setSelectedControllers] = useState<string[]>([]);
-  const [selectedControlActions, setSelectedControlActions] = useState<string[]>([]);
+  const [_selectedControlActions, _setSelectedControlActions] = useState<string[]>([]);
   const [selectedUCATypes, setSelectedUCATypes] = useState<UCAType[]>([]);
   const [selectedUCCATypes, setSelectedUCCATypes] = useState<UCCAType[]>([]);
-  const [selectedHazards, setSelectedHazards] = useState<string[]>([]);
+  const [_selectedHazards, _setSelectedHazards] = useState<string[]>([]);
   const [contextTemplate, setContextTemplate] = useState('');
   const [autoGenerateCode, setAutoGenerateCode] = useState(true);
   const [skipExisting, setSkipExisting] = useState(true);
@@ -78,7 +77,7 @@ const BatchOperationsPanel: React.FC<BatchOperationsPanelProps> = ({
   // Calculate expected items for creation
   const expectedItemCount = useMemo(() => {
     if (mode === 'uca') {
-      const actionCount = selectedControlActions.length || availableControlActions.length;
+      const actionCount = _selectedControlActions.length || availableControlActions.length;
       const typeCount = selectedUCATypes.length;
       return actionCount * typeCount;
     } else {
@@ -88,7 +87,7 @@ const BatchOperationsPanel: React.FC<BatchOperationsPanelProps> = ({
     }
   }, [
     mode,
-    selectedControlActions,
+    _selectedControlActions,
     availableControlActions,
     selectedUCATypes,
     selectedUCCATypes,
@@ -103,11 +102,11 @@ const BatchOperationsPanel: React.FC<BatchOperationsPanelProps> = ({
       if (mode === 'uca') {
         const options: UCAbatchCreateOptions = {
           controllers: controllers.filter(c => selectedControllers.includes(c.id)),
-          controlActions: selectedControlActions.length > 0
-            ? controlActions.filter(ca => selectedControlActions.includes(ca.id))
+          controlActions: _selectedControlActions.length > 0
+            ? controlActions.filter(ca => _selectedControlActions.includes(ca.id))
             : availableControlActions,
           ucaTypes: selectedUCATypes,
-          hazardIds: selectedHazards,
+          hazardIds: _selectedHazards,
           contextTemplate,
           autoGenerateCode,
           skipExisting
@@ -137,7 +136,7 @@ const BatchOperationsPanel: React.FC<BatchOperationsPanelProps> = ({
         const options: UCCAbatchCreateOptions = {
           controllerPairs,
           uccaTypes: selectedUCCATypes,
-          hazardIds: selectedHazards,
+          hazardIds: _selectedHazards,
           contextTemplate,
           autoGenerateCode
         };

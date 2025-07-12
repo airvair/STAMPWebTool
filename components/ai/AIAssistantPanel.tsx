@@ -82,7 +82,7 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
         controlActions: analysisData.controlActions || [],
         ucas: analysisData.ucas || [],
         uccas: analysisData.uccas || [],
-        scenarios: analysisData.causalScenarios || [],
+        scenarios: analysisData.scenarios || [],
         requirements: analysisData.requirements || []
       };
 
@@ -415,6 +415,7 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
                 <div key={capability.id} className="flex items-start gap-3">
                   <Checkbox
                     id={capability.id}
+                    label=""
                     checked={capability.enabled}
                     onChange={(e) => handleCapabilityToggle(capability.id, e.target.checked)}
                   />
@@ -518,7 +519,8 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
                       setSelectedInsight(null);
                     }}
                   >
-                    Go to Entity
+                    Go to E
+                    ntity
                   </Button>
                 )}
               </div>

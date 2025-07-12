@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import {
-  DocumentTextIcon,
   DocumentArrowDownIcon,
   Cog6ToothIcon,
   CheckCircleIcon,
@@ -17,7 +16,6 @@ import { useAnalysis } from '@/hooks/useAnalysis';
 import {
   reportGenerator,
   ReportOptions,
-  ReportTemplate,
   GeneratedReport
 } from '@/utils/reportGenerator';
 import Button from '../shared/Button';
@@ -37,7 +35,7 @@ interface ReportGenerationPanelProps {
 
 const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
   projectName = 'STPA Analysis',
-  projectId,
+  projectId: _projectId,
   onReportGenerated
 }) => {
   const analysisData = useAnalysis();
@@ -111,7 +109,7 @@ const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
       if (customSections.trim()) {
         try {
           options.customSections = JSON.parse(customSections);
-        } catch (e) {
+        } catch (_e) {
           console.warn('Invalid custom sections JSON, skipping');
         }
       }
@@ -123,7 +121,7 @@ const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
         controlActions: analysisData.controlActions || [],
         ucas: analysisData.ucas || [],
         uccas: analysisData.uccas || [],
-        scenarios: analysisData.causalScenarios || [],
+        scenarios: analysisData.scenarios || [],
         requirements: analysisData.requirements || []
       };
 
@@ -191,7 +189,7 @@ const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
       controlActions: analysisData.controlActions?.length || 0,
       ucas: analysisData.ucas?.length || 0,
       uccas: analysisData.uccas?.length || 0,
-      scenarios: analysisData.causalScenarios?.length || 0,
+      scenarios: analysisData.scenarios?.length || 0,
       requirements: analysisData.requirements?.length || 0
     };
   };
@@ -207,7 +205,6 @@ const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Quick Report</h3>
-              <DocumentTextIcon className="w-6 h-6 text-blue-600" />
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
               Generate a standard STPA report with default settings
