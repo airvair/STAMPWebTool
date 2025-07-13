@@ -39,6 +39,11 @@ const ControlPathsBuilder: React.FC = () => {
             return;
         }
 
+        if (cpSourceCtrlId === cpTargetId) {
+            alert("A controller cannot target itself. Please select a different target.");
+            return;
+        }
+
         const controlsString = `${actionVerb} ${actionObject}`;
         const newCpId = editingCpId || uuidv4();
 

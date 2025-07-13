@@ -85,7 +85,14 @@ export const transformAnalysisData = (
     };
 
     // Calculate parent node widths based on children and direct grandchild connections
-    const calculateParentWidth = (parentId: string): number => {
+    const calculateParentWidth = (parentId: string, visited = new Set<string>()): number => {
+        // Prevent infinite recursion from circular references
+        if (visited.has(parentId)) {
+            const controller = controllers.find(c => c.id === parentId);
+            return controller ? getNodeWidth(controller) : NODE_WIDTH;
+        }
+        visited.add(parentId);
+
         const children = controllerChildrenMap.get(parentId) || [];
         if (children.length === 0) {
             // No children, use default width based on controller type
@@ -105,7 +112,7 @@ export const transformAnalysisData = (
                 
                 if (childChildren.length > 0) {
                     // Child is large because it's a parent - use its calculated parent width
-                    totalChildrenWidth += calculateParentWidth(childId);
+                    totalChildrenWidth += calculateParentWidth(childId, new Set(visited));
                 } else {
                     // Child is simple OR large due to multiple parents - use base width
                     totalChildrenWidth += getNodeWidth(childController);

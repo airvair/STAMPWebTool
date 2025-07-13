@@ -42,6 +42,12 @@ const FeedbackPathsBuilder: React.FC = () => {
 
     const handleSaveFeedbackPath = () => {
         if (!fpSourceId || !fpTargetCtrlId || !fpFeedback) return;
+        
+        if (fpSourceId === fpTargetCtrlId) {
+            alert("A controller cannot provide feedback to itself. Please select a different source or target.");
+            return;
+        }
+        
         const pathData = { sourceId: fpSourceId, targetControllerId: fpTargetCtrlId, feedback: fpFeedback, isMissing: fpIsMissing };
         if (editingFpId) {
             updateFeedbackPath(editingFpId, pathData);

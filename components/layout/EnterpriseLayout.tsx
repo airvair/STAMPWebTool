@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
   DocumentTextIcon, 
@@ -14,10 +14,10 @@ import {
   TrashIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
+import Sortable from 'sortablejs';
 import { AnimatedCollapsible, AnimatedCollapsibleItem, AnimatedChevron } from '@/components/ui/animated-collapsible';
-import { AuroraText } from '@/src/components/magicui/aurora-text';
+import { AnimatedSortableItem, useSortableAnimation } from '@/components/ui/animated-sortable-item';
 import { APP_TITLE, CAST_STEPS, STPA_STEPS } from '@/constants';
-import { ExportPromptDialog } from '@/components/ui/export-prompt-dialog';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { useProjects } from '@/contexts/ProjectsContext';
 import { AnalysisType } from '@/types';
@@ -107,18 +107,20 @@ const EnterpriseLayout: React.FC = () => {
     currentProject, 
     deleteAnalysis, 
     selectAnalysis, 
-    updateAnalysis
+    updateAnalysis,
+    reorderAnalyses
   } = useProjects();
   const [commandOpen, setCommandOpen] = useState(false);
   const [, setSidebarOpen] = useState(true);
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState('components');
   const [expandedAnalyses, setExpandedAnalyses] = useState<Set<string>>(new Set());
   const [renamingAnalysisId, setRenamingAnalysisId] = useState<string | null>(null);
+  const analysesListRef = useRef<HTMLDivElement>(null);
+  const sortableRef = useRef<Sortable | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [deleteAnalysisDialog, setDeleteAnalysisDialog] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<{id: string, title: string} | null>(null);
-  const [showExportPrompt, setShowExportPrompt] = useState(false);
-  const [exportPromptData, setExportPromptData] = useState<{ id: string; name: string } | null>(null);
+  const { handleDragStart, handleDragEnd, isDragging } = useSortableAnimation();
 
 
   // Automatically expand the analysis dropdown when a new analysis is selected
@@ -172,6 +174,58 @@ const EnterpriseLayout: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [setSidebarOpen]);
 
+  // Initialize Sortable for analyses list
+  useEffect(() => {
+    if (!analysesListRef.current || !currentProject?.analyses?.length) return;
+
+    sortableRef.current = Sortable.create(analysesListRef.current, {
+      animation: 0, // Disable built-in animation - we use framer-motion
+      ghostClass: 'sortable-ghost', // Style ghost element
+      chosenClass: 'sortable-chosen',
+      dragClass: 'sortable-drag', // Keep visible during drag
+      forceFallback: true, // Use custom drag implementation
+      fallbackClass: 'sortable-fallback',
+      fallbackOnBody: false,
+      fallbackTolerance: 0,
+      disabled: renamingAnalysisId !== null,
+      filter: '.dropdown-trigger, .chevron-button, [data-sidebar="menu-action"]',
+      preventOnFilter: false,
+      onStart: (evt) => {
+        const draggedId = evt.item.getAttribute('data-id');
+        if (draggedId) {
+          handleDragStart(draggedId);
+          if (expandedAnalyses.has(draggedId)) {
+            // Collapse the dragged item if it's expanded
+            setExpandedAnalyses(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(draggedId);
+              return newSet;
+            });
+          }
+        }
+      },
+      onEnd: (evt) => {
+        handleDragEnd();
+        
+        if (evt.oldIndex === undefined || evt.newIndex === undefined || evt.oldIndex === evt.newIndex) return;
+        
+        // Get all analysis IDs in their new order
+        const newOrder = Array.from(analysesListRef.current!.children)
+          .map(child => child.getAttribute('data-id'))
+          .filter(Boolean) as string[];
+        
+        // Call the reorder function
+        if (currentProject?.id) {
+          reorderAnalyses(currentProject.id, newOrder);
+        }
+      },
+    });
+
+    return () => {
+      sortableRef.current?.destroy();
+    };
+  }, [currentProject?.analyses?.length, expandedAnalyses, reorderAnalyses, renamingAnalysisId, handleDragStart, handleDragEnd]);
+
   // No longer redirect to /start - we handle empty state in the layout itself
 
   const steps = analysisSession?.analysisType === AnalysisType.CAST ? CAST_STEPS : STPA_STEPS;
@@ -222,8 +276,8 @@ const EnterpriseLayout: React.FC = () => {
     if (currentProject) {
       const analysis = currentProject.analyses.find(a => a.id === analysisId);
       if (analysis) {
-        setExportPromptData({ id: analysisId, name: analysis.title });
-        setShowExportPrompt(true);
+        setAnalysisToDelete({ id: analysisId, title: analysis.title });
+        setDeleteAnalysisDialog(true);
       }
     }
   };
@@ -289,7 +343,7 @@ const EnterpriseLayout: React.FC = () => {
                           No analyses yet
                         </div>
                       ) : (
-                        <div>
+                        <div ref={analysesListRef} className="analyses-sortable-container">
                           {/* Render all analyses */}
                           {currentProject.analyses.map((analysis) => {
                             const isExpanded = expandedAnalyses.has(analysis.id);
@@ -297,7 +351,12 @@ const EnterpriseLayout: React.FC = () => {
                             const isSelected = analysisSession?.id === analysis.id;
                             
                             return (
-                              <div key={analysis.id}>
+                              <AnimatedSortableItem 
+                                key={analysis.id}
+                                id={analysis.id}
+                                index={currentProject.analyses.indexOf(analysis)}
+                                isDragging={isDragging(analysis.id)}
+                              >
                               <ContextMenu>
                                 <ContextMenuTrigger asChild>
                                   <SidebarMenuItem>
@@ -338,7 +397,7 @@ const EnterpriseLayout: React.FC = () => {
                                         }
                                       }}
                                       isActive={isSelected}
-                                      className="flex items-center py-2 h-auto min-h-[2rem]"
+                                      className="flex items-center py-2 h-auto min-h-[2rem] group"
                                     >
                                       <div className="flex items-center gap-2 flex-1 min-w-0">
                                         <button
@@ -346,7 +405,7 @@ const EnterpriseLayout: React.FC = () => {
                                             e.stopPropagation();
                                             toggleAnalysisExpanded(analysis.id);
                                           }}
-                                          className="p-0.5 hover:bg-sidebar-accent rounded transition-colors"
+                                          className="chevron-button p-0.5 hover:bg-sidebar-accent rounded transition-colors"
                                         >
                                           <AnimatedChevron isOpen={isExpanded} className="w-3 h-3" />
                                         </button>
@@ -356,11 +415,13 @@ const EnterpriseLayout: React.FC = () => {
                                           </span>
                                         </div>
                                       </div>
-                                      <AuroraText className="text-xs font-bold ml-2 flex-shrink-0">{analysis.analysisType}</AuroraText>
+                                      <span className={`text-xs font-bold ml-2 flex-shrink-0 ${
+                                        analysis.analysisType === AnalysisType.CAST ? 'text-pink-500' : 'text-blue-400'
+                                      }`}>{analysis.analysisType}</span>
                                     </SidebarMenuButton>
                                     <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
-                                        <SidebarMenuAction>
+                                        <SidebarMenuAction className="!top-1/2 !-translate-y-1/2 dropdown-trigger">
                                           <EllipsisVerticalIcon className="w-4 h-4" />
                                         </SidebarMenuAction>
                                       </DropdownMenuTrigger>
@@ -618,7 +679,7 @@ const EnterpriseLayout: React.FC = () => {
                                   })}
                                 </SidebarMenuSub>
                               </AnimatedCollapsible>
-                              </div>
+                              </AnimatedSortableItem>
                             );
                           })}
                         </div>
@@ -757,39 +818,19 @@ const EnterpriseLayout: React.FC = () => {
         
         <ConfirmationDialog
           open={deleteAnalysisDialog}
-          onOpenChange={setDeleteAnalysisDialog}
-          title="Delete Analysis"
-          description={`Are you sure you want to delete "${analysisToDelete?.title}"? This action cannot be undone.`}
-          confirmText="Delete"
+          onOpenChange={(open) => {
+            if (!open) {
+              setDeleteAnalysisDialog(false);
+              setAnalysisToDelete(null);
+            }
+          }}
+          title="Confirm Analysis Deletion"
+          description={analysisToDelete ? `You are about to permanently delete the analysis "${analysisToDelete.title}". This action cannot be undone and all associated data will be permanently removed from the system.` : ''}
+          confirmText="Delete Analysis"
+          cancelText="Cancel"
           onConfirm={confirmDeleteAnalysis}
           variant="destructive"
         />
-        
-        {/* Export Prompt Dialog */}
-        {exportPromptData && (
-          <ExportPromptDialog
-            isOpen={showExportPrompt}
-            onClose={() => {
-              setShowExportPrompt(false);
-              setExportPromptData(null);
-            }}
-            onExport={() => {
-              // Select the analysis and export
-              selectAnalysis(exportPromptData.id);
-              setTimeout(() => {
-                exportAnalysisAsJSON(analysisData);
-              }, 500);
-            }}
-            onDelete={() => {
-              setShowExportPrompt(false);
-              setAnalysisToDelete({ id: exportPromptData.id, title: exportPromptData.name });
-              setDeleteAnalysisDialog(true);
-              setExportPromptData(null);
-            }}
-            itemName={exportPromptData.name}
-            itemType="analysis"
-          />
-        )}
         
       </div>
     </FeedbackContainer>

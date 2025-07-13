@@ -30,6 +30,12 @@ const CommunicationLinksBuilder: React.FC = () => {
     const handleSaveCommunicationPath = () => {
         if (!commSourceId || !commTargetId || !commDescription) return;
 
+        // Prevent non-team controllers from communicating with themselves
+        if (commSourceId === commTargetId && !isIntraTeam) {
+            alert("A controller cannot communicate with itself. Please select a different target controller.");
+            return;
+        }
+
         const pathData: Omit<CommunicationPath, 'id'> = {
             sourceControllerId: commSourceId,
             targetControllerId: commTargetId,
