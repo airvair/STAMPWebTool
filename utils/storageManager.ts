@@ -297,7 +297,7 @@ export class StorageManager {
     return { projectSizes, analysisSizes };
   }
 
-  private validateProjects(data: any, errors: string[], warnings: string[]): void {
+  private validateProjects(data: any, errors: string[], _warnings: string[]): void {
     if (!Array.isArray(data)) {
       errors.push('Projects data must be an array');
       return;

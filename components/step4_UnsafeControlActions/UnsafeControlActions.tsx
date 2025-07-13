@@ -1,4 +1,4 @@
-import { PlusIcon, TrashIcon, SparklesIcon, DocumentTextIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
+import { PlusIcon, TrashIcon, SparklesIcon, DocumentTextIcon, CheckCircleIcon, ChartBarIcon } from '@heroicons/react/24/solid';
 import React, { useState, useEffect } from 'react';
 import { UCA_QUESTIONS_MAP, CONTROLLER_TYPE_COLORS } from '@/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';
@@ -7,8 +7,10 @@ import Button from '../shared/Button';
 import Checkbox from '../shared/Checkbox';
 import Select from '../shared/Select';
 import Textarea from '../shared/Textarea';
+import Tabs from '../shared/Tabs';
 import GuidedWorkflowOrchestrator from './GuidedWorkflowOrchestrator';
 import SmartSuggestionsPanel from './SmartSuggestionsPanel';
+import UCAUCCAVisualization from './visualization/UCAUCCAVisualization';
 import { validateUCA, validateUCCALogic } from '@/utils/ucaValidation';
 import { useErrorHandler } from '@/utils/errorHandling';
 import { UcaSuggestion } from '@/utils/smartUcaSuggestions';
@@ -259,8 +261,30 @@ const UnsafeControlActions: React.FC = () => {
     }
   };
 
-  const renderManualAnalysis = () => (
-    <div className="space-y-8">
+  const renderManualAnalysis = () => {
+    const tabs = [
+      { 
+        id: 'analysis', 
+        label: 'UCA/UCCA Analysis', 
+        icon: <DocumentTextIcon className="w-4 h-4" />,
+        badge: ucas.length + uccas.length
+      },
+      { 
+        id: 'visualization', 
+        label: 'Interactive Visualization', 
+        icon: <ChartBarIcon className="w-4 h-4" /> 
+      }
+    ];
+
+    return (
+      <Tabs tabs={tabs} defaultTab="analysis" variant="default">
+        {(activeTab) => {
+          if (activeTab === 'visualization') {
+            return <UCAUCCAVisualization className="mt-4" />;
+          }
+          
+          return (
+            <div className="space-y-8">
       <p className="text-sm text-slate-600 dark:text-slate-300">
         For each control action, analyze potential Unsafe Control Actions (UCAs) using the provided guide questions.
         Document the context in which the control action becomes unsafe and link it to relevant hazards.
@@ -423,7 +447,11 @@ const UnsafeControlActions: React.FC = () => {
         )}
       </div>
     </div>
-  );
+          );
+        }}
+      </Tabs>
+    );
+  };
 
   return (
       <div className="space-y-8">

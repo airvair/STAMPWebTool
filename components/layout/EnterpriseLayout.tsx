@@ -338,7 +338,7 @@ const EnterpriseLayout: React.FC = () => {
                                         }
                                       }}
                                       isActive={isSelected}
-                                      className="flex items-center"
+                                      className="flex items-center py-2 h-auto min-h-[2rem]"
                                     >
                                       <div className="flex items-center gap-2 flex-1 min-w-0">
                                         <button
@@ -350,9 +350,11 @@ const EnterpriseLayout: React.FC = () => {
                                         >
                                           <AnimatedChevron isOpen={isExpanded} className="w-3 h-3" />
                                         </button>
-                                        <span className="break-words py-0.5">
-                                          {analysis.title}
-                                        </span>
+                                        <div className="flex-1">
+                                          <span className="block line-clamp-2 py-0.5">
+                                            {analysis.title}
+                                          </span>
+                                        </div>
                                       </div>
                                       <AuroraText className="text-xs font-bold ml-2 flex-shrink-0">{analysis.analysisType}</AuroraText>
                                     </SidebarMenuButton>
