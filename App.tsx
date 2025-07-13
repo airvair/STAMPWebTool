@@ -7,7 +7,6 @@ import ControlStructureBuilder from './components/step3_ControlStructure/Control
 import UnsafeControlActions from './components/step4_UnsafeControlActions/UnsafeControlActions';
 import CausalScenarios from './components/step5_CausalScenarios/CausalScenarios';
 import RequirementsMitigations from './components/step6_RequirementsMitigations/RequirementsMitigations';
-import ReportGenerator from './components/step7_Reporting/ReportGenerator';
 
 const App: React.FC = () => {
   return (
@@ -22,7 +21,6 @@ const App: React.FC = () => {
         <Route path="analysis/step4" element={<UnsafeControlActions />} />
         <Route path="analysis/step5" element={<CausalScenarios />} />
         <Route path="analysis/step6" element={<RequirementsMitigations />} />
-        <Route path="analysis/step7" element={<ReportGenerator />} />
       </Route>
       
       {/* Catch-all redirect */}

@@ -1,4 +1,4 @@
-import { PlusIcon, TrashIcon, CogIcon, WrenchScrewdriverIcon, AcademicCapIcon, FunnelIcon, ChartBarIcon } from '@heroicons/react/24/solid';
+import { PlusIcon, TrashIcon, SparklesIcon, DocumentTextIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 import React, { useState, useEffect } from 'react';
 import { UCA_QUESTIONS_MAP, CONTROLLER_TYPE_COLORS } from '@/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';
@@ -7,12 +7,7 @@ import Button from '../shared/Button';
 import Checkbox from '../shared/Checkbox';
 import Select from '../shared/Select';
 import Textarea from '../shared/Textarea';
-import EnhancedUCCAAnalysis from './EnhancedUCCAAnalysis';
-import GuidedUCAWorkflow from './GuidedUCAWorkflow';
 import GuidedWorkflowOrchestrator from './GuidedWorkflowOrchestrator';
-import HardwareAnalysis from './HardwareAnalysis';
-import ScopeManagement from './ScopeManagement';
-import StpaComplianceDashboard from './StpaComplianceDashboard';
 import SmartSuggestionsPanel from './SmartSuggestionsPanel';
 import { validateUCA, validateUCCALogic } from '@/utils/ucaValidation';
 import { useErrorHandler } from '@/utils/errorHandling';
@@ -29,14 +24,14 @@ interface UCCAFormState {
   hazardIds: string[];
 }
 
-type AnalysisMode = 'comprehensive-guided' | 'guided' | 'manual' | 'hardware' | 'enhanced-ucca' | 'scope-management' | 'compliance-dashboard';
+type AnalysisMode = 'comprehensive-guided' | 'manual';
 
 const UnsafeControlActions: React.FC = () => {
   const { controllers, controlActions, ucas, addUCA, updateUCA, deleteUCA, hazards,
     uccas, addUCCA, updateUCCA, deleteUCCA } = useAnalysis();
   const { validateAndHandle, showSuccess } = useErrorHandler();
 
-  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('manual');
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('comprehensive-guided');
 
   const [selectedControllerId, setSelectedControllerId] = useState<string | null>(null);
   const [selectedControlActionId, setSelectedControlActionId] = useState<string | null>(null);
@@ -234,17 +229,30 @@ const UnsafeControlActions: React.FC = () => {
   const renderAnalysisModeContent = () => {
     switch (analysisMode) {
       case 'comprehensive-guided':
-        return <GuidedWorkflowOrchestrator />;
-      case 'guided':
-        return <GuidedUCAWorkflow />;
-      case 'hardware':
-        return <HardwareAnalysis />;
-      case 'enhanced-ucca':
-        return <EnhancedUCCAAnalysis />;
-      case 'scope-management':
-        return <ScopeManagement />;
-      case 'compliance-dashboard':
-        return <StpaComplianceDashboard />;
+        return (
+          <div className="space-y-6">
+            {/* Progress Indicator */}
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Analysis Progress</h4>
+                <span className="text-xs text-slate-500 dark:text-slate-400">6 Phases</span>
+              </div>
+              <div className="relative h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full transition-all duration-500"
+                     style={{ width: '16.67%' }} />
+              </div>
+              <div className="flex justify-between mt-2 text-xs text-slate-600 dark:text-slate-400">
+                <span>Hardware</span>
+                <span>Individual UCA</span>
+                <span>Controller UCCA</span>
+                <span>Cross-Level</span>
+                <span>Organizational</span>
+                <span>Validation</span>
+              </div>
+            </div>
+            <GuidedWorkflowOrchestrator />
+          </div>
+        );
       case 'manual':
       default:
         return renderManualAnalysis();
@@ -420,84 +428,172 @@ const UnsafeControlActions: React.FC = () => {
   return (
       <div className="space-y-8">
         {/* Analysis Mode Selector */}
-        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
-            UCAs/UCCAs Analysis Methods
-          </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
-            Choose your analysis approach. Each method offers different strengths for identifying unsafe control actions and combinations.
-          </p>
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-8 shadow-lg">
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3">
+              Choose Your Analysis Approach
+            </h3>
+            <p className="text-base text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
+              Select between our AI-powered comprehensive workflow or traditional manual analysis.
+              Both methods ensure full MIT STPA compliance.
+            </p>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
-            <Button
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {/* Comprehensive Guided Card */}
+            <div
               onClick={() => setAnalysisMode('comprehensive-guided')}
-              variant={analysisMode === 'comprehensive-guided' ? 'primary' : 'secondary'}
-              leftIcon={<CogIcon className="w-5 h-5" />}
-              className="h-20 flex-col text-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30"
+              className={`relative cursor-pointer rounded-xl border-2 transition-all duration-300 ${analysisMode === 'comprehensive-guided' 
+                ? 'border-blue-500 dark:border-blue-400 shadow-2xl scale-[1.02]' 
+                : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 hover:shadow-xl'}`}
             >
-              <span className="font-medium">Comprehensive Guided</span>
-              <span className="text-xs">Hardware + UCA + UCCA workflow</span>
-            </Button>
+              <div className="bg-gradient-to-br from-blue-500 to-green-500 rounded-t-xl p-1">
+                <div className="bg-white dark:bg-slate-800 rounded-t-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-3 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg">
+                        <SparklesIcon className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                          Comprehensive Guided Analysis
+                        </h4>
+                        <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                          Recommended for most users
+                        </p>
+                      </div>
+                    </div>
+                    {analysisMode === 'comprehensive-guided' && (
+                      <CheckCircleIcon className="w-8 h-8 text-green-500" />
+                    )}
+                  </div>
+                  
+                  <p className="text-slate-600 dark:text-slate-300 mb-6">
+                    AI-powered systematic workflow with step-by-step guidance through all phases of UCA and UCCA analysis.
+                  </p>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Hardware Analysis:</strong> Systematic component failure assessment
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Guided UCA Workflow:</strong> Interactive 3-phase identification process
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Enhanced UCCA:</strong> Advanced combination analysis algorithms
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Smart Suggestions:</strong> AI-powered recommendations
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Compliance Tracking:</strong> Real-time MIT STPA adherence
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-slate-200 dark:border-slate-600 pt-4">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <strong>Best for:</strong> Teams new to STPA, complex systems, regulated industries
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
             
-            <Button
-              onClick={() => setAnalysisMode('guided')}
-              variant={analysisMode === 'guided' ? 'primary' : 'secondary'}
-              leftIcon={<CogIcon className="w-5 h-5" />}
-              className="h-20 flex-col text-center"
-            >
-              <span className="font-medium">UCA Workflow</span>
-              <span className="text-xs">Individual UCA analysis only</span>
-            </Button>
-            
-            <Button
+            {/* Manual Analysis Card */}
+            <div
               onClick={() => setAnalysisMode('manual')}
-              variant={analysisMode === 'manual' ? 'primary' : 'secondary'}
-              leftIcon={<PlusIcon className="w-5 h-5" />}
-              className="h-20 flex-col text-center"
+              className={`relative cursor-pointer rounded-xl border-2 transition-all duration-300 ${analysisMode === 'manual' 
+                ? 'border-slate-600 dark:border-slate-400 shadow-2xl scale-[1.02]' 
+                : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 hover:shadow-xl'}`}
             >
-              <span className="font-medium">Manual Analysis</span>
-              <span className="text-xs">Traditional STPA approach</span>
-            </Button>
-            
-            <Button
-              onClick={() => setAnalysisMode('hardware')}
-              variant={analysisMode === 'hardware' ? 'primary' : 'secondary'}
-              leftIcon={<WrenchScrewdriverIcon className="w-5 h-5" />}
-              className="h-20 flex-col text-center"
-            >
-              <span className="font-medium">Hardware Analysis</span>
-              <span className="text-xs">Electro-mechanical failures</span>
-            </Button>
-            
-            <Button
-              onClick={() => setAnalysisMode('enhanced-ucca')}
-              variant={analysisMode === 'enhanced-ucca' ? 'primary' : 'secondary'}
-              leftIcon={<AcademicCapIcon className="w-5 h-5" />}
-              className="h-20 flex-col text-center"
-            >
-              <span className="font-medium">Enhanced UCCA</span>
-              <span className="text-xs">Advanced combination analysis</span>
-            </Button>
-            
-            <Button
-              onClick={() => setAnalysisMode('scope-management')}
-              variant={analysisMode === 'scope-management' ? 'primary' : 'secondary'}
-              leftIcon={<FunnelIcon className="w-5 h-5" />}
-              className="h-20 flex-col text-center"
-            >
-              <span className="font-medium">Scope Management</span>
-              <span className="text-xs">Filter & focus analysis</span>
-            </Button>
-            
-            <Button
-              onClick={() => setAnalysisMode('compliance-dashboard')}
-              variant={analysisMode === 'compliance-dashboard' ? 'primary' : 'secondary'}
-              leftIcon={<ChartBarIcon className="w-5 h-5" />}
-              className="h-20 flex-col text-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30"
-            >
-              <span className="font-medium">MIT STPA Compliance</span>
-              <span className="text-xs">Methodology adherence</span>
-            </Button>
+              <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-t-xl p-1">
+                <div className="bg-white dark:bg-slate-800 rounded-t-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-3 bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg">
+                        <DocumentTextIcon className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                          Manual Analysis
+                        </h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                          Expert mode
+                        </p>
+                      </div>
+                    </div>
+                    {analysisMode === 'manual' && (
+                      <CheckCircleIcon className="w-8 h-8 text-green-500" />
+                    )}
+                  </div>
+                  
+                  <p className="text-slate-600 dark:text-slate-300 mb-6">
+                    Traditional STPA approach with full control over the analysis process and direct entry capabilities.
+                  </p>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-slate-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Direct Entry:</strong> Create UCAs and UCCAs manually
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-slate-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Custom Filtering:</strong> Advanced search and organization
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-slate-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Bulk Operations:</strong> Efficient batch processing
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-slate-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Full Control:</strong> No automated workflows
+                      </span>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <CheckCircleIcon className="w-5 h-5 text-slate-500 mt-0.5" />
+                      <span className="text-sm text-slate-700 dark:text-slate-200">
+                        <strong>Expert Features:</strong> Advanced configuration options
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t border-slate-200 dark:border-slate-600 pt-4">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <strong>Best for:</strong> Experienced STPA practitioners, custom workflows
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Mode Info Bar */}
+          <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-sm text-blue-800 dark:text-blue-200 text-center">
+              <strong>Note:</strong> Both modes provide full MIT STPA compliance. You can switch between modes at any time without losing data.
+            </p>
           </div>
         </div>
 

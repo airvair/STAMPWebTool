@@ -1,16 +1,10 @@
 import React, { useRef, useEffect } from 'react';
-// SortableJS is loaded from CDN, declare the event type inline
-interface SortableEvent {
-  oldIndex?: number;
-  newIndex?: number;
-}
+import Sortable from 'sortablejs';
 import { EventDetail } from '@/types';
 import Button from '../../shared/Button';
 import AutoExpandingTextarea from '../../shared/AutoExpandingTextarea';
 import CastStepLayout from "./CastStepLayout";
 
-// TypeScript declaration for SortableJS since it&apos;s loaded from a CDN
-declare const Sortable: any;
 
 // SVG Icons for UI elements
 const PlaceholderPlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>;
@@ -59,7 +53,7 @@ const SequenceOfEventsBuilder: React.FC<SequenceOfEventsBuilderProps> = ({
                 ghostClass: 'sortable-ghost', // Class name for the drop placeholder
                 chosenClass: 'sortable-chosen', // Class name for the chosen item
                 handle: '.drag-handle', // Restrict drag start to elements with the .drag-handle class
-                onEnd: (evt: SortableEvent) => {
+                onEnd: (evt) => {
                     const { oldIndex, newIndex } = evt;
                     if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) {
                         return;

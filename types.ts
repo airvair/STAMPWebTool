@@ -50,6 +50,15 @@ export interface Identifiable {
   id: string;
 }
 
+export interface AnalysisFolder extends Identifiable {
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  parentFolderId?: string; // For nested folders
+  isExpanded?: boolean;
+}
+
 export interface AnalysisSession extends Identifiable {
   analysisType: AnalysisType | null;
   title: string;
@@ -58,6 +67,7 @@ export interface AnalysisSession extends Identifiable {
   updatedAt: string;
   currentStep: string;
   scope?: string;
+  folderId?: string; // Optional folder assignment
 }
 
 export interface EventDetail extends Identifiable {
@@ -324,4 +334,29 @@ export interface CompletenessReport {
   warnings?: number;
   suggestions?: any[];
   timestamp?: Date;
+}
+
+export interface AnalysisData {
+  analysisSession: AnalysisSession | null;
+  castStep2SubStep: number;
+  castStep2MaxReachedSubStep: number;
+  losses: Loss[];
+  hazards: Hazard[];
+  systemConstraints: SystemConstraint[];
+  systemComponents: SystemComponent[];
+  controllers: Controller[];
+  controlPaths: ControlPath[];
+  feedbackPaths: FeedbackPath[];
+  communicationPaths: CommunicationPath[];
+  controlActions: ControlAction[];
+  ucas: UnsafeControlAction[];
+  uccas: UCCA[];
+  scenarios: CausalScenario[];
+  requirements: Requirement[];
+  sequenceOfEvents: EventDetail[];
+  activeContexts: { [key: string]: string };
+  hardwareComponents: HardwareComponent[];
+  failureModes: FailureMode[];
+  unsafeInteractions: UnsafeInteraction[];
+  hardwareAnalysisSession: HardwareAnalysisSession | null;
 }

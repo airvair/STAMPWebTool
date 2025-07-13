@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
 import { 
   DocumentTextIcon, 
   CubeTransparentIcon,
@@ -10,14 +9,15 @@ import {
   DocumentChartBarIcon,
   ArrowPathIcon,
   CommandLineIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
   EllipsisVerticalIcon,
   PencilIcon,
   TrashIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
+import { AnimatedCollapsible, AnimatedCollapsibleItem, AnimatedChevron } from '@/components/ui/animated-collapsible';
 import { AuroraText } from '@/src/components/magicui/aurora-text';
 import { APP_TITLE, CAST_STEPS, STPA_STEPS } from '@/constants';
+import { ExportPromptDialog } from '@/components/ui/export-prompt-dialog';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { useProjects } from '@/contexts/ProjectsContext';
 import { AnalysisType } from '@/types';
@@ -27,6 +27,14 @@ import ProjectSwitcher from '../projects/ProjectSwitcher';
 import NewAnalysisButton from '../projects/NewAnalysisButton';
 import EmptyStateView from '../projects/EmptyStateView';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
+import { exportAnalysisAsJSON, exportAnalysisAsPDF, exportAnalysisAsDOCX } from '@/utils/reportExport';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+  ContextMenuSeparator,
+} from '@/components/ui/context-menu';
 import {
   Sidebar,
   SidebarContent,
@@ -74,7 +82,6 @@ const stepIcons: Record<string, React.ComponentType<any>> = {
   '/analysis/step4': ShieldExclamationIcon,
   '/analysis/step5': BeakerIcon,
   '/analysis/step6': ShieldCheckIcon,
-  '/analysis/step7': DocumentChartBarIcon,
 };
 
 // Dock tools configuration for each step
@@ -94,8 +101,14 @@ const dockToolsConfig: Record<string, Array<{ icon: React.ComponentType<any>; la
 const EnterpriseLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { analysisSession, setCurrentStep, resetAnalysis, castStep2SubStep } = useAnalysis();
-  const { currentProject, deleteAnalysis, selectAnalysis, updateAnalysis } = useProjects();
+  const analysisData = useAnalysis();
+  const { analysisSession, setCurrentStep, resetAnalysis, castStep2SubStep } = analysisData;
+  const { 
+    currentProject, 
+    deleteAnalysis, 
+    selectAnalysis, 
+    updateAnalysis
+  } = useProjects();
   const [commandOpen, setCommandOpen] = useState(false);
   const [, setSidebarOpen] = useState(true);
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState('components');
@@ -104,6 +117,16 @@ const EnterpriseLayout: React.FC = () => {
   const [renameValue, setRenameValue] = useState('');
   const [deleteAnalysisDialog, setDeleteAnalysisDialog] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<{id: string, title: string} | null>(null);
+  const [showExportPrompt, setShowExportPrompt] = useState(false);
+  const [exportPromptData, setExportPromptData] = useState<{ id: string; name: string } | null>(null);
+
+
+  // Automatically expand the analysis dropdown when a new analysis is selected
+  useEffect(() => {
+    if (analysisSession?.id && !expandedAnalyses.has(analysisSession.id)) {
+      setExpandedAnalyses(prev => new Set(prev).add(analysisSession.id));
+    }
+  }, [analysisSession?.id]);
 
   // Listen for workspace section changes to keep sidebar in sync
   useEffect(() => {
@@ -199,8 +222,8 @@ const EnterpriseLayout: React.FC = () => {
     if (currentProject) {
       const analysis = currentProject.analyses.find(a => a.id === analysisId);
       if (analysis) {
-        setAnalysisToDelete({id: analysisId, title: analysis.title});
-        setDeleteAnalysisDialog(true);
+        setExportPromptData({ id: analysisId, name: analysis.title });
+        setShowExportPrompt(true);
       }
     }
   };
@@ -215,6 +238,8 @@ const EnterpriseLayout: React.FC = () => {
       setAnalysisToDelete(null);
     }
   };
+
+
 
   return (
     <FeedbackContainer>
@@ -264,15 +289,19 @@ const EnterpriseLayout: React.FC = () => {
                           No analyses yet
                         </div>
                       ) : (
-                        currentProject.analyses.map((analysis) => {
-                          const isExpanded = expandedAnalyses.has(analysis.id);
-                          const analysisSteps = analysis.analysisType === AnalysisType.CAST ? CAST_STEPS : STPA_STEPS;
-                          const isSelected = analysisSession?.id === analysis.id;
-                          
-                          return (
-                            <div key={analysis.id}>
-                              <SidebarMenuItem className="group/item">
-                                {renamingAnalysisId === analysis.id ? (
+                        <div>
+                          {/* Render all analyses */}
+                          {currentProject.analyses.map((analysis) => {
+                            const isExpanded = expandedAnalyses.has(analysis.id);
+                            const analysisSteps = analysis.analysisType === AnalysisType.CAST ? CAST_STEPS : STPA_STEPS;
+                            const isSelected = analysisSession?.id === analysis.id;
+                            
+                            return (
+                              <div key={analysis.id}>
+                              <ContextMenu>
+                                <ContextMenuTrigger asChild>
+                                  <SidebarMenuItem>
+                                    {renamingAnalysisId === analysis.id ? (
                                   <form
                                     onSubmit={(e) => {
                                       e.preventDefault();
@@ -304,36 +333,28 @@ const EnterpriseLayout: React.FC = () => {
                                       onClick={() => {
                                         if (!isSelected) {
                                           selectAnalysis(analysis.id);
-                                          // Auto-expand when selecting
-                                          if (!isExpanded) {
-                                            toggleAnalysisExpanded(analysis.id);
-                                          }
                                           // Navigate to the current step of the analysis
                                           navigate(analysis.currentStep || (analysis.analysisType === AnalysisType.CAST ? CAST_STEPS[0].path : STPA_STEPS[0].path));
                                         }
                                       }}
                                       isActive={isSelected}
-                                      className="justify-between"
+                                      className="flex items-center"
                                     >
-                                      <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             toggleAnalysisExpanded(analysis.id);
                                           }}
-                                          className="p-0.5 hover:bg-sidebar-accent rounded"
+                                          className="p-0.5 hover:bg-sidebar-accent rounded transition-colors"
                                         >
-                                          {isExpanded ? (
-                                            <ChevronDownIcon className="w-3 h-3" />
-                                          ) : (
-                                            <ChevronRightIcon className="w-3 h-3" />
-                                          )}
+                                          <AnimatedChevron isOpen={isExpanded} className="w-3 h-3" />
                                         </button>
-                                        <span className="truncate">
+                                        <span className="break-words py-0.5">
                                           {analysis.title}
                                         </span>
                                       </div>
-                                      <AuroraText className="text-xs font-bold ml-2">{analysis.analysisType}</AuroraText>
+                                      <AuroraText className="text-xs font-bold ml-2 flex-shrink-0">{analysis.analysisType}</AuroraText>
                                     </SidebarMenuButton>
                                     <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
@@ -353,6 +374,47 @@ const EnterpriseLayout: React.FC = () => {
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              // If this analysis is already selected, export it
+                                              exportAnalysisAsJSON(analysisData);
+                                            } else {
+                                              // Otherwise, select it first, then export after a delay
+                                              selectAnalysis(analysis.id);
+                                              setTimeout(() => {
+                                                // The analysis data will be loaded after selection
+                                                exportAnalysisAsJSON(analysisData);
+                                              }, 500);
+                                            }
+                                          }}
+                                        >
+                                          <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                                          Download as JSON
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={() => {
+                                            if (!isSelected) {
+                                              selectAnalysis(analysis.id);
+                                            }
+                                            exportAnalysisAsPDF();
+                                          }}
+                                        >
+                                          <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                                          Download as PDF
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                          onClick={() => {
+                                            if (!isSelected) {
+                                              selectAnalysis(analysis.id);
+                                            }
+                                            exportAnalysisAsDOCX();
+                                          }}
+                                        >
+                                          <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                                          Download as DOCX
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
                                           onClick={() => handleDeleteAnalysisFromMenu(analysis.id)}
                                           className="text-red-600 focus:text-red-600"
                                         >
@@ -363,10 +425,73 @@ const EnterpriseLayout: React.FC = () => {
                                     </DropdownMenu>
                                   </>
                                 )}
-                              </SidebarMenuItem>
+                                  </SidebarMenuItem>
+                                </ContextMenuTrigger>
+                                <ContextMenuContent>
+                                  <ContextMenuItem
+                                    onClick={() => {
+                                      setRenamingAnalysisId(analysis.id);
+                                      setRenameValue(analysis.title);
+                                    }}
+                                  >
+                                    <PencilIcon className="w-4 h-4 mr-2" />
+                                    Rename
+                                  </ContextMenuItem>
+                                  <ContextMenuSeparator />
+                                  <ContextMenuItem
+                                    onClick={() => {
+                                      if (isSelected) {
+                                        exportAnalysisAsJSON(analysisData);
+                                      } else {
+                                        selectAnalysis(analysis.id);
+                                        setTimeout(() => {
+                                          exportAnalysisAsJSON(analysisData);
+                                        }, 500);
+                                      }
+                                    }}
+                                  >
+                                    <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                                    Download as JSON
+                                  </ContextMenuItem>
+                                  <ContextMenuItem
+                                    onClick={() => {
+                                      if (!isSelected) {
+                                        selectAnalysis(analysis.id);
+                                      }
+                                      exportAnalysisAsPDF();
+                                    }}
+                                  >
+                                    <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                                    Download as PDF
+                                  </ContextMenuItem>
+                                  <ContextMenuItem
+                                    onClick={() => {
+                                      if (!isSelected) {
+                                        selectAnalysis(analysis.id);
+                                      }
+                                      exportAnalysisAsDOCX();
+                                    }}
+                                  >
+                                    <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+                                    Download as DOCX
+                                  </ContextMenuItem>
+                                  <ContextMenuSeparator />
+                                  <ContextMenuItem
+                                    onClick={() => handleDeleteAnalysisFromMenu(analysis.id)}
+                                    variant="destructive"
+                                  >
+                                    <TrashIcon className="w-4 h-4 mr-2" />
+                                    Delete
+                                  </ContextMenuItem>
+                                </ContextMenuContent>
+                              </ContextMenu>
                               
-                              {isExpanded && (
-                                <SidebarMenuSub>
+                              <AnimatedCollapsible isOpen={isExpanded} className="ml-3.5">
+                                <SidebarMenuSub
+                                  showProgress={isSelected}
+                                  useAbsoluteProgress={true}
+                                  targetStepIndex={isSelected ? currentStepIndex : -1}
+                                >
                                   {analysisSteps.map((step, index) => {
                                     const Icon = stepIcons[step.path] || DocumentTextIcon;
                                     const isCurrent = currentStepIndex === index;
@@ -375,35 +500,50 @@ const EnterpriseLayout: React.FC = () => {
                                     const isStructureAndActions = step.path === '/analysis/step3';
                                     
                                     return (
-                                      <div key={step.path}>
-                                        <SidebarMenuSubItem>
-                                          <SidebarMenuSubButton
-                                            onClick={() => {
-                                              if (!isSelected) {
-                                                selectAnalysis(analysis.id);
-                                              }
-                                              handleStepNavigation(step.path);
-                                            }}
-                                            isActive={isCurrent && isSelected}
-                                            className="flex items-center gap-2 pr-2"
-                                          >
-                                            <Icon className="w-3 h-3 shrink-0" />
-                                            <span className="flex-1 truncate text-nowrap">{step.shortTitle}</span>
-                                            {isCompleted && isSelected && (
-                                              <div className="ml-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400">
-                                                <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
-                                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                </svg>
-                                              </div>
-                                            )}
-                                          </SidebarMenuSubButton>
+                                      <AnimatedCollapsibleItem key={step.path}>
+                                        <SidebarMenuSubItem data-step-index={index}>
+                                          {isCompleted && isSelected ? (
+                                            <SidebarMenuSubButton
+                                              onClick={() => {
+                                                if (!isSelected) {
+                                                  selectAnalysis(analysis.id);
+                                                }
+                                                handleStepNavigation(step.path);
+                                              }}
+                                              isActive={isCurrent && isSelected}
+                                              className="flex items-center gap-2 w-full"
+                                            >
+                                              <Icon className="w-3 h-3 shrink-0 text-green-600 dark:text-green-400" />
+                                              <div className="flex-1 whitespace-nowrap"><span>{step.shortTitle}</span></div>
+                                            </SidebarMenuSubButton>
+                                          ) : (
+                                            <SidebarMenuSubButton
+                                              onClick={() => {
+                                                if (!isSelected) {
+                                                  selectAnalysis(analysis.id);
+                                                }
+                                                handleStepNavigation(step.path);
+                                              }}
+                                              isActive={isCurrent && isSelected}
+                                              className="flex items-center gap-2 w-full"
+                                            >
+                                              <Icon className="w-3 h-3 shrink-0" />
+                                              <div className="flex-1 whitespace-nowrap"><span>{step.shortTitle}</span></div>
+                                            </SidebarMenuSubButton>
+                                          )}
                                         </SidebarMenuSubItem>
                                         
                                         {/* CAST Step 2 Sub-steps */}
-                                        {isCastScopeAndLosses && isCurrent && isSelected && (
-                                          <SidebarMenuSub>
+                                        <AnimatedCollapsible isOpen={isCastScopeAndLosses && isCurrent && isSelected} className="ml-3">
+                                          <SidebarMenuSub
+                                            showProgress={true}
+                                            totalSteps={5}
+                                            completedSteps={castStep2SubStep + 1}
+                                            currentStep={castStep2SubStep}
+                                          >
                                             {['Scope', 'Events', 'Losses', 'Hazards', 'Constraints'].map((substep, subIndex) => (
-                                              <SidebarMenuSubItem key={substep}>
+                                              <AnimatedCollapsibleItem key={substep}>
+                                                <SidebarMenuSubItem>
                                                 <SidebarMenuSubButton
                                                   onClick={() => {
                                                     if (!isSelected) {
@@ -416,18 +556,31 @@ const EnterpriseLayout: React.FC = () => {
                                                   }}
                                                   isActive={castStep2SubStep === subIndex && isSelected}
                                                   size="sm"
-                                                  className="ml-6"
                                                 >
                                                   {substep}
                                                 </SidebarMenuSubButton>
                                               </SidebarMenuSubItem>
+                                              </AnimatedCollapsibleItem>
                                             ))}
                                           </SidebarMenuSub>
-                                        )}
+                                        </AnimatedCollapsible>
                                         
                                         {/* Structure & Actions Sub-steps */}
-                                        {isStructureAndActions && isCurrent && isSelected && (
-                                          <SidebarMenuSub>
+                                        <AnimatedCollapsible isOpen={isStructureAndActions && isCurrent && isSelected} className="ml-3">
+                                          <SidebarMenuSub
+                                            showProgress={true}
+                                            totalSteps={5}
+                                            completedSteps={activeWorkspaceSection === 'components' ? 1 :
+                                                          activeWorkspaceSection === 'controllers' ? 2 :
+                                                          activeWorkspaceSection === 'control-paths' ? 3 :
+                                                          activeWorkspaceSection === 'feedback-paths' ? 4 :
+                                                          activeWorkspaceSection === 'communication' ? 5 : 0}
+                                            currentStep={activeWorkspaceSection === 'components' ? 0 :
+                                                        activeWorkspaceSection === 'controllers' ? 1 :
+                                                        activeWorkspaceSection === 'control-paths' ? 2 :
+                                                        activeWorkspaceSection === 'feedback-paths' ? 3 :
+                                                        activeWorkspaceSection === 'communication' ? 4 : -1}
+                                          >
                                             {[
                                               { id: 'components', title: 'Components' },
                                               { id: 'controllers', title: 'Controllers' },
@@ -435,7 +588,8 @@ const EnterpriseLayout: React.FC = () => {
                                               { id: 'feedback-paths', title: 'Feedback Paths' },
                                               { id: 'communication', title: 'Communication' }
                                             ].map((section) => (
-                                              <SidebarMenuSubItem key={section.id}>
+                                              <AnimatedCollapsibleItem key={section.id}>
+                                                <SidebarMenuSubItem>
                                                 <SidebarMenuSubButton
                                                   onClick={() => {
                                                     if (!isSelected) {
@@ -449,22 +603,23 @@ const EnterpriseLayout: React.FC = () => {
                                                   }}
                                                   isActive={activeWorkspaceSection === section.id && isSelected}
                                                   size="sm"
-                                                  className="ml-6"
                                                 >
                                                   {section.title}
                                                 </SidebarMenuSubButton>
                                               </SidebarMenuSubItem>
+                                              </AnimatedCollapsibleItem>
                                             ))}
                                           </SidebarMenuSub>
-                                        )}
-                                      </div>
+                                        </AnimatedCollapsible>
+                                      </AnimatedCollapsibleItem>
                                     );
                                   })}
                                 </SidebarMenuSub>
-                              )}
-                            </div>
-                          );
-                        })
+                              </AnimatedCollapsible>
+                              </div>
+                            );
+                          })}
+                        </div>
                       )}
                     </SidebarMenu>
                   </SidebarGroup>
@@ -521,20 +676,11 @@ const EnterpriseLayout: React.FC = () => {
               <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Page Content */}
                 {analysisSession ? (
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={location.pathname}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="flex-1 bg-black overflow-auto"
-                    >
-                      <div className="h-full p-6 md:p-8 lg:p-10">
-                        <Outlet />
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
+                  <div className="flex-1 bg-white dark:bg-neutral-950 overflow-auto">
+                    <div className="h-full p-6 md:p-8 lg:p-10">
+                      <Outlet />
+                    </div>
+                  </div>
                 ) : (
                   <div className="flex-1 bg-white dark:bg-neutral-950 overflow-auto">
                     <EmptyStateView />
@@ -616,6 +762,33 @@ const EnterpriseLayout: React.FC = () => {
           onConfirm={confirmDeleteAnalysis}
           variant="destructive"
         />
+        
+        {/* Export Prompt Dialog */}
+        {exportPromptData && (
+          <ExportPromptDialog
+            isOpen={showExportPrompt}
+            onClose={() => {
+              setShowExportPrompt(false);
+              setExportPromptData(null);
+            }}
+            onExport={() => {
+              // Select the analysis and export
+              selectAnalysis(exportPromptData.id);
+              setTimeout(() => {
+                exportAnalysisAsJSON(analysisData);
+              }, 500);
+            }}
+            onDelete={() => {
+              setShowExportPrompt(false);
+              setAnalysisToDelete({ id: exportPromptData.id, title: exportPromptData.name });
+              setDeleteAnalysisDialog(true);
+              setExportPromptData(null);
+            }}
+            itemName={exportPromptData.name}
+            itemType="analysis"
+          />
+        )}
+        
       </div>
     </FeedbackContainer>
   );
