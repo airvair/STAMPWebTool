@@ -53,12 +53,20 @@ const CURRENT_ANALYSIS_KEY = 'stamp-current-analysis';
 // Helper to get initial data from localStorage
 const getStoredProjects = (): Project[] => {
   try {
+    console.log('Loading projects from localStorage...');
     const result = storageManager.loadWithValidation<Project[]>(PROJECTS_STORAGE_KEY);
+    
     if (!result.isValid || !result.data) {
+      console.log('StorageManager validation failed or no data found:', result.error);
+      
       // Try fallback to direct localStorage read for backward compatibility
       const stored = localStorage.getItem(PROJECTS_STORAGE_KEY);
-      if (!stored) return [];
+      if (!stored) {
+        console.log('No data in localStorage');
+        return [];
+      }
       
+      console.log('Found data in localStorage, attempting to parse...');
       // Parse the stored data
       let parsedData = JSON.parse(stored);
       
@@ -70,6 +78,7 @@ const getStoredProjects = (): Project[] => {
       
       // Ensure it's an array
       const projects = Array.isArray(parsedData) ? parsedData : [];
+      console.log(`Loaded ${projects.length} projects from fallback method`);
       
       // Migrate projects that don't have folders array
       return projects.map((project: any) => ({
@@ -78,6 +87,7 @@ const getStoredProjects = (): Project[] => {
       }));
     }
     
+    console.log(`Successfully loaded ${result.data.length} projects via storageManager`);
     // Migrate projects that don't have folders array
     return result.data.map((project: any) => ({
       ...project,
@@ -122,8 +132,27 @@ const migrateLegacyAnalysis = (): Project[] => {
       // Save the migrated project using storageManager to ensure consistency
       const saveResult = storageManager.saveWithValidation(PROJECTS_STORAGE_KEY, [defaultProject]);
       if (!saveResult.success) {
-        // Fallback to direct save
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify([defaultProject]));
+        // Fallback to direct save but maintain wrapped format for consistency
+        try {
+          // Calculate checksum manually
+          const dataStr = JSON.stringify([defaultProject]);
+          let hash = 0;
+          for (let i = 0; i < dataStr.length; i++) {
+            const char = dataStr.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+          }
+          const checksum = Math.abs(hash).toString(36);
+          
+          const wrappedData = {
+            data: [defaultProject],
+            checksum: checksum,
+            timestamp: Date.now()
+          };
+          localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(wrappedData));
+        } catch (e) {
+          console.error('Failed to save migrated project', e);
+        }
       }
       
       localStorage.setItem(CURRENT_PROJECT_KEY, defaultProject.id);
@@ -222,10 +251,25 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
       const saveResult = storageManager.saveWithValidation(PROJECTS_STORAGE_KEY, projects);
       if (!saveResult.success) {
         console.error('Failed to save projects via storageManager:', saveResult.error);
-        // Fallback to direct save
+        // Fallback to direct save but maintain wrapped format for consistency
         try {
-          localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
-          console.log('Successfully saved via fallback method');
+          // Calculate checksum manually since it's a private method
+          const dataStr = JSON.stringify(projects);
+          let hash = 0;
+          for (let i = 0; i < dataStr.length; i++) {
+            const char = dataStr.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+          }
+          const checksum = Math.abs(hash).toString(36);
+          
+          const wrappedData = {
+            data: projects,
+            checksum: checksum,
+            timestamp: Date.now()
+          };
+          localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(wrappedData));
+          console.log('Successfully saved via fallback method with wrapped format');
         } catch (e) {
           console.error('Critical: Failed to save projects data', e);
         }

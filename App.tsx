@@ -4,7 +4,7 @@ import EnterpriseLayout from './components/layout/EnterpriseLayout';
 import CastStep2 from './components/step2_CAST/CastStep2';
 import StpaStep2 from './components/step2_STPA/StpaStep2';
 import ControlStructureBuilder from './components/step3_ControlStructure/ControlStructureBuilder';
-import UnsafeControlActions from './components/step4_UnsafeControlActions/UnsafeControlActions';
+import { UnsafeControlActions } from './components/step4_UnsafeControlActions';
 import CausalScenarios from './components/step5_CausalScenarios/CausalScenarios';
 import RequirementsMitigations from './components/step6_RequirementsMitigations/RequirementsMitigations';
 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { InformationCircleIcon, UserGroupIcon, CubeIcon } from '@heroicons/react/24/outline';
 import InfoPopup from './InfoPopup';
-import { AbstractionLevel } from '@/utils/uccaAlgorithms';
+
+type AbstractionLevel = '2a' | '2b';
 
 interface AbstractionLevelSelectorProps {
   value: AbstractionLevel;
@@ -25,7 +26,7 @@ interface LevelInfo {
 
 const ABSTRACTION_LEVELS: LevelInfo[] = [
   {
-    id: AbstractionLevel.Abstraction2a,
+    id: '2a' as AbstractionLevel,
     name: 'Team Actions (Abstraction 2a)',
     description: 'Team-level view abstracting away specific controllers',
     icon: <UserGroupIcon className="w-5 h-5" />,
@@ -38,7 +39,7 @@ const ABSTRACTION_LEVELS: LevelInfo[] = [
     bestFor: ['Initial analysis', 'High-level system understanding', 'Team coordination issues']
   },
   {
-    id: AbstractionLevel.Abstraction2b,
+    id: '2b' as AbstractionLevel,
     name: 'Controller Actions (Abstraction 2b)',
     description: 'Controller-specific view with explicit controller combinations',
     icon: <CubeIcon className="w-5 h-5" />,
@@ -67,9 +68,9 @@ const AbstractionLevelSelector: React.FC<AbstractionLevelSelectorProps> = ({
     const complexity = numControllers * numActions;
     
     if (analysisGoal === 'quick' || complexity > 50) {
-      return AbstractionLevel.Abstraction2a; // Team abstraction for quick analysis
+      return '2a' as AbstractionLevel; // Team abstraction for quick analysis
     } else {
-      return AbstractionLevel.Abstraction2b; // Controller-specific for detailed analysis
+      return '2b' as AbstractionLevel; // Controller-specific for detailed analysis
     }
   };
 

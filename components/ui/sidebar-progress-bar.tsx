@@ -27,14 +27,15 @@ export function SidebarProgressBar({
         {/* Gradient fill - now fills from top to bottom */}
         <motion.div
           className="absolute left-0 top-0 w-full bg-gradient-to-b from-green-600 to-green-500 dark:from-green-500 dark:to-green-400"
-          initial={{ height: '0%' }}
+          initial={false} // Prevent initial animation flash
           animate={{ height: `${clampedProgress}%` }}
           transition={{
             type: "spring",
-            stiffness: 100,
-            damping: 20,
-            duration: 0.6,
+            stiffness: 120,
+            damping: 25,
+            duration: 0.5,
           }}
+          style={{ transformOrigin: "top" }}
         >
           {/* Glow effect */}
           <div className="absolute inset-0 bg-green-400/20 dark:bg-green-300/20 blur-sm" />
@@ -133,34 +134,79 @@ export function SidebarStepProgressAbsolute({
   const progressRef = React.useRef<HTMLDivElement>(null);
   const [showPulse, setShowPulse] = React.useState(false);
   const previousStepIndex = React.useRef(targetStepIndex);
+  const measurementTimeoutRef = React.useRef<NodeJS.Timeout>();
+  const isAnimatingRef = React.useRef(false);
+  
+  // Debounced measurement function
+  const measureTargetHeight = React.useCallback(() => {
+    if (measurementTimeoutRef.current) {
+      clearTimeout(measurementTimeoutRef.current);
+    }
+    
+    measurementTimeoutRef.current = setTimeout(() => {
+      if (!progressRef.current || targetStepIndex < 0 || isAnimatingRef.current) {
+        if (targetStepIndex < 0) {
+          setTargetHeight(0);
+        }
+        return;
+      }
+      
+      // Find target element with additional validation
+      const targetElement = document.querySelector(`[data-step-index="${targetStepIndex}"]`);
+      
+      if (!targetElement) {
+        // Element might not be rendered yet, retry after a short delay
+        setTimeout(() => measureTargetHeight(), 50);
+        return;
+      }
+      
+      // Check if element is visible and properly rendered
+      const targetRect = targetElement.getBoundingClientRect();
+      if (targetRect.height === 0) {
+        // Element not fully rendered, retry
+        setTimeout(() => measureTargetHeight(), 50);
+        return;
+      }
+      
+      const progressRect = progressRef.current.getBoundingClientRect();
+      
+      // Calculate position relative to the progress bar container
+      const relativeBottom = targetRect.bottom - progressRect.top;
+      const newHeight = Math.max(0, relativeBottom);
+      
+      // Only update if there's a meaningful change to prevent unnecessary animations
+      setTargetHeight(prev => {
+        const diff = Math.abs(newHeight - prev);
+        return diff > 2 ? newHeight : prev; // 2px threshold to prevent jitter
+      });
+    }, 100); // 100ms debounce
+  }, [targetStepIndex]);
   
   // Measure step positions
   React.useLayoutEffect(() => {
+    // Reset animation flag
+    isAnimatingRef.current = false;
+    
     if (!progressRef.current || targetStepIndex < 0) {
       setTargetHeight(0);
       return;
     }
     
-    // Wait for next frame to ensure DOM is ready
-    requestAnimationFrame(() => {
-      if (!progressRef.current) return;
-      
-      // Find all step elements in the document
-      const targetElement = document.querySelector(`[data-step-index="${targetStepIndex}"]`);
-      
-      if (!targetElement) {
-        console.warn(`No element found with data-step-index="${targetStepIndex}"`);
-        return;
-      }
-      
-      // Calculate position relative to the progress bar container
-      const progressRect = progressRef.current.getBoundingClientRect();
-      const targetRect = targetElement.getBoundingClientRect();
-      
-      // Get the bottom of the target step relative to progress bar top
-      const relativeBottom = targetRect.bottom - progressRect.top;
-      setTargetHeight(Math.max(0, relativeBottom));
-    });
+    // If step index is changing and we're navigating away from an expanded submenu,
+    // add a small delay to allow DOM to settle
+    const isNavigatingFromSubmenu = previousStepIndex.current !== targetStepIndex && 
+                                   document.querySelector('.sortable-analysis-item[data-expanded="true"]');
+    
+    if (isNavigatingFromSubmenu) {
+      // Set animation flag to prevent measurements during transition
+      isAnimatingRef.current = true;
+      setTimeout(() => {
+        isAnimatingRef.current = false;
+        measureTargetHeight();
+      }, 150); // Wait for submenu collapse animation
+    } else {
+      measureTargetHeight();
+    }
     
     // Show pulse when step changes
     if (targetStepIndex > previousStepIndex.current) {
@@ -169,27 +215,56 @@ export function SidebarStepProgressAbsolute({
       previousStepIndex.current = targetStepIndex;
       return () => clearTimeout(timer);
     }
-  }, [targetStepIndex, containerSelector]);
+    
+    previousStepIndex.current = targetStepIndex;
+  }, [targetStepIndex, measureTargetHeight]);
   
   // Re-measure on window resize or when submenus expand/collapse
   React.useEffect(() => {
     const handleResize = () => {
-      // Re-trigger measurement
-      if (progressRef.current && targetStepIndex >= 0) {
-        const targetElement = document.querySelector(`[data-step-index="${targetStepIndex}"]`);
-        if (!targetElement) return;
-        
-        const progressRect = progressRef.current.getBoundingClientRect();
-        const targetRect = targetElement.getBoundingClientRect();
-        const relativeBottom = targetRect.bottom - progressRect.top;
-        setTargetHeight(Math.max(0, relativeBottom));
-      }
+      // Use debounced measurement instead of direct calculation
+      measureTargetHeight();
     };
     
-    window.addEventListener('resize', handleResize);
+    // Debounced resize handler
+    let resizeTimeout: NodeJS.Timeout;
+    const debouncedResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 150);
+    };
     
-    // Use MutationObserver to detect DOM changes (like submenu expansion)
-    const observer = new MutationObserver(handleResize);
+    window.addEventListener('resize', debouncedResize);
+    
+    // Optimized MutationObserver - only watch for relevant changes
+    const observer = new MutationObserver((mutations) => {
+      let shouldMeasure = false;
+      
+      for (const mutation of mutations) {
+        // Only care about attribute changes that affect layout
+        if (mutation.type === 'attributes') {
+          const target = mutation.target as Element;
+          if (mutation.attributeName === 'data-expanded' || 
+              mutation.attributeName === 'class' ||
+              (mutation.attributeName === 'style' && (target as HTMLElement).style?.height)) {
+            shouldMeasure = true;
+            break;
+          }
+        }
+        // Or DOM structure changes in sidebar menu areas
+        else if (mutation.type === 'childList') {
+          const target = mutation.target as Element;
+          if (target.closest('[data-sidebar="menu"]') || target.closest('[data-sidebar="menu-sub"]')) {
+            shouldMeasure = true;
+            break;
+          }
+        }
+      }
+      
+      if (shouldMeasure && !isAnimatingRef.current) {
+        handleResize();
+      }
+    });
+    
     if (progressRef.current) {
       const container = document.querySelector('[data-sidebar="content"]') || 
                        progressRef.current.closest('.sidebar-content');
@@ -198,19 +273,20 @@ export function SidebarStepProgressAbsolute({
           childList: true, 
           subtree: true, 
           attributes: true,
-          attributeFilter: ['class', 'style']
+          attributeFilter: ['class', 'style', 'data-expanded']
         });
       }
     }
     
-    // Trigger initial measurement
-    handleResize();
-    
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(resizeTimeout);
       observer.disconnect();
+      if (measurementTimeoutRef.current) {
+        clearTimeout(measurementTimeoutRef.current);
+      }
     };
-  }, [targetStepIndex]);
+  }, [targetStepIndex, measureTargetHeight]);
   
   return (
     <div ref={progressRef} className={cn("absolute left-0 top-0 bottom-0", className)}>
@@ -221,15 +297,22 @@ export function SidebarStepProgressAbsolute({
       <div className="absolute left-0 top-0 bottom-0 w-0.5 overflow-hidden rounded-full">
         <motion.div
           className="absolute left-0 top-0 w-full bg-gradient-to-b from-green-600 to-green-500 dark:from-green-500 dark:to-green-400"
-          initial={{ height: 0 }}
-          animate={{ height: targetHeight > 0 ? targetHeight : 0 }}
+          initial={false} // Prevent initial animation flash
+          animate={{ 
+            height: targetHeight > 0 ? targetHeight : 0,
+            // Ensure animation always comes from current position, not from bottom
+            originY: 0 
+          }}
           transition={{
             type: "spring",
-            stiffness: 100,
-            damping: 20,
-            duration: 0.6,
+            stiffness: 120,
+            damping: 25,
+            duration: 0.5,
           }}
-          style={{ height: targetHeight }}
+          style={{ 
+            height: targetHeight,
+            transformOrigin: "top" // Ensure scaling happens from top
+          }}
         >
           {/* Glow effect */}
           <div className="absolute inset-0 bg-green-400/20 dark:bg-green-300/20 blur-sm" />

@@ -16,7 +16,6 @@ import {
 } from '@heroicons/react/24/outline';
 import Sortable from 'sortablejs';
 import { AnimatedCollapsible, AnimatedCollapsibleItem, AnimatedChevron } from '@/components/ui/animated-collapsible';
-import { AnimatedSortableItem, useSortableAnimation } from '@/components/ui/animated-sortable-item';
 import { APP_TITLE, CAST_STEPS, STPA_STEPS } from '@/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { useProjects } from '@/contexts/ProjectsContext';
@@ -70,7 +69,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import Button from '../shared/Button';
-import { Dock, DockIcon } from '@/src/components/magicui/dock';
+
 
 const webLogo = '/weblogo.webp';
 
@@ -120,8 +119,14 @@ const EnterpriseLayout: React.FC = () => {
   const [renameValue, setRenameValue] = useState('');
   const [deleteAnalysisDialog, setDeleteAnalysisDialog] = useState(false);
   const [analysisToDelete, setAnalysisToDelete] = useState<{id: string, title: string} | null>(null);
-  const { handleDragStart, handleDragEnd, isDragging } = useSortableAnimation();
+  const [isReordering, setIsReordering] = useState(false);
+  const expandedAnalysesRef = useRef<Set<string>>(expandedAnalyses);
 
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    expandedAnalysesRef.current = expandedAnalyses;
+  }, [expandedAnalyses]);
 
   // Automatically expand the analysis dropdown when a new analysis is selected
   useEffect(() => {
@@ -179,44 +184,46 @@ const EnterpriseLayout: React.FC = () => {
     if (!analysesListRef.current || !currentProject?.analyses?.length) return;
 
     sortableRef.current = Sortable.create(analysesListRef.current, {
-      animation: 0, // Disable built-in animation - we use framer-motion
-      ghostClass: 'sortable-ghost', // Style ghost element
+      animation: 150, // Simple animation
+      ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
-      dragClass: 'sortable-drag', // Keep visible during drag
-      forceFallback: true, // Use custom drag implementation
-      fallbackClass: 'sortable-fallback',
-      fallbackOnBody: false,
-      fallbackTolerance: 0,
-      disabled: renamingAnalysisId !== null,
+      dragClass: 'sortable-drag',
+      disabled: renamingAnalysisId !== null || isReordering,
       filter: '.dropdown-trigger, .chevron-button, [data-sidebar="menu-action"]',
       preventOnFilter: false,
       onStart: (evt) => {
+        document.body.classList.add('sortable-dragging');
         const draggedId = evt.item.getAttribute('data-id');
-        if (draggedId) {
-          handleDragStart(draggedId);
-          if (expandedAnalyses.has(draggedId)) {
-            // Collapse the dragged item if it's expanded
-            setExpandedAnalyses(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(draggedId);
-              return newSet;
-            });
-          }
+        // Use ref instead of state to avoid re-initialization
+        if (draggedId && expandedAnalysesRef.current.has(draggedId)) {
+          // Collapse the dragged item if it's expanded
+          setExpandedAnalyses(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(draggedId);
+            return newSet;
+          });
         }
       },
-      onEnd: (evt) => {
-        handleDragEnd();
+      onEnd: async (evt) => {
+        document.body.classList.remove('sortable-dragging');
         
         if (evt.oldIndex === undefined || evt.newIndex === undefined || evt.oldIndex === evt.newIndex) return;
         
-        // Get all analysis IDs in their new order
-        const newOrder = Array.from(analysesListRef.current!.children)
-          .map(child => child.getAttribute('data-id'))
-          .filter(Boolean) as string[];
+        // Prevent concurrent reordering
+        setIsReordering(true);
         
-        // Call the reorder function
-        if (currentProject?.id) {
-          reorderAnalyses(currentProject.id, newOrder);
+        try {
+          // Get all analysis IDs in their new order
+          const newOrder = Array.from(analysesListRef.current!.children)
+            .map(child => child.getAttribute('data-id'))
+            .filter(Boolean) as string[];
+          
+          // Call the reorder function
+          if (currentProject?.id) {
+            await reorderAnalyses(currentProject.id, newOrder);
+          }
+        } finally {
+          setIsReordering(false);
         }
       },
     });
@@ -224,7 +231,7 @@ const EnterpriseLayout: React.FC = () => {
     return () => {
       sortableRef.current?.destroy();
     };
-  }, [currentProject?.analyses?.length, expandedAnalyses, reorderAnalyses, renamingAnalysisId, handleDragStart, handleDragEnd]);
+  }, [currentProject?.analyses?.length, reorderAnalyses, renamingAnalysisId, isReordering]);
 
   // No longer redirect to /start - we handle empty state in the layout itself
 
@@ -351,12 +358,7 @@ const EnterpriseLayout: React.FC = () => {
                             const isSelected = analysisSession?.id === analysis.id;
                             
                             return (
-                              <AnimatedSortableItem 
-                                key={analysis.id}
-                                id={analysis.id}
-                                index={currentProject.analyses.indexOf(analysis)}
-                                isDragging={isDragging(analysis.id)}
-                              >
+                              <div key={analysis.id} data-id={analysis.id} data-expanded={isExpanded.toString()} className="sortable-analysis-item">
                               <ContextMenu>
                                 <ContextMenuTrigger asChild>
                                   <SidebarMenuItem>
@@ -679,7 +681,7 @@ const EnterpriseLayout: React.FC = () => {
                                   })}
                                 </SidebarMenuSub>
                               </AnimatedCollapsible>
-                              </AnimatedSortableItem>
+                              </div>
                             );
                           })}
                         </div>
