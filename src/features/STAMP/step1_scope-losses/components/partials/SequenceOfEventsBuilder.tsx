@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import Sortable from 'sortablejs';
 import { EventDetail } from '@/types/types';
 import Button from '@/components/shared/Button';
-import AutoExpandingTextarea from '@/components/shared/AutoExpandingTextarea';
+import Textarea from '@/components/shared/Textarea';
 import CastStepLayout from "./CastStepLayout";
 
 
@@ -101,14 +101,13 @@ const SequenceOfEventsBuilder: React.FC<SequenceOfEventsBuilderProps> = ({
                                 <GripVerticalIcon />
                             </div>
                             <span className="text-slate-500 dark:text-slate-400 w-6 text-right font-mono mt-2">{index + 1}.</span>
-                            <AutoExpandingTextarea
+                            <Textarea
                                 value={event.description}
                                 onChange={(e) => updateEventDetail(event.id, { description: e.target.value })}
                                 className="flex-grow !mb-0"
                                 containerClassName="!mb-0 flex-grow"
                                 placeholder="e.g., 00:42:17 – The aircraft descended through 10,000 ft..."
-                                minRows={1}
-                                maxRows={5}
+                                rows={2}
                             />
                             {/* Replaced up/down arrows with delete button */}
                             <Button variant="ghost" size="sm" onClick={() => deleteEventDetail(event.id)} className="text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 p-1 mt-1">
@@ -119,15 +118,14 @@ const SequenceOfEventsBuilder: React.FC<SequenceOfEventsBuilderProps> = ({
                 </ul>
             </div>
             <div className="flex items-start space-x-2">
-                <AutoExpandingTextarea
+                <Textarea
                     value={newEventDesc}
                     onChange={(e) => setNewEventDesc(e.target.value)}
                     placeholder="Enter new event description..."
                     className="flex-grow !mb-0"
                     containerClassName="!mb-0 flex-grow"
                     onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleAddEvent())}
-                    minRows={1}
-                    maxRows={5}
+                    rows={2}
                 />
                 <Button onClick={handleAddEvent} leftIcon={<PlaceholderPlusIcon />} className="mt-1">Add Event</Button>
             </div>

@@ -20,7 +20,6 @@ import { useProjects } from '@/context/ProjectsContext';
 import { useNavigation, AnalysisStep } from '@/context/NavigationContext';
 import { AnalysisType } from '@/types/types';
 import { FeedbackContainer } from '@/components/shared/FeedbackNotification';
-import AnalysisStatusIndicator from '@/components/shared/AnalysisStatusIndicator';
 import { ProjectSwitcher, NewAnalysisButton, EmptyStateView } from '@/features/projects';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import { exportAnalysisAsJSON, exportAnalysisAsPDF, exportAnalysisAsDOCX } from '@/utils/reportExport';
@@ -683,8 +682,6 @@ const CleanEnterpriseLayout: React.FC = () => {
           </CommandList>
         </CommandDialog>
 
-        {/* Analysis Status Indicator */}
-        <AnalysisStatusIndicator />
         
         <ConfirmationDialog
           open={deleteAnalysisDialog}

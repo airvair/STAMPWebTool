@@ -6,7 +6,6 @@ import { AnalysisType } from '@/types/types';
 import Button from '@/components/shared/Button';
 import Stepper from './Stepper';
 import { FeedbackContainer } from '@/components/shared/FeedbackNotification';
-import AnalysisStatusIndicator from '@/components/shared/AnalysisStatusIndicator';
 import { SlotMachineTransition } from '@/components/ui/slot-machine-transition';
 import { AuroraText } from '@/components/magicui/aurora-text';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
@@ -112,8 +111,6 @@ const MainLayout: React.FC = () => {
           </SlotMachineTransition>
         </main>
         
-        {/* Analysis Status Indicator */}
-        <AnalysisStatusIndicator />
         
         <ConfirmationDialog
           open={showResetDialog}
