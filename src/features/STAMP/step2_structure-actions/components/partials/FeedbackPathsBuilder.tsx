@@ -20,14 +20,14 @@ const FeedbackPathsBuilder: React.FC = () => {
     const [fpIsMissing, setFpIsMissing] = useState(false);
     const [editingFpId, setEditingFpId] = useState<string | null>(null);
 
-    const controllerOptions = controllers.map(c => ({ value: c.id, label: c.name }));
-    const componentOptions = systemComponents.map(sc => ({ value: sc.id, label: sc.name }));
+    const controllerOptions = (controllers || []).map(c => ({ value: c.id, label: c.name }));
+    const componentOptions = (systemComponents || []).map(sc => ({ value: sc.id, label: sc.name }));
     const pathSourceOptions = [...controllerOptions, ...componentOptions];
 
     const getItemName = (id: string) => {
-        const ctrl = controllers.find(c => c.id === id);
+        const ctrl = (controllers || []).find(c => c.id === id);
         if (ctrl) return `${ctrl.name} (Controller)`;
-        const comp = systemComponents.find(sc => sc.id === id);
+        const comp = (systemComponents || []).find(sc => sc.id === id);
         if (comp) return `${comp.name} (Component)`;
         return 'Unknown';
     };
@@ -73,8 +73,8 @@ const FeedbackPathsBuilder: React.FC = () => {
             </div>
             <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 space-y-4">
                 <p className="text-md font-semibold text-slate-700 dark:text-slate-200">{editingFpId ? 'Editing Feedback Path' : 'Define a New Feedback Path'}</p>
-                <Select label="1. Source (What provides the feedback?)" value={fpSourceId} onChange={e => setFpSourceId(e.target.value)} options={[{value: '', label: 'Select Source'}, ...pathSourceOptions]} placeholder="Select Source" />
-                <Select label="2. Target (Who receives the feedback?)" value={fpTargetCtrlId} onChange={e => setFpTargetCtrlId(e.target.value)} options={[{value: '', label: 'Select Target Controller'}, ...controllerOptions]} placeholder="Select Target Controller" />
+                <Select label="1. Source (What provides the feedback?)" value={fpSourceId} onChange={e => setFpSourceId(e.target.value)} options={pathSourceOptions} placeholder="Select Source" />
+                <Select label="2. Target (Who receives the feedback?)" value={fpTargetCtrlId} onChange={e => setFpTargetCtrlId(e.target.value)} options={controllerOptions} placeholder="Select Target Controller" />
                 <Textarea label="3. Describe Feedback / Sensors" value={fpFeedback} onChange={e => setFpFeedback(e.target.value)} placeholder="e.g., CURRENT_SPEED, TEMP_READING, STATUS_FLAG" containerClassName="!mb-0"/>
                 <Checkbox label="Is this feedback path missing or inadequate?" checked={fpIsMissing} onChange={e => setFpIsMissing(e.target.checked)} containerClassName="!mb-0 pt-2"/>
                 <div className="flex space-x-2 pt-4">
@@ -85,7 +85,7 @@ const FeedbackPathsBuilder: React.FC = () => {
                 </div>
             </div>
             <ul className="space-y-2">
-                {feedbackPaths.map(fp => (
+                {(feedbackPaths || []).map(fp => (
                     <li key={fp.id} className={`flex justify-between items-center p-3 border rounded-md bg-white dark:bg-slate-900 shadow-sm ${fp.isMissing ? 'border-dashed border-red-500/50' : 'border-slate-200 dark:border-slate-700'}`}>
                         <div>
                             <p className="font-medium text-slate-800 dark:text-slate-200"><span className="font-semibold">{getItemName(fp.sourceId)}</span> → <span className="font-semibold">{getItemName(fp.targetControllerId)}</span> {fp.isMissing && <span className="text-sm font-bold text-red-500">(MISSING)</span>}</p>

@@ -88,14 +88,17 @@ const ControlStructureWorkspace: React.FC = () => {
   // Listen for section changes from sidebar
   useEffect(() => {
     const handleSectionChange = (event: CustomEvent) => {
-      setActiveSection(event.detail.section);
+      // Only update if the section is actually different to prevent infinite loops
+      if (event.detail.section !== workspaceState.activeSection) {
+        setActiveSection(event.detail.section);
+      }
     };
 
     window.addEventListener('workspace-section-change', handleSectionChange as EventListener);
     return () => {
       window.removeEventListener('workspace-section-change', handleSectionChange as EventListener);
     };
-  }, [setActiveSection]);
+  }, [setActiveSection, workspaceState.activeSection]);
 
   // Auto-save functionality
   useEffect(() => {

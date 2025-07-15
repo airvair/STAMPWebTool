@@ -17,12 +17,12 @@ const CommunicationLinksBuilder: React.FC = () => {
     const [commDescription, setCommDescription] = useState('');
     const [editingCommId, setEditingCommId] = useState<string | null>(null);
 
-    const controllerOptions = controllers.map(c => ({ value: c.id, label: c.name }));
-    const selectedSourceController = controllers.find(c => c.id === commSourceId);
+    const controllerOptions = (controllers || []).map(c => ({ value: c.id, label: c.name }));
+    const selectedSourceController = (controllers || []).find(c => c.id === commSourceId);
 
     // For intra-team communication
     const isIntraTeam = commSourceId && commSourceId === commTargetId && selectedSourceController?.ctrlType === ControllerType.Team && !selectedSourceController?.teamDetails?.isSingleUnit;
-    const memberOptions = selectedSourceController?.teamDetails?.members.map(m => ({ value: m.id, label: m.name })) || [];
+    const memberOptions = (selectedSourceController?.teamDetails?.members || []).map(m => ({ value: m.id, label: m.name })) || [];
     const [sourceMemberId, setSourceMemberId] = useState('');
     const [targetMemberId, setTargetMemberId] = useState('');
 
@@ -77,11 +77,11 @@ const CommunicationLinksBuilder: React.FC = () => {
         const id = type === 'source' ? comm.sourceControllerId : comm.targetControllerId;
         const memberId = type === 'source' ? comm.sourceMemberId : comm.targetMemberId;
 
-        const controller = controllers.find(c => c.id === id);
+        const controller = (controllers || []).find(c => c.id === id);
         if (!controller) return 'Unknown';
 
         if (memberId && controller.teamDetails) {
-            const member = controller.teamDetails.members.find(m => m.id === memberId);
+            const member = (controller.teamDetails.members || []).find(m => m.id === memberId);
             return member ? `${member.name} (in ${controller.name})` : `Unknown Member (in ${controller.name})`;
         }
 
@@ -97,14 +97,14 @@ const CommunicationLinksBuilder: React.FC = () => {
             </div>
             <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 space-y-4">
                 <p className="text-md font-semibold text-slate-700 dark:text-slate-200">{editingCommId ? 'Editing Communication Link' : 'Define a New Link'}</p>
-                <Select label="Controller One" value={commSourceId} onChange={e => {setCommSourceId(e.target.value);}} options={[{value: '', label: 'Select Controller'}, ...controllerOptions]} />
-                <Select label="Controller Two" value={commTargetId} onChange={e => setCommTargetId(e.target.value)} options={[{value: '', label: 'Select Controller'}, ...controllerOptions]} />
+                <Select label="Controller One" value={commSourceId} onChange={e => {setCommSourceId(e.target.value);}} options={controllerOptions} placeholder="Select Controller" />
+                <Select label="Controller Two" value={commTargetId} onChange={e => setCommTargetId(e.target.value)} options={controllerOptions} placeholder="Select Controller" />
 
                 {isIntraTeam && (
                     <div className="p-3 border-t border-dashed border-slate-300 dark:border-neutral-700 mt-4 space-y-4">
                         <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Define Intra-Team Communication:</h4>
-                        <Select label="Source Member" value={sourceMemberId} onChange={e => setSourceMemberId(e.target.value)} options={[{value: '', label: 'Select Member'}, ...memberOptions]} />
-                        <Select label="Target Member" value={targetMemberId} onChange={e => setTargetMemberId(e.target.value)} options={[{value: '', label: 'Select Member'}, ...memberOptions]} />
+                        <Select label="Source Member" value={sourceMemberId} onChange={e => setSourceMemberId(e.target.value)} options={memberOptions} placeholder="Select Member" />
+                        <Select label="Target Member" value={targetMemberId} onChange={e => setTargetMemberId(e.target.value)} options={memberOptions} placeholder="Select Member" />
                     </div>
                 )}
 
@@ -117,7 +117,7 @@ const CommunicationLinksBuilder: React.FC = () => {
                 </div>
             </div>
             <ul className="space-y-2">
-                {communicationPaths.map(comm => (
+                {(communicationPaths || []).map(comm => (
                     <li key={comm.id} className="flex justify-between items-center p-3 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 shadow-sm">
                         <div>
                             <p className="font-medium text-slate-800 dark:text-slate-200"><span className="font-semibold">{getItemName(comm, 'source')}</span> ↔ <span className="font-semibold">{getItemName(comm, 'target')}</span></p>

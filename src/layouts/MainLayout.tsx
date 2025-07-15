@@ -81,7 +81,10 @@ const MainLayout: React.FC = () => {
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
             <div className="flex items-center">
               <img src={webLogo} alt="Logo" className="h-8 w-auto mr-3" />
-              <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} {APP_VERSION} / <AuroraText className="text-lg font-bold opacity-80">{analysisSession.analysisType}</AuroraText></h1>
+              <div className="flex flex-col">
+                <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} {APP_VERSION} / <AuroraText className="text-lg font-bold opacity-80">{analysisSession.analysisType}</AuroraText></h1>
+                <p className="text-xs opacity-75">Enterprise Safety Analysis Platform by MalmquistSafety</p>
+              </div>
             </div>
             <Button onClick={handleReset} variant="danger" size="sm">Reset Analysis</Button>
           </div>

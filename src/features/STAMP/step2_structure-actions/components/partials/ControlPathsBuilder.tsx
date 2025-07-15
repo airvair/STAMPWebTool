@@ -21,14 +21,14 @@ const ControlPathsBuilder: React.FC = () => {
     const [actionVerb, setActionVerb] = useState('');
     const [actionObject, setActionObject] = useState('');
 
-    const controllerOptions = controllers.map(c => ({ value: c.id, label: c.name }));
-    const componentOptions = systemComponents.map(sc => ({ value: sc.id, label: sc.name }));
+    const controllerOptions = (controllers || []).map(c => ({ value: c.id, label: c.name }));
+    const componentOptions = (systemComponents || []).map(sc => ({ value: sc.id, label: sc.name }));
     const pathTargetOptions = [...controllerOptions, ...componentOptions];
 
     const getItemName = (id: string) => {
-        const ctrl = controllers.find(c => c.id === id);
+        const ctrl = (controllers || []).find(c => c.id === id);
         if (ctrl) return `${ctrl.name} (Controller)`;
-        const comp = systemComponents.find(sc => sc.id === id);
+        const comp = (systemComponents || []).find(sc => sc.id === id);
         if (comp) return `${comp.name} (Component)`;
         return 'Unknown';
     };
@@ -48,8 +48,8 @@ const ControlPathsBuilder: React.FC = () => {
         const newCpId = editingCpId || uuidv4();
 
         if (editingCpId) {
-            const existingPath = controlPaths.find(p => p.id === editingCpId);
-            const existingAction = controlActions.find(a => a.controlPathId === editingCpId);
+            const existingPath = (controlPaths || []).find(p => p.id === editingCpId);
+            const existingAction = (controlActions || []).find(a => a.controlPathId === editingCpId);
             if (existingPath) updateControlPath(editingCpId, { sourceControllerId: cpSourceCtrlId, targetId: cpTargetId, controls: controlsString });
             if (existingAction) updateControlAction(existingAction.id, { verb: actionVerb, object: actionObject });
         } else {
@@ -71,7 +71,7 @@ const ControlPathsBuilder: React.FC = () => {
         setEditingCpId(cp.id);
         setCpSourceCtrlId(cp.sourceControllerId);
         setCpTargetId(cp.targetId);
-        const relatedAction = controlActions.find(ca => ca.controlPathId === cp.id);
+        const relatedAction = (controlActions || []).find(ca => ca.controlPathId === cp.id);
         if (relatedAction) {
             setActionVerb(relatedAction.verb);
             setActionObject(relatedAction.object);
@@ -79,7 +79,7 @@ const ControlPathsBuilder: React.FC = () => {
     };
 
     const handleDeleteControlPath = (pathId: string) => {
-        const actionsToDelete = controlActions.filter(ca => ca.controlPathId === pathId);
+        const actionsToDelete = (controlActions || []).filter(ca => ca.controlPathId === pathId);
         actionsToDelete.forEach(ca => deleteControlAction(ca.id));
         deleteControlPath(pathId);
     };
@@ -97,13 +97,15 @@ const ControlPathsBuilder: React.FC = () => {
                     label="1. Source (Who is in control?)"
                     value={cpSourceCtrlId}
                     onChange={e => setCpSourceCtrlId(e.target.value)}
-                    options={[{value: '', label: 'Select a source controller...'}, ...controllerOptions]}
+                    options={controllerOptions}
+                    placeholder="Select a source controller..."
                 />
                 <Select
                     label="2. Target (What is being controlled?)"
                     value={cpTargetId}
                     onChange={e => setCpTargetId(e.target.value)}
-                    options={[{value: '', label: 'Select a controlled item...'}, ...pathTargetOptions]}
+                    options={pathTargetOptions}
+                    placeholder="Select a controlled item..."
                 />
                 <div className="pl-4 border-l-4 border-slate-300 dark:border-slate-600">
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -123,7 +125,7 @@ const ControlPathsBuilder: React.FC = () => {
             </div>
 
             <ul className="space-y-2">
-                {controlPaths.map(cp => (
+                {(controlPaths || []).map(cp => (
                     <li key={cp.id} className="flex justify-between items-center p-3 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 shadow-sm">
                         <div>
                             <p className="font-medium text-slate-800 dark:text-slate-200"><span className="font-semibold">{getItemName(cp.sourceControllerId)}</span> → <span className="font-semibold">{getItemName(cp.targetId)}</span></p>
