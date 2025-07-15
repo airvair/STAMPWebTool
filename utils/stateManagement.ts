@@ -1,4 +1,4 @@
-import { UnsafeControlAction, UCCA, Controller, ControlAction, Hazard, Loss, CausalScenario, Requirement } from '@/types';
+import { UnsafeControlAction, UCCA, Controller, ControlAction, Hazard, Loss, Requirement } from '@/types';
 import { ValidationResult } from './ucaValidation';
 import { ErrorHandler, SafetyAnalysisError, createErrorContext } from './errorHandling';
 
@@ -37,7 +37,6 @@ export interface AnalysisState {
   uccas: UCCA[];
   losses: Loss[];
   hazards: Hazard[];
-  scenarios: CausalScenario[];
   requirements: Requirement[];
   traceabilityLinks: TraceabilityLink[];
   pendingChanges: PendingChange[];
@@ -103,7 +102,6 @@ export class AnalysisStateManager {
       uccas: [],
       losses: [],
       hazards: [],
-      scenarios: [],
       requirements: [],
       traceabilityLinks: [],
       pendingChanges: [],
@@ -807,10 +805,6 @@ export class AnalysisStateManager {
       if (node) nodes.set(ucca.id, node);
     });
 
-    this.state.scenarios.forEach(scenario => {
-      const node = this.createTraceabilityNode(scenario.id, 'scenario');
-      if (node) nodes.set(scenario.id, node);
-    });
 
     this.state.requirements.forEach(requirement => {
       const node = this.createTraceabilityNode(requirement.id, 'requirement');
@@ -831,7 +825,6 @@ export class AnalysisStateManager {
     hazards: any[],
     ucas: any[],
     uccas: any[],
-    scenarios: any[],
     requirements: any[]
   ): TraceabilityGraph {
     // Update state with provided data
@@ -839,7 +832,6 @@ export class AnalysisStateManager {
     this.state.hazards = hazards;
     this.state.ucas = ucas;
     this.state.uccas = uccas;
-    this.state.scenarios = scenarios;
     this.state.requirements = requirements;
     
     // Generate and return the graph
@@ -894,10 +886,10 @@ export class AnalysisStateManager {
       }
 
       const hasDownstream = this.state.traceabilityLinks.some(
-        link => link.sourceId === uca.id && link.targetType === 'scenario'
+        link => link.sourceId === uca.id && link.targetType === 'requirement'
       );
       if (!hasDownstream) {
-        missingLinks.push(`UCA "${uca.code}" has no causal scenarios`);
+        missingLinks.push(`UCA "${uca.code}" has no derived requirements`);
       }
     });
 
@@ -970,10 +962,6 @@ export class AnalysisStateManager {
       case 'ucca':
         entity = this.state.uccas.find(u => u.id === entityId);
         label = entity?.code || 'Unknown UCCA';
-        break;
-      case 'scenario':
-        entity = this.state.scenarios.find(s => s.id === entityId);
-        label = entity?.code || 'Unknown Scenario';
         break;
       case 'requirement':
         entity = this.state.requirements.find(r => r.id === entityId);

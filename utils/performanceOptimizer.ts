@@ -6,7 +6,6 @@
 import { 
   UnsafeControlAction, 
   UCCA, 
-  CausalScenario,
   Hazard,
   Loss,
   Requirement
@@ -528,12 +527,10 @@ export const ReactOptimizations = {
 export class STPAOptimizer {
   private ucaIndex: IndexedDataStore<UnsafeControlAction>;
   private uccaIndex: IndexedDataStore<UCCA>;
-  private scenarioIndex: IndexedDataStore<CausalScenario>;
   
   constructor() {
     this.ucaIndex = new IndexedDataStore(['controllerId', 'controlActionId']);
     this.uccaIndex = new IndexedDataStore(['context', 'uccaType']);
-    this.scenarioIndex = new IndexedDataStore(['ucaId']);
   }
   
   /**
@@ -568,7 +565,6 @@ export class STPAOptimizer {
     _losses: Loss[],
     hazards: Hazard[],
     ucas: UnsafeControlAction[],
-    scenarios: CausalScenario[],
     requirements: Requirement[]
   ) => {
     const links = new Map<string, Set<string>>();
@@ -591,19 +587,10 @@ export class STPAOptimizer {
       });
     });
     
-    // UCA -> Scenario links
-    scenarios.forEach(scenario => {
-      if (scenario.ucaId) {
-        const key = `uca-${scenario.ucaId}`;
-        if (!links.has(key)) links.set(key, new Set());
-        links.get(key)!.add(`scenario-${scenario.id}`);
-      }
-    });
-    
-    // Scenario -> Requirement links
+    // UCA -> Requirement links
     requirements.forEach(req => {
-      req.linkedScenarioIds?.forEach(scenarioId => {
-        const key = `scenario-${scenarioId}`;
+      req.ucaIds?.forEach(ucaId => {
+        const key = `uca-${ucaId}`;
         if (!links.has(key)) links.set(key, new Set());
         links.get(key)!.add(`requirement-${req.id}`);
       });
@@ -618,7 +605,6 @@ export class STPAOptimizer {
   clearCaches() {
     this.ucaIndex.clear();
     this.uccaIndex.clear();
-    this.scenarioIndex.clear();
   }
 }
 

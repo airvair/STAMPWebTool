@@ -1,5 +1,5 @@
 import React from 'react';
-import { ControllerType, UCAType, ScenarioClass, StepDefinition, FiveFactorArchetype, FiveFactorScores } from './types';
+import { ControllerType, UCAType, StepDefinition, FiveFactorArchetype, FiveFactorScores } from './types';
 
 export const APP_TITLE = "STAMP Tool";
 export const APP_VERSION = "Alpha";
@@ -137,32 +137,6 @@ export const SYSTEM_STATE_CONDITION_EXAMPLES: { category: string, examples: stri
   }
 ];
 
-export const SCENARIO_CLASSES_BY_CONTROLLER: Record<ControllerType, { classType: ScenarioClass, label: string, description: string }[]> = {
-  [ControllerType.Software]: [
-    { classType: ScenarioClass.Class1, label: 'Incorrect Algorithm/Logic or Data leads to UCA', description: 'Software provides UCA due to flaws in its design, implementation, or the data it uses for its process model.' },
-    { classType: ScenarioClass.Class2, label: 'Algorithm/Logic Correct, but UCA still provided to "correct" perceived issue', description: 'Software correctly implements its logic, but this logic is based on a flawed understanding of safety or leads to a UCA in specific unhandled contexts (Process Model flawed w.r.t safety goal).' },
-    { classType: ScenarioClass.Class3, label: 'Safe CA by Software made Unsafe by Process', description: 'Software issues a safe command, but issues in the controlled process (hardware, network, other software) lead to a hazardous state.' },
-    { classType: ScenarioClass.Class4, label: 'Safe CA by Software Contributes to Hazard in Complex System', description: 'Software issues a safe command, correctly executed, but in combination with other system components or evolving system state, it leads to a hazard.' },
-  ],
-  [ControllerType.Human]: [
-    { classType: ScenarioClass.Class1, label: 'Flawed Mental Model or Incorrect/Missing Information leads to UCA', description: 'Operator provides UCA due to misunderstanding system state, dynamics, or lacking necessary data for safe decision-making.' },
-    { classType: ScenarioClass.Class2, label: 'Correct Mental Model for action, but action itself is UCA due to flawed procedure/training', description: 'Operator follows procedure/training, but that guidance is flawed or inappropriate for the context, resulting in UCA.' },
-    { classType: ScenarioClass.Class3, label: 'Safe Action by Human made Unsafe by Process/Tools', description: 'Operator attempts a safe action, but tools, equipment, or environment cause it to be executed unsafely or have unsafe consequences.' },
-    { classType: ScenarioClass.Class4, label: 'Safe Action by Human Contributes to Hazard in Complex System/Team', description: 'Operator performs a locally safe action, but in combination with team actions or system dynamics, it contributes to a hazard.' },
-  ],
-  [ControllerType.Team]: [
-    { classType: ScenarioClass.Class1, label: 'Flawed Shared Process Model leads to UCA by team', description: 'Team members have inconsistent or incorrect understanding of roles, responsibilities, or system state, leading to a coordinated UCA.' },
-    { classType: ScenarioClass.Class2, label: 'Inadequate Communication/Coordination results in UCA', description: 'Breakdowns in information flow or synchronized actions among team members lead to the team (or a member on behalf of) issuing a UCA.' },
-    { classType: ScenarioClass.Class3, label: 'Safe Team Action made Unsafe by External Factors/Process', description: 'Team coordinates and issues a safe action, but external factors or the process execution lead to a hazardous state.' },
-    { classType: ScenarioClass.Class4, label: 'Safe Team Action Contributes to Broader System Hazard', description: 'Team performs a coordinated safe action, but it contributes to a larger system-level hazard due to interactions outside the team\'s immediate control or view.' },
-  ],
-  [ControllerType.Organisation]: [
-    { classType: ScenarioClass.Class1, label: 'Flawed Organizational Policies/Procedures lead to UCA', description: 'Deficiencies in safety culture, training, resource allocation, or management oversight directly result in or sanction unsafe actions.' },
-    { classType: ScenarioClass.Class2, label: 'Dysfunctional Organizational Dynamics cause UCA', description: 'Internal conflicts, production pressure, or misaligned incentives lead to decisions or actions that are unsafe.' },
-    { classType: ScenarioClass.Class3, label: 'Safe Organizational Directive made Unsafe by Implementation', description: 'Organization issues a safe policy/directive, but its implementation at lower levels or by other entities leads to unsafe outcomes.' },
-    { classType: ScenarioClass.Class4, label: 'Safe Organizational Stance Contributes to System Hazard in Wider Context', description: 'Organization maintains a safe policy, but this interacts with external regulations, industry practices, or societal factors to create hazards.' },
-  ],
-};
 
 
 export const STEPS_BASE: StepDefinition[] = [

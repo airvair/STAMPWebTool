@@ -39,12 +39,6 @@ export enum UCAType {
   TooShort = 'Applied Too Short / Stopped Too Soon (wrong duration)',
 }
 
-export enum ScenarioClass {
-  Class1 = '1',
-  Class2 = '2',
-  Class3 = '3',
-  Class4 = '4',
-}
 
 export interface Identifiable {
   id: string;
@@ -234,24 +228,6 @@ export interface UCCA extends Identifiable {
   timingConstraints?: string;
 }
 
-export interface CausalScenario extends Identifiable {
-  ucaId: string;
-  ucaIds?: string[]; // Some scenarios can be linked to multiple UCAs
-  uccaIds?: string[]; // Linked UCCAs
-  classType: ScenarioClass;
-  description: string;
-  isAdditional?: boolean;
-  causalFactors?: string[];
-  code?: string;
-  title?: string;
-  triggers?: string;
-  conditions?: string;
-  consequences?: string;
-  controllerConstraints?: string;
-  inadequateFeedback?: string;
-  delaysAndLags?: string;
-  componentFailures?: string;
-}
 
 export interface Requirement extends Identifiable {
   text: string;
@@ -280,7 +256,6 @@ export interface ScenarioChecklistItem {
   subItems?: ScenarioChecklistItem[];
   tooltip?: string;
   relevantControllerTypes?: ControllerType[];
-  relevantScenarioClasses?: ScenarioClass[];
 }
 
 export enum FailureType {
@@ -351,7 +326,6 @@ export interface AnalysisData {
   controlActions: ControlAction[];
   ucas: UnsafeControlAction[];
   uccas: UCCA[];
-  scenarios: CausalScenario[];
   requirements: Requirement[];
   sequenceOfEvents: EventDetail[];
   activeContexts: { [key: string]: string };

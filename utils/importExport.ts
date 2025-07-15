@@ -10,7 +10,6 @@ import {
   ControlAction, 
   UnsafeControlAction, 
   UCCA,
-  CausalScenario,
   Requirement,
   FeedbackPath,
   ControlPath,
@@ -50,7 +49,6 @@ export interface STAPAnalysisData {
   systemComponents: SystemComponent[];
   ucas: UnsafeControlAction[];
   uccas: UCCA[];
-  causalScenarios: CausalScenario[];
   requirements: Requirement[];
 }
 
@@ -158,7 +156,6 @@ export class ImportExportManager {
     this.exportEntitiesToCSV(zip, 'control_actions.csv', data.controlActions, this.controlActionToCSVRow);
     this.exportEntitiesToCSV(zip, 'ucas.csv', data.ucas, this.ucaToCSVRow);
     this.exportEntitiesToCSV(zip, 'uccas.csv', data.uccas, this.uccaToCSVRow);
-    this.exportEntitiesToCSV(zip, 'causal_scenarios.csv', data.causalScenarios, this.scenarioToCSVRow);
     this.exportEntitiesToCSV(zip, 'requirements.csv', data.requirements, this.requirementToCSVRow);
 
     // Add metadata if requested
@@ -344,7 +341,6 @@ Tool: STAMP Web Tool v1.0`;
         systemComponents: [],
         ucas: this.parseUCAsFromXML(xmlDoc),
         uccas: this.parseUCCAsFromXML(xmlDoc),
-        causalScenarios: this.parseScenariosFromXML(xmlDoc),
         requirements: this.parseRequirementsFromXML(xmlDoc)
       };
 
@@ -403,8 +399,7 @@ Tool: STAMP Web Tool v1.0`;
       'control_actions.csv': ['ID', 'Controller ID', 'Verb', 'Object', 'Description'],
       'ucas.csv': ['ID', 'Code', 'Controller ID', 'Control Action ID', 'Type', 'Description', 'Context', 'Hazard IDs'],
       'uccas.csv': ['ID', 'Code', 'Type', 'Description', 'Context', 'Controller IDs', 'Hazard IDs'],
-      'causal_scenarios.csv': ['ID', 'Code', 'Title', 'Description', 'UCA IDs', 'UCCA IDs'],
-      'requirements.csv': ['ID', 'Code', 'Type', 'Description', 'Scenario IDs']
+      'requirements.csv': ['ID', 'Code', 'Type', 'Description', 'UCA IDs']
     };
     
     return headerMap[filename] || [];
@@ -469,24 +464,14 @@ Tool: STAMP Web Tool v1.0`;
     ];
   }
 
-  private scenarioToCSVRow(scenario: CausalScenario): string[] {
-    return [
-      scenario.id,
-      scenario.code || '',
-      scenario.title || '',
-      scenario.description || '',
-      scenario.ucaIds?.join(';') || '',
-      scenario.uccaIds?.join(';') || ''
-    ];
-  }
 
   private requirementToCSVRow(requirement: Requirement): string[] {
     return [
       requirement.id,
       requirement.code || '',
       requirement.type,
-      requirement.description || '',
-      requirement.scenarioIds?.join(';') || ''
+      requirement.text || '',
+      requirement.ucaIds?.join(';') || ''
     ];
   }
 
@@ -557,9 +542,6 @@ Tool: STAMP Web Tool v1.0`;
     return [];
   }
 
-  private parseScenariosFromXML(_xmlDoc: Document): CausalScenario[] {
-    return [];
-  }
 
   private parseRequirementsFromXML(_xmlDoc: Document): Requirement[] {
     return [];
@@ -588,7 +570,7 @@ Tool: STAMP Web Tool v1.0`;
     // Check required arrays
     const requiredArrays = [
       'losses', 'hazards', 'controllers', 'controlActions',
-      'ucas', 'uccas', 'causalScenarios', 'requirements',
+      'ucas', 'uccas', 'requirements',
       'feedbackPaths', 'controlPaths', 'communicationPaths', 'systemComponents'
     ];
 
@@ -618,7 +600,6 @@ Tool: STAMP Web Tool v1.0`;
       data.systemComponents.length +
       data.ucas.length +
       data.uccas.length +
-      data.causalScenarios.length +
       data.requirements.length
     );
   }

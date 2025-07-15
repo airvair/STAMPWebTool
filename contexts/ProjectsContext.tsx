@@ -19,6 +19,7 @@ interface ProjectsContextState {
   currentAnalysisId: string | null;
   currentProject: Project | null;
   currentAnalysis: AnalysisSession | null;
+  isLoading: boolean;
   
   // Project operations
   createProject: (name: string, description?: string) => Project;
@@ -201,6 +202,7 @@ const initialState: ProjectsContextState = {
   currentAnalysisId: null,
   currentProject: null,
   currentAnalysis: null,
+  isLoading: true,
   createProject: () => ({} as Project),
   updateProject: () => {},
   deleteProject: () => {},
@@ -229,6 +231,8 @@ export const useProjects = () => {
 };
 
 export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  
   // Initialize with migration check
   const [projects, setProjects] = useState<Project[]>(() => {
     const stored = getStoredProjects();
@@ -243,6 +247,11 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const { projectId: storedProjectId, analysisId: storedAnalysisId } = getStoredCurrentIds();
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(storedProjectId);
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(storedAnalysisId);
+  
+  // Mark loading as complete after initial state is set
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
   
   // Persist to localStorage with validation
   useEffect(() => {
@@ -567,6 +576,7 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
     currentAnalysisId,
     currentProject,
     currentAnalysis,
+    isLoading,
     createProject,
     updateProject,
     deleteProject,

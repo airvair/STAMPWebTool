@@ -34,7 +34,8 @@ interface ReportGenerationPanelProps {
   onReportGenerated?: (report: GeneratedReport) => void;
 }
 
-const ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
+const
+  ReportGenerationPanel: React.FC<ReportGenerationPanelProps> = ({
   projectName = 'STPA Analysis',
   projectId: _projectId,
   onReportGenerated

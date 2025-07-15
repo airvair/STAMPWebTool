@@ -10,7 +10,6 @@ import {
   ControlAction,
   UnsafeControlAction,
   UCCA,
-  CausalScenario,
   Requirement
 } from '@/types';
 import { STAPAnalysisData } from './importExport';
@@ -385,37 +384,6 @@ export class APIClient {
     });
   }
 
-  /**
-   * Causal Scenario endpoints
-   */
-  async getScenarios(params?: QueryParams): Promise<APIResponse<PaginatedResponse<CausalScenario>>> {
-    const queryString = this.buildQueryString(params);
-    return this.request<PaginatedResponse<CausalScenario>>(`/api/scenarios${queryString}`);
-  }
-
-  async getScenario(id: string): Promise<APIResponse<CausalScenario>> {
-    return this.request<CausalScenario>(`/api/scenarios/${id}`);
-  }
-
-  async createScenario(scenario: Omit<CausalScenario, 'id'>): Promise<APIResponse<CausalScenario>> {
-    return this.request<CausalScenario>('/api/scenarios', {
-      method: 'POST',
-      body: JSON.stringify(scenario)
-    });
-  }
-
-  async updateScenario(id: string, scenario: Partial<CausalScenario>): Promise<APIResponse<CausalScenario>> {
-    return this.request<CausalScenario>(`/api/scenarios/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(scenario)
-    });
-  }
-
-  async deleteScenario(id: string): Promise<APIResponse<void>> {
-    return this.request<void>(`/api/scenarios/${id}`, {
-      method: 'DELETE'
-    });
-  }
 
   /**
    * Requirement endpoints

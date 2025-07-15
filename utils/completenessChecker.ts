@@ -10,7 +10,6 @@ import {
   UCCA, 
   Hazard, 
   Loss,
-  CausalScenario,
   Requirement,
   UCAType,
   ControllerType
@@ -35,7 +34,6 @@ export enum CheckCategory {
   CONTROL_ACTIONS = 'Control Actions',
   UCA_COVERAGE = 'UCA Coverage',
   UCCA_COVERAGE = 'UCCA Coverage',
-  CAUSAL_SCENARIOS = 'Causal Scenarios',
   REQUIREMENTS = 'Requirements',
   TRACEABILITY = 'Traceability'
 }
@@ -85,8 +83,7 @@ const COMPLETENESS_RULES = {
     UCAType.TooEarly,
     UCAType.TooLate
   ],
-  minScenariosPerUCA: 1,
-  minRequirementsPerScenario: 1
+  minRequirementsPerUCA: 1
 };
 
 /**
@@ -103,7 +100,6 @@ export class CompletenessChecker {
     controlActions: ControlAction[];
     ucas: UnsafeControlAction[];
     uccas: UCCA[];
-    scenarios: CausalScenario[];
     requirements: Requirement[];
   }): CompletenessReport {
     const checks: CompletenessCheck[] = [];
@@ -122,14 +118,8 @@ export class CompletenessChecker {
       analysisData.controllers,
       analysisData.hazards
     ));
-    checks.push(...this.checkCausalScenarios(
-      analysisData.scenarios,
-      analysisData.ucas,
-      analysisData.uccas
-    ));
     checks.push(...this.checkRequirements(
       analysisData.requirements,
-      analysisData.scenarios,
       analysisData.ucas,
       analysisData.uccas
     ));
@@ -546,123 +536,49 @@ export class CompletenessChecker {
     return checks;
   }
 
-  /**
-   * Check causal scenarios
-   */
-  private checkCausalScenarios(
-    scenarios: CausalScenario[],
-    ucas: UnsafeControlAction[],
-    _uccas: UCCA[]
-  ): CompletenessCheck[] {
-    const checks: CompletenessCheck[] = [];
-
-    // Check 1: Scenario coverage for UCAs
-    const ucasWithoutScenarios = ucas.filter(uca =>
-      !scenarios.some(s => s.ucaIds?.includes(uca.id))
-    );
-
-    checks.push({
-      id: 'scenario-uca-coverage',
-      category: CheckCategory.CAUSAL_SCENARIOS,
-      name: 'Causal Scenario Coverage for UCAs',
-      description: 'Each UCA should have at least one causal scenario',
-      status: ucasWithoutScenarios.length === 0
-        ? CheckStatus.COMPLETE
-        : ucasWithoutScenarios.length < ucas.length / 3
-        ? CheckStatus.PARTIAL
-        : CheckStatus.MISSING,
-      severity: CheckSeverity.HIGH,
-      details: [
-        `${ucasWithoutScenarios.length} of ${ucas.length} UCAs lack causal scenarios`
-      ],
-      recommendations: ucasWithoutScenarios.slice(0, 3).map(uca =>
-        `Create causal scenarios for UCA ${uca.code}`
-      ),
-      coverage: ucas.length > 0
-        ? ((ucas.length - ucasWithoutScenarios.length) / ucas.length) * 100
-        : 0
-    });
-
-    // Check 2: Scenario factor coverage
-    const scenarioFactorCoverage = scenarios.map(s => {
-      let factorCount = 0;
-      if (s.controllerConstraints) factorCount++;
-      if (s.inadequateFeedback) factorCount++;
-      if (s.delaysAndLags) factorCount++;
-      if (s.componentFailures) factorCount++;
-      return { scenario: s, factorCount };
-    });
-
-    const poorScenarios = scenarioFactorCoverage.filter(s => s.factorCount < 2);
-
-    checks.push({
-      id: 'scenario-factor-coverage',
-      category: CheckCategory.CAUSAL_SCENARIOS,
-      name: 'Causal Factor Analysis',
-      description: 'Scenarios should analyze multiple causal factors',
-      status: poorScenarios.length === 0
-        ? CheckStatus.COMPLETE
-        : poorScenarios.length < scenarios.length / 2
-        ? CheckStatus.PARTIAL
-        : CheckStatus.WARNING,
-      severity: CheckSeverity.MEDIUM,
-      details: [
-        `${poorScenarios.length} scenarios need more causal factor analysis`
-      ],
-      recommendations: poorScenarios.length > 0
-        ? ['Analyze controller constraints, feedback, delays, and failures for each scenario']
-        : [],
-      coverage: scenarios.length > 0
-        ? ((scenarios.length - poorScenarios.length) / scenarios.length) * 100
-        : 0
-    });
-
-    return checks;
-  }
 
   /**
    * Check requirements
    */
   private checkRequirements(
     requirements: Requirement[],
-    scenarios: CausalScenario[],
-    _ucas: UnsafeControlAction[],
+    ucas: UnsafeControlAction[],
     _uccas: UCCA[]
   ): CompletenessCheck[] {
     const checks: CompletenessCheck[] = [];
 
-    // Check 1: Requirements coverage for scenarios
-    const scenariosWithoutRequirements = scenarios.filter(s =>
-      !requirements.some(r => r.scenarioIds?.includes(s.id))
+    // Check 1: Requirements coverage for UCAs
+    const ucasWithoutRequirements = ucas.filter(u =>
+      !requirements.some(r => r.ucaIds?.includes(u.id))
     );
 
     checks.push({
-      id: 'requirement-scenario-coverage',
+      id: 'requirement-uca-coverage',
       category: CheckCategory.REQUIREMENTS,
       name: 'Requirement Coverage',
-      description: 'Each causal scenario should have derived requirements',
-      status: scenariosWithoutRequirements.length === 0
+      description: 'Each UCA should have derived requirements',
+      status: ucasWithoutRequirements.length === 0
         ? CheckStatus.COMPLETE
-        : scenariosWithoutRequirements.length < scenarios.length / 3
+        : ucasWithoutRequirements.length < ucas.length / 3
         ? CheckStatus.PARTIAL
         : CheckStatus.MISSING,
       severity: CheckSeverity.HIGH,
       details: [
-        `${scenariosWithoutRequirements.length} of ${scenarios.length} scenarios lack requirements`
+        `${ucasWithoutRequirements.length} of ${ucas.length} UCAs lack requirements`
       ],
-      recommendations: scenariosWithoutRequirements.slice(0, 3).map(s =>
-        `Derive safety requirements for scenario ${s.code}`
+      recommendations: ucasWithoutRequirements.slice(0, 3).map(u =>
+        `Derive safety requirements for UCA ${u.code}`
       ),
-      coverage: scenarios.length > 0
-        ? ((scenarios.length - scenariosWithoutRequirements.length) / scenarios.length) * 100
+      coverage: ucas.length > 0
+        ? ((ucas.length - ucasWithoutRequirements.length) / ucas.length) * 100
         : 0
     });
 
     // Check 2: Requirement quality
     const vagueRequirements = requirements.filter(r =>
-      !r.description || 
-      r.description.length < 50 ||
-      !r.description.match(/shall|must|will/i)
+      !r.text || 
+      r.text.length < 50 ||
+      !r.text.match(/shall|must|will/i)
     );
 
     checks.push({
@@ -768,18 +684,10 @@ export class CompletenessChecker {
       }
     });
 
-    // UCAs -> Scenarios
+    // UCAs -> Requirements
     data.ucas.forEach((uca: UnsafeControlAction) => {
       totalLinks++;
-      if (data.scenarios.some((s: CausalScenario) => s.ucaIds?.includes(uca.id))) {
-        presentLinks++;
-      }
-    });
-
-    // Scenarios -> Requirements
-    data.scenarios.forEach((scenario: CausalScenario) => {
-      totalLinks++;
-      if (data.requirements.some((r: Requirement) => r.scenarioIds?.includes(scenario.id))) {
+      if (data.requirements.some((r: Requirement) => r.ucaIds?.includes(uca.id))) {
         presentLinks++;
       }
     });
@@ -794,12 +702,12 @@ export class CompletenessChecker {
     let totalLinks = 0;
     let presentLinks = 0;
 
-    // Requirements -> Scenarios
+    // Requirements -> UCAs
     data.requirements.forEach((req: Requirement) => {
-      if (req.scenarioIds && req.scenarioIds.length > 0) {
+      if (req.ucaIds && req.ucaIds.length > 0) {
         totalLinks++;
-        if (req.scenarioIds.every((id: string) => 
-          data.scenarios.some((s: CausalScenario) => s.id === id)
+        if (req.ucaIds.every((id: string) => 
+          data.ucas.some((u: UnsafeControlAction) => u.id === id)
         )) {
           presentLinks++;
         }

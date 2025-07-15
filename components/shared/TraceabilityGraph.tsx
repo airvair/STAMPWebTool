@@ -5,7 +5,6 @@ import {
   Hazard, 
   UnsafeControlAction, 
   UCCA, 
-  CausalScenario, 
   Requirement 
 } from '@/types';
 import { TraceabilityGraph as TraceabilityGraphType } from '@/utils/stateManagement';
@@ -24,7 +23,6 @@ interface TraceabilityGraphProps {
   hazards: Hazard[];
   ucas: UnsafeControlAction[];
   uccas: UCCA[];
-  scenarios: CausalScenario[];
   requirements: Requirement[];
   riskScores?: Map<string, RiskScore>;
   onNodeClick?: (nodeId: string, nodeType: string) => void;
@@ -34,7 +32,6 @@ interface TraceabilityGraphProps {
     showHazards?: boolean;
     showUCAs?: boolean;
     showUCCAs?: boolean;
-    showScenarios?: boolean;
     showRequirements?: boolean;
     minLinkStrength?: number;
     onlyHighRisk?: boolean;
@@ -43,7 +40,7 @@ interface TraceabilityGraphProps {
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
-  type: 'loss' | 'hazard' | 'uca' | 'ucca' | 'scenario' | 'requirement';
+  type: 'loss' | 'hazard' | 'uca' | 'ucca' | 'requirement';
   label: string;
   code: string;
   riskCategory?: string;
@@ -67,7 +64,6 @@ const TraceabilityGraph: React.FC<TraceabilityGraphProps> = ({
   hazards,
   ucas,
   uccas,
-  scenarios,
   requirements,
   riskScores,
   onNodeClick,
@@ -77,7 +73,6 @@ const TraceabilityGraph: React.FC<TraceabilityGraphProps> = ({
     showHazards: true,
     showUCAs: true,
     showUCCAs: true,
-    showScenarios: true,
     showRequirements: true,
     minLinkStrength: 0,
     onlyHighRisk: false
@@ -164,16 +159,6 @@ const TraceabilityGraph: React.FC<TraceabilityGraphProps> = ({
       });
     }
 
-    if (filterOptions.showScenarios) {
-      scenarios.forEach(scenario => {
-        nodes.push({
-          id: scenario.id,
-          type: 'scenario',
-          label: scenario.description.substring(0, 50) + '...',
-          code: `CS-${scenario.id.substring(0, 4)}`
-        });
-      });
-    }
 
     if (filterOptions.showRequirements) {
       requirements.forEach(req => {
@@ -204,7 +189,7 @@ const TraceabilityGraph: React.FC<TraceabilityGraphProps> = ({
     });
 
     return { nodes, links };
-  }, [graph, losses, hazards, ucas, uccas, scenarios, requirements, riskScores, filterOptions]);
+  }, [graph, losses, hazards, ucas, uccas, requirements, riskScores, filterOptions]);
 
   // Initialize and update D3 visualization
   useEffect(() => {
@@ -355,7 +340,6 @@ const TraceabilityGraph: React.FC<TraceabilityGraphProps> = ({
       hazard: '#f59e0b',    // amber-500
       uca: '#3b82f6',       // blue-500
       ucca: '#8b5cf6',      // violet-500
-      scenario: '#10b981',  // emerald-500
       requirement: '#6366f1' // indigo-500
     };
 
@@ -380,7 +364,6 @@ const TraceabilityGraph: React.FC<TraceabilityGraphProps> = ({
       hazard: [],
       uca: [],
       ucca: [],
-      scenario: [],
       requirement: []
     };
 
@@ -388,7 +371,7 @@ const TraceabilityGraph: React.FC<TraceabilityGraphProps> = ({
       levels[node.type].push(node);
     });
 
-    const levelOrder = ['loss', 'hazard', 'uca', 'ucca', 'scenario', 'requirement'];
+    const levelOrder = ['loss', 'hazard', 'uca', 'ucca', 'requirement'];
     const levelHeight = dimensions.height / (levelOrder.length + 1);
 
     levelOrder.forEach((level, levelIndex) => {
@@ -541,12 +524,6 @@ const TraceabilityGraph: React.FC<TraceabilityGraphProps> = ({
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-violet-500"></div>
                 <span className="text-slate-600 dark:text-slate-300">UCCA</span>
-              </div>
-            )}
-            {filterOptions.showScenarios && (
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                <span className="text-slate-600 dark:text-slate-300">Scenario</span>
               </div>
             )}
             {filterOptions.showRequirements && (

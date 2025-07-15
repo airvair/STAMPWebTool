@@ -27,6 +27,7 @@ import NewAnalysisButton from '../projects/NewAnalysisButton';
 import EmptyStateView from '../projects/EmptyStateView';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import { exportAnalysisAsJSON, exportAnalysisAsPDF, exportAnalysisAsDOCX } from '@/utils/reportExport';
+import { Dock, DockIcon } from '@/src/components/magicui/dock';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -250,7 +251,9 @@ const EnterpriseLayout: React.FC = () => {
 
   const handleStepNavigation = (path: string) => {
     setCurrentStep(path);
-    navigate(path);
+    // If the path doesn't start with '/', it's likely a base step path that needs /analysis/ prefix
+    const fullPath = path.startsWith('/') ? path : `/analysis/${path}`;
+    navigate(fullPath);
     setCommandOpen(false);
   };
 
