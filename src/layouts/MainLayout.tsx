@@ -6,7 +6,6 @@ import { AnalysisType } from '@/types/types';
 import Button from '@/components/shared/Button';
 import Stepper from './Stepper';
 import { FeedbackContainer } from '@/components/shared/FeedbackNotification';
-import { SlotMachineTransition } from '@/components/ui/slot-machine-transition';
 import { AuroraText } from '@/components/magicui/aurora-text';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import webLogo from '@/assets/weblogo.webp';
@@ -15,9 +14,6 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { analysisSession, setCurrentStep, resetAnalysis } = useAnalysis();
-  const [isAnimating, setIsAnimating] = React.useState(false);
-  const [animationDirection, setAnimationDirection] = React.useState<'up' | 'down'>('up');
-  const [previousStepIndex, setPreviousStepIndex] = React.useState<number | null>(null);
   const [showResetDialog, setShowResetDialog] = useState(false);
 
   React.useEffect(() => {
@@ -33,19 +29,6 @@ const MainLayout: React.FC = () => {
   const steps = analysisSession.analysisType === AnalysisType.CAST ? CAST_STEPS : STPA_STEPS;
   const currentStepIndex = steps.findIndex(step => location.pathname.startsWith(step.path));
 
-  // Detect step changes and trigger animation
-  React.useEffect(() => {
-    if (previousStepIndex !== null && previousStepIndex !== currentStepIndex) {
-      setAnimationDirection(currentStepIndex > previousStepIndex ? 'up' : 'down');
-      setIsAnimating(true);
-      
-      // Reset animation state after animation completes
-      setTimeout(() => {
-        setIsAnimating(false);
-      }, 600); // Match duration with CSS animation
-    }
-    setPreviousStepIndex(currentStepIndex);
-  }, [currentStepIndex, previousStepIndex]);
 
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
@@ -99,19 +82,14 @@ const MainLayout: React.FC = () => {
         />
 
         <main className="flex-grow flex flex-col">
-          <SlotMachineTransition
-            isAnimating={isAnimating}
-            direction={animationDirection}
-            duration={600}
-            className="flex-grow flex flex-col"
-          >
+          <div className="flex-grow flex flex-col">
             {currentStepDefinition && (
                 <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 px-4 md:px-6 lg:px-8 py-4">{currentStepDefinition.title}</h2>
             )}
             <div className="flex-grow overflow-auto [&>div]:h-full [&>div]:p-4 [&>div]:md:p-6 [&>div]:lg:p-8">
               <Outlet />
             </div>
-          </SlotMachineTransition>
+          </div>
         </main>
         
         

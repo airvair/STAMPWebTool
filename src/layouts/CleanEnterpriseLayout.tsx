@@ -11,6 +11,11 @@ import {
   PencilIcon,
   TrashIcon,
   ArrowDownTrayIcon,
+  ArrowRightOnRectangleIcon,
+  CreditCardIcon,
+  ChevronUpIcon,
+  Cog6ToothIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline';
 import Sortable from 'sortablejs';
 import { AnimatedCollapsible, AnimatedCollapsibleItem, AnimatedChevron } from '@/components/ui/animated-collapsible';
@@ -58,6 +63,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import Button from '@/components/shared/Button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import webLogo from '@/assets/weblogo.webp';
 
@@ -597,6 +603,50 @@ const CleanEnterpriseLayout: React.FC = () => {
               </SidebarContent>
               
               <SidebarFooter>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuButton 
+                          size="lg"
+                          className="w-full justify-between hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                            <div className="flex flex-col items-start space-y-1">
+                              <Skeleton className="h-4 w-20" />
+                              <Skeleton className="h-3 w-32" />
+                            </div>
+                          </div>
+                          <ChevronUpIcon className="ml-auto h-4 w-4" />
+                        </SidebarMenuButton>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        side="top"
+                        align="start"
+                        className="w-[--radix-dropdown-menu-trigger-width]"
+                      >
+                        <DropdownMenuItem>
+                          <Cog6ToothIcon className="mr-2 h-4 w-4" />
+                          <span>Account</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <CreditCardIcon className="mr-2 h-4 w-4" />
+                          <span>Billing</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <BellIcon className="mr-2 h-4 w-4" />
+                          <span>Notifications</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>
+                          <ArrowRightOnRectangleIcon className="mr-2 h-4 w-4" />
+                          <span>Log out</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </SidebarMenuItem>
+                </SidebarMenu>
               </SidebarFooter>
             </Sidebar>
 

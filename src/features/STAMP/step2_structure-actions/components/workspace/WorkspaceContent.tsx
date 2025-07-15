@@ -1,5 +1,4 @@
-import React, { Suspense, useState, useEffect, useRef } from 'react';
-import { SlotMachineTransition } from '@/components/ui/slot-machine-transition';
+import React, { Suspense } from 'react';
 
 // Lazy load section components for better performance
 const SystemComponentsBuilder = React.lazy(() => import('../partials/SystemComponentsBuilder'));
@@ -74,25 +73,6 @@ const SectionHeader: React.FC<{
 const WorkspaceContent: React.FC<WorkspaceContentProps> = ({
   activeSection
 }) => {
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [animationDirection, setAnimationDirection] = useState<'up' | 'down'>('up');
-  const previousSectionRef = useRef<string | null>(null);
-  const sectionOrder = ['components', 'controllers', 'control-paths', 'feedback-paths', 'communication'];
-
-  useEffect(() => {
-    if (previousSectionRef.current && previousSectionRef.current !== activeSection) {
-      const prevIndex = sectionOrder.indexOf(previousSectionRef.current);
-      const currIndex = sectionOrder.indexOf(activeSection);
-      
-      setAnimationDirection(currIndex > prevIndex ? 'up' : 'down');
-      setIsAnimating(true);
-      
-      setTimeout(() => {
-        setIsAnimating(false);
-      }, 600);
-    }
-    previousSectionRef.current = activeSection;
-  }, [activeSection]);
   const renderSectionContent = () => {
     switch (activeSection) {
       case 'components':
@@ -181,16 +161,11 @@ const WorkspaceContent: React.FC<WorkspaceContentProps> = ({
 
   return (
     <div className="h-full bg-white dark:bg-slate-800 overflow-y-auto">
-      <SlotMachineTransition
-        isAnimating={isAnimating}
-        direction={animationDirection}
-        duration={600}
-        className="h-full"
-      >
+      <div className="h-full">
         <div className="p-6">
           {renderSectionContent()}
         </div>
-      </SlotMachineTransition>
+      </div>
     </div>
   );
 };
