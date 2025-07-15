@@ -10,7 +10,7 @@ import AnalysisStatusIndicator from '@/components/shared/AnalysisStatusIndicator
 import { SlotMachineTransition } from '@/components/ui/slot-machine-transition';
 import { AuroraText } from '@/components/magicui/aurora-text';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
-const webLogo = '/weblogo.webp';
+import webLogo from '@/assets/weblogo.webp';
 
 const MainLayout: React.FC = () => {
   const location = useLocation();

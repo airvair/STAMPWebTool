@@ -2,12 +2,11 @@ import React, { useEffect } from 'react';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { useNavigation } from '@/context/NavigationContext';
 import { useUrlSync } from '@/hooks/useUrlSync';
-import { CastStep2 } from '@/features/cast';
-import { StpaStep2 } from '@/features/stpa';
-import { ControlStructureBuilder } from '@/features/control-structure';
-import { UnsafeControlActions } from '@/features/uca';
-import { CausalScenarios } from '@/features/causal-scenarios';
-import { RequirementsMitigations } from '@/features/requirements';
+import { CastStep2, StpaStep2 } from '@/features/STAMP/step1_scope-losses';
+import { ControlStructureBuilder } from '@/features/STAMP/step2_structure-actions';
+import { UnsafeControlActions } from '@/features/STAMP/step3_ucas-uccas';
+import { CausalScenarios } from '@/features/STAMP/step4_scenarios';
+import { RequirementsMitigations } from '@/features/STAMP/step5_mitigations';
 import { AnalysisType } from '@/types/types';
 
 interface AnalysisWorkspaceProps {

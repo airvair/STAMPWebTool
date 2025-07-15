@@ -60,7 +60,7 @@ import {
 } from '@/components/ui/command';
 import Button from '@/components/shared/Button';
 
-const webLogo = '/weblogo.webp';
+import webLogo from '@/assets/weblogo.webp';
 
 // Icon mapping for steps
 const stepIcons: Record<AnalysisStep, React.ComponentType<any>> = {

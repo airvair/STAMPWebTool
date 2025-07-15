@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import ReactFlow, { Background, useNodesState, useEdgesState, useReactFlow, ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import { CustomEdge } from '@/features/control-structure/components/graph/CustomEdge';
-import { CustomNode } from '@/features/control-structure/components/graph/CustomNode';
-import { TeamMemberNode } from '@/features/control-structure/components/graph/TeamMemberNode'; // Import the new node
+import { CustomEdge } from '@/features/STAMP/step2_structure-actions/components/graph/CustomEdge';
+import { CustomNode } from '@/features/STAMP/step2_structure-actions/components/graph/CustomNode';
+import { TeamMemberNode } from '@/features/STAMP/step2_structure-actions/components/graph/TeamMemberNode'; // Import the new node
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { transformAnalysisData } from './graphUtils/dataTransformation';
 import { getLayoutedElements } from './graphUtils/layout';
