@@ -123,34 +123,24 @@ export class EnhancedUCCAEnumerator {
       context.controlActions,
       context.existingUCAs
     );
-    
-    const baseUCCAs = algorithm.enumerateControlActionCombinations(
-      '2b', // Default to controller-specific abstraction
-      this.config.maxCombinationSize
-    );
+
+    let baseUCCAs: PotentialUCCA[] = [];
+
+    if (this.config.enableAbstraction2a) {
+      baseUCCAs.push(...algorithm.enumerateControlActionCombinations('2a', this.config.maxCombinationSize));
+    }
+    if (this.config.enableAbstraction2b) {
+      baseUCCAs.push(...algorithm.enumerateControlActionCombinations('2b', this.config.maxCombinationSize));
+    }
 
     // Filter by enabled algorithm types
     for (const ucca of baseUCCAs) {
-      let include = false;
-
-      // Check type and abstraction level
       const isType1_2 = ucca.combinationType === 'provide-not-provide';
       const isType3_4 = ucca.combinationType === 'temporal';
-      const isAbstraction2a = ucca.abstractionLevel === '2a';
-      const isAbstraction2b = ucca.abstractionLevel === '2b';
-      
+
       if (isType1_2 && this.config.enableType1_2) {
-        if ((isAbstraction2a && this.config.enableAbstraction2a) ||
-            (isAbstraction2b && this.config.enableAbstraction2b)) {
-          include = true;
-        }
-      }
-
-      if (isType3_4 && this.config.enableType3_4) {
-        include = true;
-      }
-
-      if (include) {
+        potentialUCCAs.push(ucca);
+      } else if (isType3_4 && this.config.enableType3_4) {
         potentialUCCAs.push(ucca);
       }
     }
@@ -206,8 +196,7 @@ export class EnhancedUCCAEnumerator {
         const comm2Actions = commActions.filter(action => action.controllerId === controller2.id);
 
         if (comm1Actions.length > 0 && comm2Actions.length > 0) {
-          commUCCAs.push({
-            id: `PUCCA-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          const ucca = {
             controllerIds: [controller1.id, controller2.id],
             controlActionIds: [comm1Actions[0].id, comm2Actions[0].id],
             combinationType: 'provide-not-provide',
@@ -217,7 +206,8 @@ export class EnhancedUCCAEnumerator {
             riskLevel: 'high',
             type: UCCAAlgorithmType.Type1_2,
             riskScore: 0.8
-          });
+          };
+          commUCCAs.push({ ...ucca, id: this.generateUCCAKey(ucca) });
         }
       }
     }
@@ -258,8 +248,7 @@ export class EnhancedUCCAEnumerator {
         if (controllerIds.length > 1) {
           // Multiple controllers simultaneously trying to control same resource
 
-          resourceUCCAs.push({
-            id: `PUCCA-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          const ucca = {
             controllerIds: controllerIds.slice(0, 3),
             controlActionIds: controllerIds.slice(0, 3).map(controllerId => 
               actions.find(a => a.controllerId === controllerId)!.id
@@ -271,7 +260,8 @@ export class EnhancedUCCAEnumerator {
             riskLevel: 'high',
             type: UCCAAlgorithmType.Type1_2,
             riskScore: 0.7
-          });
+          };
+          resourceUCCAs.push({ ...ucca, id: this.generateUCCAKey(ucca) });
         }
       }
     });
@@ -304,8 +294,7 @@ export class EnhancedUCCAEnumerator {
 
           // Different controllers - one acts too early, other too late
           if (action1.controllerId !== action2.controllerId) {
-            emergencyUCCAs.push({
-              id: `PUCCA-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            const ucca = {
               controllerIds: [action1.controllerId, action2.controllerId],
               controlActionIds: [action1.id, action2.id],
               combinationType: 'temporal',
@@ -315,7 +304,8 @@ export class EnhancedUCCAEnumerator {
               riskLevel: 'high',
               type: UCCAAlgorithmType.Type3_4,
               riskScore: 0.9
-            });
+            };
+            emergencyUCCAs.push({ ...ucca, id: this.generateUCCAKey(ucca) });
           }
         }
       }
@@ -476,11 +466,13 @@ export class EnhancedUCCAEnumerator {
   }
 
   private doesUCCAMatchPotential(existing: UCCA, potential: PotentialUCCA): boolean {
-    // Simple matching based on description similarity
-    return this.calculateStringSimilarity(
-      existing.description.toLowerCase(), 
-      potential.description.toLowerCase()
-    ) > 0.8;
+    const potentialKey = this.generateUCCAKey(potential);
+    const existingKey = this.generateUCCAKey({
+      ...existing,
+      controllerIds: existing.involvedControllerIds,
+      combinationType: potential.combinationType, // This might need a better mapping
+    });
+    return potentialKey === existingKey;
   }
 
   private calculateStringSimilarity(str1: string, str2: string): number {

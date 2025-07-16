@@ -14,7 +14,9 @@ export default defineConfig(({ mode }) => ({
     react(),
     tailwindcss(),
     checker({
-      typescript: true,
+      typescript: {
+        tsconfigPath: path.resolve(__dirname, './tsconfig.json')
+      },
       overlay: {
         initialIsOpen: false,
         position: "tr",

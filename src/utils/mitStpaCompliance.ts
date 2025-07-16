@@ -158,7 +158,7 @@ export const performSystematicCompletenessCheck = (
   
   for (const uca of ucas) {
     // Check context quality
-    if (uca.context.length < 20) {
+    if (uca.context && uca.context.length < 20) {
       qualityIssues.push({
         ucaId: uca.id,
         issue: 'Context too brief - may lack specificity',
@@ -168,7 +168,7 @@ export const performSystematicCompletenessCheck = (
 
     // Check vague language
     const vagueTerms = ['sometimes', 'maybe', 'might', 'could', 'possibly'];
-    if (vagueTerms.some(term => uca.context.toLowerCase().includes(term))) {
+    if (uca.context && vagueTerms.some(term => uca.context.toLowerCase().includes(term))) {
       qualityIssues.push({
         ucaId: uca.id,
         issue: 'Context contains vague language - not measurable',
@@ -177,7 +177,7 @@ export const performSystematicCompletenessCheck = (
     }
 
     // Check hazard linkage
-    if (uca.hazardIds.length === 0) {
+    if (!uca.hazardIds || uca.hazardIds.length === 0) {
       qualityIssues.push({
         ucaId: uca.id,
         issue: 'No hazard linkage - violates MIT STPA requirement',
@@ -186,15 +186,17 @@ export const performSystematicCompletenessCheck = (
     }
 
     // Check for orphaned hazard references
-    const invalidHazardIds = uca.hazardIds.filter(hId => 
-      !hazards.find(h => h.id === hId)
-    );
-    if (invalidHazardIds.length > 0) {
-      qualityIssues.push({
-        ucaId: uca.id,
-        issue: `References invalid hazards: ${invalidHazardIds.join(', ')}`,
-        severity: 'high'
-      });
+    if (uca.hazardIds && uca.hazardIds.length > 0) {
+      const invalidHazardIds = uca.hazardIds.filter(hId => 
+        !hazards.find(h => h.id === hId)
+      );
+      if (invalidHazardIds.length > 0) {
+        qualityIssues.push({
+          ucaId: uca.id,
+          issue: `References invalid hazards: ${invalidHazardIds.join(', ')}`,
+          severity: 'high'
+        });
+      }
     }
   }
 

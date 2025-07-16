@@ -161,7 +161,7 @@ const ControlStructureWorkspace: React.FC = () => {
         {/* Visualization Panel */}
         {workspaceState.visualizationState.isVisible && (
           <div className={`
-            border-l border-slate-200 dark:border-slate-700 overflow-hidden
+            overflow-hidden
             ${workspaceState.visualizationState.layout === 'sidebar' ? 'w-1/2' : 'w-full'}
           `}>
             <WorkspaceVisualization

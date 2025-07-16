@@ -67,11 +67,17 @@ const Select: React.FC<SelectProps> = ({
                     <SelectValue placeholder={placeholder || "Select an option..."} />
                 </SelectTrigger>
                 <SelectContent>
-                    {options.map(option => (
-                        <SelectItem key={option.value} value={String(option.value)}>
-                            {option.label}
+                    {options.length === 0 ? (
+                        <SelectItem value="empty" disabled>
+                            Empty
                         </SelectItem>
-                    ))}
+                    ) : (
+                        options.map(option => (
+                            <SelectItem key={option.value} value={String(option.value)}>
+                                {option.label}
+                            </SelectItem>
+                        ))
+                    )}
                 </SelectContent>
             </ShadcnSelect>
             {error && <p className="mt-1 text-xs text-red-600">{error}</p>}

@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Lazy load section components for better performance
 const SystemComponentsBuilder = React.lazy(() => import('../partials/SystemComponentsBuilder'));
@@ -12,9 +13,19 @@ interface WorkspaceContentProps {
   markUnsavedChanges: (section: string, hasChanges: boolean) => void;
 }
 
-const LoadingSpinner: React.FC = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
+const SectionSkeleton: React.FC = () => (
+  <div className="space-y-4">
+    <Skeleton className="h-8 w-1/3" />
+    <Skeleton className="h-4 w-2/3" />
+    <div className="space-y-2 mt-6">
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-12 w-3/4" />
+    </div>
+    <div className="flex gap-2 mt-4">
+      <Skeleton className="h-10 w-24" />
+      <Skeleton className="h-10 w-24" />
+    </div>
   </div>
 );
 
@@ -87,7 +98,7 @@ const WorkspaceContent: React.FC<WorkspaceContentProps> = ({
                 </button>
               }
             />
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense fallback={<SectionSkeleton />}>
               <SystemComponentsBuilder />
             </Suspense>
           </div>
@@ -100,7 +111,7 @@ const WorkspaceContent: React.FC<WorkspaceContentProps> = ({
               title="Controllers"
               description="Define the entities that control system components (human, software, teams, organizations)"
             />
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense fallback={<SectionSkeleton />}>
               <ControllersBuilder />
             </Suspense>
           </div>
@@ -113,7 +124,7 @@ const WorkspaceContent: React.FC<WorkspaceContentProps> = ({
               title="Control Paths"
               description="Define command relationships and control actions between controllers and components"
             />
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense fallback={<SectionSkeleton />}>
               <ControlPathsBuilder />
             </Suspense>
           </div>
@@ -126,7 +137,7 @@ const WorkspaceContent: React.FC<WorkspaceContentProps> = ({
               title="Feedback Paths"
               description="Define information flow from components back to controllers"
             />
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense fallback={<SectionSkeleton />}>
               <FeedbackPathsBuilder />
             </Suspense>
           </div>
@@ -139,7 +150,7 @@ const WorkspaceContent: React.FC<WorkspaceContentProps> = ({
               title="Communication Links"
               description="Define peer-to-peer communication between controllers"
             />
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense fallback={<SectionSkeleton />}>
               <CommunicationLinksBuilder />
             </Suspense>
           </div>

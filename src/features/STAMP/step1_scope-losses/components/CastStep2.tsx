@@ -1,13 +1,33 @@
-import React, { useState, useCallback, useEffect, ChangeEvent } from 'react';
+import React, { useState, useCallback, useEffect, ChangeEvent, Suspense } from 'react';
 import { STANDARD_LOSSES } from '@/utils/constants';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { Loss, Hazard, SystemConstraint, AnalysisType } from '@/types/types';
 import Button from '@/components/shared/Button';
-import HazardsBuilder from './partials/HazardsBuilder';
-import LossesBuilder from './partials/LossesBuilder';
-import ScopeBuilder from './partials/ScopeBuilder';
-import SequenceOfEventsBuilder from './partials/SequenceOfEventsBuilder';
-import SystemConstraintsBuilder from './partials/SystemConstraintsBuilder';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Lazy load all section components
+const ScopeBuilder = React.lazy(() => import('./partials/ScopeBuilder'));
+const SequenceOfEventsBuilder = React.lazy(() => import('./partials/SequenceOfEventsBuilder'));
+const LossesBuilder = React.lazy(() => import('./partials/LossesBuilder'));
+const HazardsBuilder = React.lazy(() => import('./partials/HazardsBuilder'));
+const SystemConstraintsBuilder = React.lazy(() => import('./partials/SystemConstraintsBuilder'));
+
+// Section skeleton loader component
+const SectionSkeleton: React.FC = () => (
+  <div className="space-y-4">
+    <Skeleton className="h-8 w-1/3" />
+    <Skeleton className="h-4 w-2/3" />
+    <div className="space-y-2 mt-6">
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-12 w-full" />
+      <Skeleton className="h-12 w-3/4" />
+    </div>
+    <div className="flex gap-2 mt-4">
+      <Skeleton className="h-10 w-24" />
+      <Skeleton className="h-10 w-24" />
+    </div>
+  </div>
+);
 
 const CAST_SUB_STEPS = ['Scope', 'Events', 'Losses', 'Hazards', 'Constraints'];
 
@@ -165,12 +185,36 @@ const CastStep2: React.FC = () => {
 
   const renderSubStep = () => {
     switch (castStep2SubStep) {
-      case 0: return <ScopeBuilder analysisType={AnalysisType.CAST} scope={scope} setScope={setScope} handleScopeBlur={handleScopeBlur} />;
-      case 1: return <SequenceOfEventsBuilder sequenceOfEvents={sequenceOfEvents} newEventDesc={newEventDesc} setNewEventDesc={setNewEventDesc} handleAddEvent={handleAddEvent} updateEventDetail={updateEventDetail} deleteEventDetail={deleteEventDetail} reorderEventDetails={reorderEventDetails} />;
-      case 2: return <LossesBuilder analysisType={AnalysisType.CAST} losses={losses} selectedLossIdsState={selectedLossIdsState} otherLossTitle={otherLossTitle} otherLossDesc={otherLossDesc} getUnlinkedLosses={getUnlinkedLosses} handleLossSelectionChange={handleLossSelectionChange} setOtherLossTitle={setOtherLossTitle} setOtherLossDesc={setOtherLossDesc} handleAddOtherLoss={handleAddOtherLoss} deleteLoss={deleteLoss} />;
-      case 3: return <HazardsBuilder analysisType={AnalysisType.CAST} hazards={hazards} losses={losses} currentHazardText={currentHazardText} hazardError={hazardError} editingHazardId={editingHazardId} linkedLossIds={linkedLossIds} parentHazardForSubHazard={parentHazardForSubHazard} subHazardDescription={subHazardDescription} coveredLossCount={coveredLossCount} handleHazardInputChange={handleHazardInputChange} handleHazardLossLinkChange={handleHazardLossLinkChange} handleSaveHazard={handleSaveHazard} resetHazardForm={resetHazardForm} editHazard={editHazard} deleteHazard={deleteHazard} setParentHazardForSubHazard={setParentHazardForSubHazard} setSubHazardDescription={setSubHazardDescription} handleAddSubHazard={handleAddSubHazard} />;
-      case 4: return <SystemConstraintsBuilder analysisType={AnalysisType.CAST} systemConstraints={systemConstraints} hazards={hazards} updateSystemConstraint={updateSystemConstraint} />;
-      default: return <ScopeBuilder analysisType={AnalysisType.CAST} scope={scope} setScope={setScope} handleScopeBlur={handleScopeBlur} />;
+      case 0: return (
+        <Suspense fallback={<SectionSkeleton />}>
+          <ScopeBuilder analysisType={AnalysisType.CAST} scope={scope} setScope={setScope} handleScopeBlur={handleScopeBlur} />
+        </Suspense>
+      );
+      case 1: return (
+        <Suspense fallback={<SectionSkeleton />}>
+          <SequenceOfEventsBuilder sequenceOfEvents={sequenceOfEvents} newEventDesc={newEventDesc} setNewEventDesc={setNewEventDesc} handleAddEvent={handleAddEvent} updateEventDetail={updateEventDetail} deleteEventDetail={deleteEventDetail} reorderEventDetails={reorderEventDetails} />
+        </Suspense>
+      );
+      case 2: return (
+        <Suspense fallback={<SectionSkeleton />}>
+          <LossesBuilder analysisType={AnalysisType.CAST} losses={losses} selectedLossIdsState={selectedLossIdsState} otherLossTitle={otherLossTitle} otherLossDesc={otherLossDesc} getUnlinkedLosses={getUnlinkedLosses} handleLossSelectionChange={handleLossSelectionChange} setOtherLossTitle={setOtherLossTitle} setOtherLossDesc={setOtherLossDesc} handleAddOtherLoss={handleAddOtherLoss} deleteLoss={deleteLoss} />
+        </Suspense>
+      );
+      case 3: return (
+        <Suspense fallback={<SectionSkeleton />}>
+          <HazardsBuilder analysisType={AnalysisType.CAST} hazards={hazards} losses={losses} currentHazardText={currentHazardText} hazardError={hazardError} editingHazardId={editingHazardId} linkedLossIds={linkedLossIds} parentHazardForSubHazard={parentHazardForSubHazard} subHazardDescription={subHazardDescription} coveredLossCount={coveredLossCount} handleHazardInputChange={handleHazardInputChange} handleHazardLossLinkChange={handleHazardLossLinkChange} handleSaveHazard={handleSaveHazard} resetHazardForm={resetHazardForm} editHazard={editHazard} deleteHazard={deleteHazard} setParentHazardForSubHazard={setParentHazardForSubHazard} setSubHazardDescription={setSubHazardDescription} handleAddSubHazard={handleAddSubHazard} />
+        </Suspense>
+      );
+      case 4: return (
+        <Suspense fallback={<SectionSkeleton />}>
+          <SystemConstraintsBuilder analysisType={AnalysisType.CAST} systemConstraints={systemConstraints} hazards={hazards} updateSystemConstraint={updateSystemConstraint} />
+        </Suspense>
+      );
+      default: return (
+        <Suspense fallback={<SectionSkeleton />}>
+          <ScopeBuilder analysisType={AnalysisType.CAST} scope={scope} setScope={setScope} handleScopeBlur={handleScopeBlur} />
+        </Suspense>
+      );
     }
   };
 

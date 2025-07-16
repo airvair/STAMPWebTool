@@ -647,11 +647,11 @@ export class SmartContextBuilder {
     hazards.forEach(hazard => {
       suggestions.push({
         id: `multi-hazard-${hazard.id}`,
-        text: `When uncoordinated actions by multiple controllers contribute to ${hazard.title}`,
+        text: `When unsafe combinations of control actions by multiple controllers contribute to ${hazard.title}`,
         confidence: 0.8,
         category: ContextCategory.COORDINATION,
         source: SuggestionSource.HAZARD_BASED,
-        keywords: [...this.extractKeywords(hazard.title), 'uncoordinated', 'multiple']
+        keywords: [...this.extractKeywords(hazard.title), 'unsafe combinations', 'multiple']
       });
     });
 
