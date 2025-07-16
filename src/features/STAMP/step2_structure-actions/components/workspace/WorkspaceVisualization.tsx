@@ -17,7 +17,7 @@ const WorkspaceVisualization: React.FC<WorkspaceVisualizationProps> = ({
 
 
   const containerClasses = useMemo(() => {
-    const baseClasses = "bg-white dark:bg-slate-800 flex flex-col h-full";
+    const baseClasses = "bg-background flex flex-col h-full";
     
     switch (visualizationState.layout) {
       case 'overlay':

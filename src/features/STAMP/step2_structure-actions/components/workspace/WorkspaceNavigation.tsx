@@ -77,9 +77,9 @@ const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
   const analysisData = useAnalysis();
 
   return (
-    <div className="w-64 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 flex flex-col h-full">
+    <div className="w-64 bg-muted/30 backdrop-blur-sm border-r border-border/50 flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+      <div className="p-4 border-b border-border/50">
         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           Control Structure
         </h2>
@@ -89,7 +89,7 @@ const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
       </div>
 
       {/* Overall Progress */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+      <div className="p-4 border-b border-border/50">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Progress</span>
           <span className="text-sm text-slate-600 dark:text-slate-400">
@@ -129,7 +129,7 @@ const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
                     w-full text-left p-3 rounded-lg transition-all duration-200
                     ${isActive 
                       ? 'bg-sky-100 dark:bg-sky-900/30 border-l-4 border-sky-500 text-sky-800 dark:text-sky-200' 
-                      : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      : 'hover:bg-muted/50 text-muted-foreground'
                     }
                     ${!isClickable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
                     ${hasUnsavedChanges ? 'ring-2 ring-amber-400/50' : ''}
@@ -162,7 +162,7 @@ const WorkspaceNavigation: React.FC<WorkspaceNavigationProps> = ({
       </nav>
 
       {/* Footer with actions */}
-      <div className="p-4 border-t border-slate-200 dark:border-slate-700">
+      <div className="p-4 border-t border-border/50">
         <button
           onClick={() => {/* TODO: Add save functionality */}}
           className="w-full px-3 py-2 text-sm bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors duration-200"

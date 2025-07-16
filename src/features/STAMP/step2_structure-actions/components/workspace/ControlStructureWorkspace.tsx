@@ -115,7 +115,7 @@ const ControlStructureWorkspace: React.FC = () => {
   }, [workspaceState.unsavedChanges]);
 
   const renderMobileHeader = () => (
-    <div className="lg:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
+    <div className="lg:hidden border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           Control Structure
@@ -148,7 +148,7 @@ const ControlStructureWorkspace: React.FC = () => {
   );
 
   const renderDesktopLayout = () => (
-    <div className="h-[calc(100vh-200px)] flex overflow-hidden -m-6 md:-m-8 rounded-xl">
+    <div className="h-full flex overflow-hidden">
       {/* Main Content Area */}
       <div className="flex-1 flex min-w-0 h-full">
         <div className="flex-1">
@@ -176,7 +176,7 @@ const ControlStructureWorkspace: React.FC = () => {
   );
 
   const renderMobileLayout = () => (
-    <div className="h-screen flex flex-col">
+    <div className="h-full flex flex-col">
       {renderMobileHeader()}
       
 

@@ -223,13 +223,25 @@ body.sortable-dragging * {
   cursor: grabbing !important;
 }
 
-/* Draggable elements */
+/* Draggable elements - only the title area */
 .sortable-analysis-item [data-sidebar="menu-button"] {
   cursor: grab;
 }
 
 .sortable-analysis-item [data-sidebar="menu-button"]:active {
   cursor: grabbing;
+}
+
+/* Ensure collapsible content doesn't show grab cursor */
+.sortable-analysis-item [data-slot="sidebar-menu-sub"] {
+  cursor: default !important;
+}
+
+/* Allow interactive elements in collapsible area to have their proper cursors */
+.sortable-analysis-item [data-slot="sidebar-menu-sub"] button,
+.sortable-analysis-item [data-slot="sidebar-menu-sub"] a,
+.sortable-analysis-item [data-slot="sidebar-menu-sub"] [data-sidebar="menu-sub-button"] {
+  cursor: pointer !important;
 }
 
 /* Keep pointer cursor for interactive elements */

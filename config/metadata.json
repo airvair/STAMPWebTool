@@ -1,0 +1,5 @@
+{
+  "name": "STPA/CAST Analysis Tool",
+  "description": "A web application to facilitate System-Theoretic Process Analysis (STPA) and Causal Analysis based on STAMP (CAST) methodologies for safety engineering.",
+  "requestFramePermissions": []
+}

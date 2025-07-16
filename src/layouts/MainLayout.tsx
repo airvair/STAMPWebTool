@@ -6,7 +6,6 @@ import { AnalysisType } from '@/types/types';
 import Button from '@/components/shared/Button';
 import Stepper from './Stepper';
 import { FeedbackContainer } from '@/components/shared/FeedbackNotification';
-import { AuroraText } from '@/components/magicui/aurora-text';
 import { ConfirmationDialog } from '@/components/ui/ConfirmationDialog';
 import webLogo from '@/assets/weblogo.webp';
 
@@ -65,7 +64,7 @@ const MainLayout: React.FC = () => {
             <div className="flex items-center">
               <img src={webLogo} alt="Logo" className="h-8 w-auto mr-3" />
               <div className="flex flex-col">
-                <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} {APP_VERSION} / <AuroraText className="text-lg font-bold opacity-80">{analysisSession.analysisType}</AuroraText></h1>
+                <h1 className="text-lg font-semibold tracking-wide">{APP_TITLE} {APP_VERSION} / <span className="text-lg font-bold opacity-80">{analysisSession.analysisType}</span></h1>
                 <p className="text-xs opacity-75">Enterprise Safety Analysis Platform by MalmquistSafety</p>
               </div>
             </div>

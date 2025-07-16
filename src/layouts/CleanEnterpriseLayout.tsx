@@ -13,10 +13,10 @@ import {
   ArrowDownTrayIcon,
   ArrowRightOnRectangleIcon,
   CreditCardIcon,
-  ChevronUpIcon,
   Cog6ToothIcon,
   BellIcon,
 } from '@heroicons/react/24/outline';
+import { ChevronsUpDown } from 'lucide-react';
 import Sortable from 'sortablejs';
 import { AnimatedCollapsible, AnimatedCollapsibleItem, AnimatedChevron } from '@/components/ui/animated-collapsible';
 import { APP_TITLE } from '@/utils/constants';
@@ -160,6 +160,7 @@ const CleanEnterpriseLayout: React.FC = () => {
       chosenClass: 'sortable-chosen',
       dragClass: 'sortable-drag',
       disabled: renamingAnalysisId !== null || isReordering,
+      handle: '[data-sidebar="menu-button"]',
       filter: '.dropdown-trigger, .chevron-button, [data-sidebar="menu-action"]',
       preventOnFilter: false,
       onStart: (evt) => {
@@ -618,7 +619,7 @@ const CleanEnterpriseLayout: React.FC = () => {
                               <Skeleton className="h-3 w-32" />
                             </div>
                           </div>
-                          <ChevronUpIcon className="ml-auto h-4 w-4" />
+                          <ChevronsUpDown className="ml-auto h-4 w-4" />
                         </SidebarMenuButton>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
