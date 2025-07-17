@@ -48,37 +48,37 @@ interface ContextCondition {
 
 const UCA_TYPES: { value: UCAType; label: string; description: string }[] = [
   { 
-    value: 'not-provided', 
+    value: UCAType.NotProvided, 
     label: 'Not Provided',
     description: 'Control action is not given when it should be'
   },
   { 
-    value: 'provided', 
+    value: UCAType.ProvidedUnsafe, 
     label: 'Provided',
     description: 'Control action is given when it should not be'
   },
   { 
-    value: 'too-early', 
+    value: UCAType.TooEarly, 
     label: 'Too Early',
     description: 'Control action is given before it should be'
   },
   { 
-    value: 'too-late', 
+    value: UCAType.TooLate, 
     label: 'Too Late',
     description: 'Control action is given after it should be'
   },
   { 
-    value: 'wrong-order', 
+    value: UCAType.WrongOrder, 
     label: 'Wrong Order',
     description: 'Control action is given out of sequence'
   },
   { 
-    value: 'too-long', 
+    value: UCAType.TooLong, 
     label: 'Too Long',
     description: 'Control action is applied for too long'
   },
   { 
-    value: 'too-short', 
+    value: UCAType.TooShort, 
     label: 'Too Short',
     description: 'Control action is not applied long enough'
   }
@@ -107,7 +107,7 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
   // Form state
   const [controllerId, setControllerId] = useState<string>('');
   const [controlActionId, setControlActionId] = useState<string>('');
-  const [ucaType, setUcaType] = useState<UCAType>('not-provided');
+  const [ucaType, setUcaType] = useState<UCAType>(UCAType.NotProvided);
   const [description, setDescription] = useState('');
   const [contextText, setContextText] = useState('');
   const [contextConditions, setContextConditions] = useState<ContextCondition[]>([]);
@@ -135,7 +135,7 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
       // Creating new UCA
       setControllerId(selectedController || '');
       setControlActionId(selectedControlAction || '');
-      setUcaType(preselectedUCAType || 'not-provided');
+      setUcaType(preselectedUCAType || UCAType.NotProvided);
       setDescription('');
       setContextText('');
       setSelectedHazards([]);

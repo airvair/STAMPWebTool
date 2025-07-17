@@ -18,13 +18,13 @@ interface UCAAnalysisProps {
 }
 
 const UCA_TYPES: { value: UCAType; label: string; shortLabel: string }[] = [
-  { value: 'not-provided', label: 'Not Provided', shortLabel: 'NP' },
-  { value: 'provided', label: 'Provided', shortLabel: 'P' },
-  { value: 'too-early', label: 'Too Early', shortLabel: 'TE' },
-  { value: 'too-late', label: 'Too Late', shortLabel: 'TL' },
-  { value: 'wrong-order', label: 'Wrong Order', shortLabel: 'WO' },
-  { value: 'too-long', label: 'Too Long', shortLabel: 'TLo' },
-  { value: 'too-short', label: 'Too Short', shortLabel: 'TS' }
+  { value: UCAType.NotProvided, label: 'Not Provided', shortLabel: 'NP' },
+  { value: UCAType.ProvidedUnsafe, label: 'Provided', shortLabel: 'P' },
+  { value: UCAType.TooEarly, label: 'Too Early', shortLabel: 'TE' },
+  { value: UCAType.TooLate, label: 'Too Late', shortLabel: 'TL' },
+  { value: UCAType.WrongOrder, label: 'Wrong Order', shortLabel: 'WO' },
+  { value: UCAType.TooLong, label: 'Too Long', shortLabel: 'TLo' },
+  { value: UCAType.TooShort, label: 'Too Short', shortLabel: 'TS' }
 ];
 
 interface UCAAnalysisCell {

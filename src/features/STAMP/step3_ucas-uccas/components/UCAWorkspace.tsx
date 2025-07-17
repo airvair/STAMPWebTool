@@ -49,23 +49,23 @@ interface UCAWorkspaceProps {
 }
 
 const UCA_TYPE_LABELS: Record<UCAType, string> = {
-  'not-provided': 'Not Provided',
-  'provided': 'Provided',
-  'too-early': 'Too Early',
-  'too-late': 'Too Late',
-  'wrong-order': 'Wrong Order',
-  'too-long': 'Too Long',
-  'too-short': 'Too Short'
+  [UCAType.NotProvided]: 'Not Provided',
+  [UCAType.ProvidedUnsafe]: 'Provided',
+  [UCAType.TooEarly]: 'Too Early',
+  [UCAType.TooLate]: 'Too Late',
+  [UCAType.WrongOrder]: 'Wrong Order',
+  [UCAType.TooLong]: 'Too Long',
+  [UCAType.TooShort]: 'Too Short'
 };
 
 const UCA_TYPE_COLORS: Record<UCAType, string> = {
-  'not-provided': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-  'provided': 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
-  'too-early': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-  'too-late': 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400',
-  'wrong-order': 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
-  'too-long': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-  'too-short': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400'
+  [UCAType.NotProvided]: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+  [UCAType.ProvidedUnsafe]: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
+  [UCAType.TooEarly]: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+  [UCAType.TooLate]: 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400',
+  [UCAType.WrongOrder]: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+  [UCAType.TooLong]: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+  [UCAType.TooShort]: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400'
 };
 
 const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({

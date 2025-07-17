@@ -6,14 +6,12 @@ import {
   ShieldExclamationIcon,
   BeakerIcon,
   ShieldCheckIcon,
-  CommandLineIcon,
   EllipsisVerticalIcon,
   PencilIcon,
   TrashIcon,
   ArrowDownTrayIcon,
   ArrowRightOnRectangleIcon,
   CreditCardIcon,
-  Cog6ToothIcon,
   BellIcon,
 } from '@heroicons/react/24/outline';
 import { ChevronsUpDown } from 'lucide-react';
@@ -53,16 +51,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from '@/components/ui/command';
-import Button from '@/components/shared/Button';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import webLogo from '@/assets/weblogo.webp';
@@ -87,7 +75,7 @@ const ANALYSIS_STEPS: { step: AnalysisStep; title: string; shortTitle: string }[
 
 const CleanEnterpriseLayout: React.FC = () => {
   const analysisData = useAnalysis();
-  const { analysisSession, resetAnalysis, castStep2SubStep, setCastStep2SubStep } = analysisData;
+  const { analysisSession, resetAnalysis, castStep2SubStep, setCastStep2SubStep, updateAnalysisSession } = analysisData;
   const { 
     currentProject, 
     deleteAnalysis, 
@@ -98,7 +86,6 @@ const CleanEnterpriseLayout: React.FC = () => {
   const { currentStep, navigateToStep, resetNavigation } = useNavigation();
   const navigate = useNavigate();
   
-  const [commandOpen, setCommandOpen] = useState(false);
   const [expandedAnalyses, setExpandedAnalyses] = useState<Set<string>>(new Set());
   const [renamingAnalysisId, setRenamingAnalysisId] = useState<string | null>(null);
   const analysesListRef = useRef<HTMLDivElement>(null);
@@ -122,20 +109,6 @@ const CleanEnterpriseLayout: React.FC = () => {
     }
   }, [analysisSession?.id]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey) {
-        if (e.key === 'k') {
-          e.preventDefault();
-          setCommandOpen(true);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   // Listen for workspace section changes
   useEffect(() => {
@@ -211,10 +184,6 @@ const CleanEnterpriseLayout: React.FC = () => {
     }
   };
 
-  const handleStepNavigation = (step: AnalysisStep) => {
-    navigateToStep(step);
-    setCommandOpen(false);
-  };
 
   const toggleAnalysisExpanded = (analysisId: string) => {
     setExpandedAnalyses(prev => {
@@ -490,7 +459,7 @@ const CleanEnterpriseLayout: React.FC = () => {
                                                 if (!isSelected) {
                                                   handleAnalysisSelect(analysis.id);
                                                 }
-                                                handleStepNavigation(step.step);
+                                                navigateToStep(step.step);
                                               }}
                                               isActive={isCurrent}
                                               className="flex items-center gap-2 w-full"
@@ -590,20 +559,6 @@ const CleanEnterpriseLayout: React.FC = () => {
                   </SidebarGroup>
                 )}
 
-                <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-                  <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton onClick={() => setCommandOpen(true)}>
-                        <CommandLineIcon className="size-4" />
-                        <span>Command Palette</span>
-                        <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                          <span className="text-xs">⌘</span>K
-                        </kbd>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroup>
               </SidebarContent>
               
               <SidebarFooter>
@@ -630,10 +585,6 @@ const CleanEnterpriseLayout: React.FC = () => {
                         align="start"
                         className="w-[--radix-dropdown-menu-trigger-width]"
                       >
-                        <DropdownMenuItem>
-                          <Cog6ToothIcon className="mr-2 h-4 w-4" />
-                          <span>Account</span>
-                        </DropdownMenuItem>
                         <DropdownMenuItem>
                           <CreditCardIcon className="mr-2 h-4 w-4" />
                           <span>Billing</span>
@@ -667,16 +618,6 @@ const CleanEnterpriseLayout: React.FC = () => {
                       Step {currentStepIndex + 1} of {ANALYSIS_STEPS.length}
                     </p>
                   </div>
-                  
-                  <Button
-                    onClick={() => setCommandOpen(true)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground"
-                  >
-                    <CommandLineIcon className="w-4 h-4 mr-2" />
-                    <span className="text-sm">⌘K</span>
-                  </Button>
                 </div>
               </header>
               
@@ -699,42 +640,6 @@ const CleanEnterpriseLayout: React.FC = () => {
           </div>
         </SidebarProvider>
 
-        {/* Command Palette */}
-        <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
-          <CommandInput placeholder="Search for commands..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            
-            {analysisSession && (
-              <CommandGroup heading="Navigation">
-                {ANALYSIS_STEPS.map((step, index) => {
-                  const Icon = stepIcons[step.step] || DocumentTextIcon;
-                  return (
-                    <CommandItem
-                      key={step.step}
-                      onSelect={() => handleStepNavigation(step.step)}
-                    >
-                      <Icon className="w-4 h-4 mr-2" />
-                      <span>{step.title}</span>
-                      <span className="ml-auto text-xs text-neutral-500">Step {index + 1}</span>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            )}
-            
-            <CommandSeparator />
-            
-            <CommandGroup heading="Actions">
-              {analysisSession && (
-                <CommandItem onSelect={handleDeleteAnalysis}>
-                  <TrashIcon className="w-4 h-4 mr-2" />
-                  <span>Delete Analysis</span>
-                </CommandItem>
-              )}
-            </CommandGroup>
-          </CommandList>
-        </CommandDialog>
 
         
         <ConfirmationDialog

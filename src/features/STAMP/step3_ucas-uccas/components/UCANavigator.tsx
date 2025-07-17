@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Controller, ControlAction, UnsafeControlAction, UCCA } from '@/types/types';
+import { Controller, ControlAction, UnsafeControlAction, UCCA, UCAType } from '@/types/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -27,15 +27,15 @@ interface ControllerCoverage {
   missingTypes: Map<string, string[]>;
 }
 
-const UCA_TYPES = [
-  'not-provided',
-  'provided',
-  'too-early',
-  'too-late',
-  'wrong-order',
-  'too-long',
-  'too-short'
-] as const;
+const UCA_TYPES: UCAType[] = [
+  UCAType.NotProvided,
+  UCAType.ProvidedUnsafe,
+  UCAType.TooEarly,
+  UCAType.TooLate,
+  UCAType.WrongOrder,
+  UCAType.TooLong,
+  UCAType.TooShort
+];
 
 const UCANavigator: React.FC<UCANavigatorProps> = ({
   controllers,
