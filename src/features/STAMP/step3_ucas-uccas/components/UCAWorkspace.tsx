@@ -82,7 +82,7 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
 }) => {
   const { deleteUCA, addUCA, hazards } = useAnalysisContext();
   const [selectedUCAs, setSelectedUCAs] = useState<Set<string>>(new Set());
-  const [showUCAAnalysis, setShowUCAAnalysis] = useState(false);
+  const [showUCAAnalysis, setShowUCAAnalysis] = useState(true);
 
   // Get controller and control action names
   const getControllerName = (id: string) => {
@@ -136,26 +136,6 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
     // Export functionality would be implemented here
     console.log('Exporting UCAs...');
   };
-
-  // Empty state
-  if (ucas.length === 0 && !searchQuery && !selectedController && !selectedControlAction) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="text-center max-w-md">
-          <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Unsafe Control Actions Yet</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Start by selecting a controller and control action from the left panel, 
-            then identify how it could become unsafe under specific conditions.
-          </p>
-          <Button onClick={onCreateUCA}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create First UCA
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1 flex flex-col">
