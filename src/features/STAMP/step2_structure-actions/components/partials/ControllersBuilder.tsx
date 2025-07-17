@@ -249,7 +249,7 @@ const ControllersBuilder: React.FC = () => {
                 <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Controllers</h3>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Now, who or what pulls the levers? Add the controllers that manage your components. This can be a person, software, a team, or even an entire organization.</p>
             </div>
-            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50">
+            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 w-full max-w-3xl">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     <Input label="Controller Name" value={controllerName} onChange={e => setControllerName(e.target.value)} placeholder="e.g., Pilot, ECU, Safety Board" />
                     <Select label="Controller Type" value={controllerType} onChange={e => setControllerType(e.target.value as ControllerType)} options={controllerTypeOptions} />

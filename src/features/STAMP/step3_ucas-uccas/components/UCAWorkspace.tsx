@@ -43,7 +43,7 @@ interface UCAWorkspaceProps {
   selectedControlAction: string | null;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  onCreateUCA: () => void;
+  onCreateUCA: (ucaType?: UCAType) => void;
   onEditUCA: (uca: UnsafeControlAction) => void;
   onSelectControlAction: (id: string | null) => void;
 }

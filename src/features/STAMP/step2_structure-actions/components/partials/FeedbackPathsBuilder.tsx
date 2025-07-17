@@ -71,7 +71,7 @@ const FeedbackPathsBuilder: React.FC = () => {
                 <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Feedback Paths</h3>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">How does the controller know what&apos;s going on? Define the information paths that flow from a component back to its controller.</p>
             </div>
-            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 space-y-4">
+            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 space-y-4 w-full max-w-3xl">
                 <p className="text-md font-semibold text-slate-700 dark:text-slate-200">{editingFpId ? 'Editing Feedback Path' : 'Define a New Feedback Path'}</p>
                 <Select label="1. Source (What provides the feedback?)" value={fpSourceId} onChange={e => setFpSourceId(e.target.value)} options={pathSourceOptions} placeholder="Select Source" />
                 <Select label="2. Target (Who receives the feedback?)" value={fpTargetCtrlId} onChange={e => setFpTargetCtrlId(e.target.value)} options={controllerOptions} placeholder="Select Target Controller" />

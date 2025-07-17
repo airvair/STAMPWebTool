@@ -35,7 +35,15 @@ export const generateSmartUcaSuggestions = (
   }
 ): UcaSuggestion[] => {
   const suggestions: UcaSuggestion[] = [];
-  const completenessCheck = performSystematicCompletenessCheck(controllers, controlActions, ucas, hazards);
+  
+  // Validate inputs
+  if (!controllers || !Array.isArray(controllers) || controllers.length === 0 ||
+      !controlActions || !Array.isArray(controlActions) || controlActions.length === 0 ||
+      !hazards || !Array.isArray(hazards)) {
+    return suggestions;
+  }
+  
+  const completenessCheck = performSystematicCompletenessCheck(controllers, controlActions, ucas || [], hazards);
 
   // Start with missing combinations if enabled
   if (config.focusOnMissingCombinations) {
@@ -106,9 +114,13 @@ const generateUcaSuggestionForMissing = (
   hazards: Hazard[],
   config: SmartSuggestionConfig
 ): UcaSuggestion | null => {
+  if (!controller || !action || !ucaType) {
+    return null;
+  }
+  
   const priority = determineUcaPriority(controller, action, ucaType, config);
   const suggestedContext = generateContextSuggestion(controller, action, ucaType);
-  const suggestedHazards = findRelevantHazards(action, hazards, config);
+  const suggestedHazards = findRelevantHazards(action, hazards || [], config);
 
   return {
     priority,
@@ -196,39 +208,47 @@ const generateContextSuggestion = (
   action: ControlAction,
   ucaType: UCAType
 ): string => {
+  if (!controller || !action || !ucaType) {
+    return 'When specific conditions require this control action';
+  }
+  
+  const controllerName = controller.name || 'Controller';
+  const actionVerb = (action.verb || 'perform').toLowerCase();
+  const actionObject = action.object || 'action';
+  
   const contextTemplates: Partial<Record<UCAType, string[]>> = {
     [UCAType.NotProvided]: [
-      `During emergency situations when ${action.object} operation is critical`,
-      `When system feedback indicates need for ${action.verb.toLowerCase()} action`,
-      `During high workload periods when ${controller.name} is distracted`
+      `During emergency situations when ${actionObject} operation is critical`,
+      `When system feedback indicates need for ${actionVerb} action`,
+      `During high workload periods when ${controllerName} is distracted`
     ],
     [UCAType.ProvidedUnsafe]: [
-      `When system is not ready for ${action.object} operation`,
+      `When system is not ready for ${actionObject} operation`,
       `During maintenance or testing phases`,
-      `When environmental conditions make ${action.verb.toLowerCase()} unsafe`
+      `When environmental conditions make ${actionVerb} unsafe`
     ],
     [UCAType.TooEarly]: [
-      `Before proper system initialization for ${action.object}`,
+      `Before proper system initialization for ${actionObject}`,
       `During critical phases when timing is essential`,
       `Before receiving confirmation from other controllers`
     ],
     [UCAType.TooLate]: [
-      `After critical time window for ${action.object} has passed`,
+      `After critical time window for ${actionObject} has passed`,
       `When system degradation has already begun`,
       `During time-critical emergency scenarios`
     ],
     [UCAType.WrongOrder]: [
-      `When ${action.object} operation is out of sequence`,
+      `When ${actionObject} operation is out of sequence`,
       `During conflicting controller commands`,
       `When order dependencies are violated`
     ],
     [UCAType.TooLong]: [
-      `When ${action.object} operation exceeds safe duration`,
+      `When ${actionObject} operation exceeds safe duration`,
       `During sustained operation beyond design limits`,
       `When termination conditions are not met`
     ],
     [UCAType.TooShort]: [
-      `When ${action.object} operation is prematurely terminated`,
+      `When ${actionObject} operation is prematurely terminated`,
       `During incomplete execution cycles`,
       `When minimum duration requirements are not met`
     ]
@@ -246,6 +266,10 @@ const findRelevantHazards = (
   hazards: Hazard[],
   config: SmartSuggestionConfig
 ): Hazard[] => {
+  if (!action || !hazards || !Array.isArray(hazards) || hazards.length === 0) {
+    return [];
+  }
+  
   if (!config.considerHazardRelevance) {
     return hazards.slice(0, 2); // Just return first few hazards
   }
@@ -254,8 +278,8 @@ const findRelevantHazards = (
 
   for (const hazard of hazards) {
     let relevance = 0;
-    const hazardText = hazard.title.toLowerCase();
-    const actionText = `${action.verb} ${action.object}`.toLowerCase();
+    const hazardText = (hazard.title || '').toLowerCase();
+    const actionText = `${action.verb || ''} ${action.object || ''}`.toLowerCase();
 
     // Keyword matching
     const actionWords = actionText.split(/\s+/).filter(word => word.length > 2);

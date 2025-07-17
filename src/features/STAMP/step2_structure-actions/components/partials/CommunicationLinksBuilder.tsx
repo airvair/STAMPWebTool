@@ -95,7 +95,7 @@ const CommunicationLinksBuilder: React.FC = () => {
                 <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Communication Links</h3>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Sometimes controllers talk to each other. Define these peer-to-peer links for coordination and information sharing.</p>
             </div>
-            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 space-y-4">
+            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 space-y-4 w-full max-w-3xl">
                 <p className="text-md font-semibold text-slate-700 dark:text-slate-200">{editingCommId ? 'Editing Communication Link' : 'Define a New Link'}</p>
                 <Select label="Controller One" value={commSourceId} onChange={e => {setCommSourceId(e.target.value);}} options={controllerOptions} placeholder="Select Controller" />
                 <Select label="Controller Two" value={commTargetId} onChange={e => setCommTargetId(e.target.value)} options={controllerOptions} placeholder="Select Controller" />

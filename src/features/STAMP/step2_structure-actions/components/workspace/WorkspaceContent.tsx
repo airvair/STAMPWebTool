@@ -7,6 +7,7 @@ const ControllersBuilder = React.lazy(() => import('../partials/ControllersBuild
 const ControlPathsBuilder = React.lazy(() => import('../partials/ControlPathsBuilder'));
 const FeedbackPathsBuilder = React.lazy(() => import('../partials/FeedbackPathsBuilder'));
 const CommunicationLinksBuilder = React.lazy(() => import('../partials/CommunicationLinksBuilder'));
+const FailurePathsBuilder = React.lazy(() => import('../partials/FailurePathsBuilder'));
 
 interface WorkspaceContentProps {
   activeSection: string;
@@ -152,6 +153,19 @@ const WorkspaceContent: React.FC<WorkspaceContentProps> = ({
             />
             <Suspense fallback={<SectionSkeleton />}>
               <CommunicationLinksBuilder />
+            </Suspense>
+          </div>
+        );
+
+      case 'failure-paths':
+        return (
+          <div>
+            <SectionHeader
+              title="Failure Paths"
+              description="Define failure propagation between system components"
+            />
+            <Suspense fallback={<SectionSkeleton />}>
+              <FailurePathsBuilder />
             </Suspense>
           </div>
         );

@@ -27,9 +27,10 @@ export interface TransformedData {
  * considers the active context to display the correct roles for team members.
  */
 export const transformAnalysisData = (
-    analysisData: ReturnType<typeof useAnalysis>
+    analysisData: ReturnType<typeof useAnalysis>,
+    showFailurePaths: boolean = false
 ): TransformedData => {
-    const { controllers, systemComponents, controlPaths, feedbackPaths, communicationPaths, activeContexts } = analysisData;
+    const { controllers, systemComponents, controlPaths, feedbackPaths, communicationPaths, failurePaths, activeContexts } = analysisData;
     const nodes: Node[] = [];
     const edges: Edge[] = [];
 
@@ -435,6 +436,30 @@ export const transformAnalysisData = (
             style: { stroke: '#888', strokeDasharray: '5 5' }
         });
     });
+
+    // Add failure paths only if enabled
+    if (showFailurePaths && failurePaths) {
+        failurePaths.forEach(path => {
+            edges.push({
+                id: `failure-${path.id}`,
+                source: path.sourceComponentId,
+                target: path.targetComponentId,
+                type: 'failure',
+                label: path.influenceType,
+                style: {
+                    stroke: '#dc2626',
+                    strokeWidth: '4px',
+                    strokeDasharray: '0',
+                },
+                markerEnd: { type: MarkerType.ArrowClosed, color: '#dc2626' },
+                animated: true,
+                data: {
+                    description: path.description,
+                    isFailurePath: true
+                }
+            });
+        });
+    }
 
     return { nodes, edges };
 };

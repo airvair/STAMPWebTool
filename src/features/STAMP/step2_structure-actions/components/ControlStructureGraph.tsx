@@ -3,6 +3,7 @@ import ReactFlow, { Background, useNodesState, useEdgesState, useReactFlow, Reac
 import 'reactflow/dist/style.css';
 
 import { CustomEdge } from '@/features/STAMP/step2_structure-actions/components/graph/CustomEdge';
+import { FailurePathEdge } from '@/features/STAMP/step2_structure-actions/components/graph/FailurePathEdge';
 import { CustomNode } from '@/features/STAMP/step2_structure-actions/components/graph/CustomNode';
 import { TeamMemberNode } from '@/features/STAMP/step2_structure-actions/components/graph/TeamMemberNode'; // Import the new node
 import { useAnalysis } from '@/hooks/useAnalysis';
@@ -11,18 +12,24 @@ import { getLayoutedElements } from './graphUtils/layout';
 import VisualizationDock from './VisualizationDock';
 
 
-const GraphCanvas: React.FC = () => {
+interface GraphCanvasProps {
+    showFailurePaths?: boolean;
+}
+
+const GraphCanvas: React.FC<GraphCanvasProps> = ({ showFailurePaths = false }) => {
     const analysisData = useAnalysis();
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const { fitView } = useReactFlow();
 
-    const memoizedTransformedData = useMemo(() => transformAnalysisData(analysisData), [
+    const memoizedTransformedData = useMemo(() => transformAnalysisData(analysisData, showFailurePaths), [
         analysisData.controllers,
         analysisData.systemComponents,
         analysisData.controlPaths,
         analysisData.feedbackPaths,
         analysisData.communicationPaths,
+        analysisData.failurePaths,
+        showFailurePaths,
     ]);
 
     const onLayout = useCallback(() => {
@@ -40,7 +47,10 @@ const GraphCanvas: React.FC = () => {
         custom: CustomNode,
         teamMember: TeamMemberNode // Register the new node type
     }), []);
-    const edgeTypes = useMemo(() => ({ custom: CustomEdge }), []);
+    const edgeTypes = useMemo(() => ({ 
+        custom: CustomEdge,
+        failure: FailurePathEdge
+    }), []);
 
     return (
         <ReactFlow
@@ -59,10 +69,14 @@ const GraphCanvas: React.FC = () => {
     );
 }
 
-const ControlStructureGraph = () => {
+interface ControlStructureGraphProps {
+    showFailurePaths?: boolean;
+}
+
+const ControlStructureGraph: React.FC<ControlStructureGraphProps> = ({ showFailurePaths = false }) => {
     return (
         <ReactFlowProvider>
-            <GraphCanvas />
+            <GraphCanvas showFailurePaths={showFailurePaths} />
         </ReactFlowProvider>
     );
 };

@@ -13,6 +13,7 @@ export interface WorkspaceVisualizationState {
   layout: 'sidebar' | 'overlay' | 'split';
   zoomLevel: number;
   viewBox: { x: number; y: number; width: number; height: number };
+  showFailurePaths: boolean;
 }
 
 export interface WorkspaceState {
@@ -53,6 +54,12 @@ export const WORKSPACE_SECTIONS: WorkspaceSection[] = [
     title: 'Communication',
     description: 'Define peer-to-peer controller communication',
     dependencies: ['controllers']
+  },
+  {
+    id: 'failure-paths',
+    title: 'Failure Paths',
+    description: 'Define failure propagation between components',
+    dependencies: ['components']
   }
 ];
 
@@ -64,7 +71,8 @@ const defaultWorkspaceState: WorkspaceState = {
     isPinned: true,
     layout: 'sidebar',
     zoomLevel: 1,
-    viewBox: { x: 0, y: 0, width: 800, height: 600 }
+    viewBox: { x: 0, y: 0, width: 800, height: 600 },
+    showFailurePaths: false
   },
   unsavedChanges: {},
   lastSaved: Date.now()
@@ -189,6 +197,8 @@ export const useWorkspaceState = () => {
         return data?.feedbackPaths?.length || 0;
       case 'communication':
         return data?.communicationLinks?.length || 0;
+      case 'failure-paths':
+        return data?.failurePaths?.length || 0;
       default:
         return 0;
     }

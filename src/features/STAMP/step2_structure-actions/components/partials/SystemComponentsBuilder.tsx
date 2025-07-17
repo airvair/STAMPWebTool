@@ -56,7 +56,7 @@ const SystemComponentsBuilder: React.FC = () => {
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Start at the bottom of the ladder. What are the basic physical parts or processes your system controls? (e.g., &apos;The Aircraft&apos;, &apos;The Patient&apos;, &apos;The Database&apos;)</p>
             </div>
 
-            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50">
+            <div className="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700/50 w-full max-w-3xl">
                 <div className="flex flex-wrap md:flex-nowrap items-end gap-4">
                     <Input label="Component Name" value={componentName} onChange={e => setComponentName(e.target.value)} placeholder="e.g., Engine, Database" containerClassName="w-full md:w-auto flex-grow !mb-0"/>
                     <Select label="Component Type" value={componentType} onChange={e => setComponentType(e.target.value as ComponentType)} options={componentTypeOptions} containerClassName="w-full md:w-auto flex-grow !mb-0" />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { UnsafeControlAction, Controller, ControlAction, UCAType, Hazard } from '@/types/types';
 import { useAnalysisContext } from '@/context/AnalysisContext';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,6 +34,7 @@ interface UCAEditorProps {
   uca: UnsafeControlAction | null;
   selectedController: string | null;
   selectedControlAction: string | null;
+  preselectedUCAType?: UCAType | null;
   controllers: Controller[];
   controlActions: ControlAction[];
 }
@@ -97,6 +98,7 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
   uca,
   selectedController,
   selectedControlAction,
+  preselectedUCAType,
   controllers,
   controlActions
 }) => {
@@ -133,7 +135,7 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
       // Creating new UCA
       setControllerId(selectedController || '');
       setControlActionId(selectedControlAction || '');
-      setUcaType('not-provided');
+      setUcaType(preselectedUCAType || 'not-provided');
       setDescription('');
       setContextText('');
       setSelectedHazards([]);
@@ -149,8 +151,8 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
   }, [uca, selectedController, selectedControlAction, isOpen]);
 
   // Generate suggestions when type or action changes
-  useEffect(() => {
-    if (controlActionId && ucaType) {
+    useEffect(() => {
+    if (controlActionId && ucaType && controllerId && controlActions && controllers) {
       const action = controlActions.find(ca => ca.id === controlActionId);
       const controller = controllers.find(c => c.id === controllerId);
       
@@ -179,8 +181,8 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
   }, [controllerId, controlActions]);
 
   // Generate description automatically
-  useEffect(() => {
-    if (controllerId && controlActionId && ucaType && !uca) {
+    useEffect(() => {
+    if (controllerId && controlActionId && ucaType && !uca && controllers && controlActions) {
       const controller = controllers.find(c => c.id === controllerId);
       const action = controlActions.find(ca => ca.id === controlActionId);
       
@@ -247,23 +249,45 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
       ? buildContextFromConditions() 
       : contextText;
 
-    // Validate
-    const validation = validateUCA(
-      {
-        controllerId,
-        controlActionId,
-        ucaType,
-        description,
-        context: finalContext,
-        hazardIds: selectedHazards
-      },
-      controllers,
-      controlActions,
-      hazards
-    );
+    // Defensive checks for required data
+    if (!controllers || !Array.isArray(controllers)) {
+      setValidationErrors(['Controllers data is not available']);
+      return;
+    }
 
-    if (!validation.valid) {
-      setValidationErrors(validation.errors.map(e => e.message));
+    if (!controlActions || !Array.isArray(controlActions)) {
+      setValidationErrors(['Control actions data is not available']);
+      return;
+    }
+
+    if (!hazards || !Array.isArray(hazards)) {
+      setValidationErrors(['Hazards data is not available']);
+      return;
+    }
+
+    try {
+      // Validate
+      const validation = validateUCA(
+        {
+          controllerId,
+          controlActionId,
+          ucaType,
+          description,
+          context: finalContext,
+          hazardIds: selectedHazards
+        },
+        controllers,
+        controlActions,
+        hazards
+      );
+
+      if (!validation.valid) {
+        setValidationErrors(validation.errors.map(e => e.message));
+        return;
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
+      setValidationErrors(['An error occurred during validation. Please try again.']);
       return;
     }
 
@@ -299,18 +323,18 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-[480px] sm:max-w-[480px]">
-        <SheetHeader>
-          <SheetTitle>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh]">
+        <DialogHeader>
+          <DialogTitle>
             {uca ? 'Edit Unsafe Control Action' : 'Create Unsafe Control Action'}
-          </SheetTitle>
-          <SheetDescription>
+          </DialogTitle>
+          <DialogDescription>
             Define how a control action becomes unsafe under specific conditions
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
 
-        <ScrollArea className="h-[calc(100vh-120px)] mt-6">
+        <ScrollArea className="flex-1 max-h-[calc(90vh-200px)] mt-6">
           <div className="space-y-6 pr-4">
             {/* Controller Selection */}
             <div className="space-y-2">
@@ -596,8 +620,8 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
             {uca ? 'Update' : 'Create'} UCA
           </Button>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -11,7 +11,8 @@ interface WorkspaceVisualizationProps {
 }
 
 const WorkspaceVisualization: React.FC<WorkspaceVisualizationProps> = ({
-  visualizationState
+  visualizationState,
+  onVisualizationStateChange
 }) => {
   const { analysisSession } = useAnalysis();
 
@@ -46,7 +47,7 @@ const WorkspaceVisualization: React.FC<WorkspaceVisualizationProps> = ({
 
     return (
       <div className="flex-1 h-full">
-        <ControlStructureDiagram />
+        <ControlStructureDiagram showFailurePaths={visualizationState.showFailurePaths} />
       </div>
     );
   };
@@ -68,7 +69,10 @@ const WorkspaceVisualization: React.FC<WorkspaceVisualizationProps> = ({
       </div>
       
       {/* Include existing VisualizationControlPanel functionality */}
-      <VisualizationControlPanel />
+      <VisualizationControlPanel 
+        visualizationState={visualizationState}
+        onVisualizationStateChange={onVisualizationStateChange}
+      />
     </div>
   );
 

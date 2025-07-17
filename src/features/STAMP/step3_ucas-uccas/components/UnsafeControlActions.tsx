@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAnalysisContext } from '@/context/AnalysisContext';
-import { UnsafeControlAction, UCCA, Controller, ControlAction } from '@/types/types';
+import { UnsafeControlAction, UCCA, Controller, ControlAction, UCAType } from '@/types/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import UCANavigator from './UCANavigator';
@@ -16,6 +16,7 @@ const UnsafeControlActions: React.FC = () => {
   const [selectedControlAction, setSelectedControlAction] = useState<string | null>(null);
   const [selectedUCA, setSelectedUCA] = useState<UnsafeControlAction | null>(null);
   const [selectedUCCA, setSelectedUCCA] = useState<UCCA | null>(null);
+  const [selectedUCAType, setSelectedUCAType] = useState<UCAType | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'ucas' | 'uccas'>('ucas');
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,8 +59,9 @@ const UnsafeControlActions: React.FC = () => {
     );
   }, [uccas, selectedController]);
 
-  const handleCreateUCA = () => {
+  const handleCreateUCA = (ucaType?: UCAType) => {
     setSelectedUCA(null);
+    setSelectedUCAType(ucaType || null);
     setIsEditorOpen(true);
   };
 
@@ -82,6 +84,7 @@ const UnsafeControlActions: React.FC = () => {
     setIsEditorOpen(false);
     setSelectedUCA(null);
     setSelectedUCCA(null);
+    setSelectedUCAType(null);
   };
 
   return (
@@ -147,15 +150,16 @@ const UnsafeControlActions: React.FC = () => {
       </div>
 
       {/* Right Panel - Editor Sheet */}
-      {activeTab === 'ucas' && (
+      {activeTab === 'ucas' && controllers && controlActions && (
         <UCAEditor
           isOpen={isEditorOpen}
           onClose={handleCloseEditor}
           uca={selectedUCA}
           selectedController={selectedController}
           selectedControlAction={selectedControlAction}
-          controllers={controllers}
-          controlActions={controlActions}
+          preselectedUCAType={selectedUCAType}
+          controllers={controllers || []}
+          controlActions={controlActions || []}
         />
       )}
 

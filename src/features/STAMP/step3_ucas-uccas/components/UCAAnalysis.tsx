@@ -14,7 +14,7 @@ interface UCAAnalysisProps {
   ucas: UnsafeControlAction[];
   selectedController: string | null;
   onSelectControlAction: (id: string) => void;
-  onCreateUCA: () => void;
+  onCreateUCA: (ucaType?: UCAType) => void;
 }
 
 const UCA_TYPES: { value: UCAType; label: string; shortLabel: string }[] = [
@@ -130,8 +130,8 @@ const UCAAnalysis: React.FC<UCAAnalysisProps> = ({
 
   const handleCellClick = (cell: UCAAnalysisCell) => {
     onSelectControlAction(cell.controlActionId);
-    // In a real implementation, we'd also set the UCA type in the editor
-    onCreateUCA();
+    // Pass the UCA type from the cell to pre-fill in the editor
+    onCreateUCA(cell.ucaType);
   };
 
   return (
@@ -181,7 +181,7 @@ const UCAAnalysis: React.FC<UCAAnalysisProps> = ({
                   </div>
                 </th>
                 {UCA_TYPES.map(type => (
-                  <th key={type.value} className="p-2 text-center min-w-[80px]">
+                  <th key={type.value} className="p-2 text-center w-16">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
@@ -220,7 +220,7 @@ const UCAAnalysis: React.FC<UCAAnalysisProps> = ({
                               <button
                                 onClick={() => handleCellClick(cell)}
                                 className={cn(
-                                  "w-12 h-12 rounded-md flex items-center justify-center transition-colors",
+                                  "w-16 h-12 rounded-md flex items-center justify-center transition-colors",
                                   cell.status === 'analyzed' 
                                     ? "bg-green-100 dark:bg-green-900/20 hover:bg-green-200 dark:hover:bg-green-900/30"
                                     : cell.status === 'not-applicable'
@@ -271,19 +271,19 @@ const UCAAnalysis: React.FC<UCAAnalysisProps> = ({
       <div className="mt-4 pt-4 border-t">
         <div className="flex items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded flex items-center justify-center">
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded flex items-center justify-center">
               <Check className="h-4 w-4 text-green-600" />
             </div>
             <span>Analyzed</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-yellow-50 dark:bg-yellow-900/10 rounded border-2 border-dashed border-yellow-400 flex items-center justify-center">
+            <div className="w-12 h-12 bg-yellow-50 dark:bg-yellow-900/10 rounded border-2 border-dashed border-yellow-400 flex items-center justify-center">
               <Plus className="h-4 w-4 text-yellow-600" />
             </div>
             <span>Not Analyzed</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center">
+            <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center">
               <X className="h-4 w-4 text-gray-400" />
             </div>
             <span>Not Applicable</span>

@@ -56,6 +56,27 @@ export const validateControllerAuthority = (
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
 
+  // Validate inputs
+  if (!controllerId || !actionId) {
+    errors.push({
+      code: 'CA-002',
+      message: 'Controller ID and Action ID are required',
+      field: controllerId ? 'actionId' : 'controllerId',
+      severity: 'critical'
+    });
+    return { valid: false, errors, warnings, confidence: 0 };
+  }
+
+  if (!controlActions || !Array.isArray(controlActions)) {
+    errors.push({
+      code: 'CA-003',
+      message: 'Control actions array is required',
+      field: 'controlActions',
+      severity: 'critical'
+    });
+    return { valid: false, errors, warnings, confidence: 0 };
+  }
+
   // Find the control action
   const controlAction = controlActions.find(ca => ca.id === actionId);
   if (!controlAction) {
@@ -120,6 +141,17 @@ export const validateHazardTraceability = (
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
 
+  // Validate inputs
+  if (!hazards || !Array.isArray(hazards)) {
+    errors.push({
+      code: 'HAZ-004',
+      message: 'Hazards array is required for traceability validation',
+      field: 'hazards',
+      severity: 'critical'
+    });
+    return { valid: false, errors, warnings, confidence: 0 };
+  }
+
   // BR-5-HazSel: Must link to at least one hazard
   if (!uca.hazardIds || uca.hazardIds.length === 0) {
     errors.push({
@@ -132,9 +164,10 @@ export const validateHazardTraceability = (
   }
 
   // Validate hazard existence
-  const invalidHazardIds = uca.hazardIds.filter(hazardId => 
-    !hazards.find(h => h.id === hazardId)
-  );
+  const invalidHazardIds = uca.hazardIds && hazards && Array.isArray(hazards) ? 
+    uca.hazardIds.filter(hazardId => 
+      !hazards.find(h => h.id === hazardId)
+    ) : [];
 
   if (invalidHazardIds.length > 0) {
     errors.push({
@@ -146,7 +179,7 @@ export const validateHazardTraceability = (
   }
 
   // Check for logical relevance (basic heuristic)
-  if (uca.context && uca.hazardIds.length > 0) {
+  if (uca.context && uca.hazardIds && uca.hazardIds.length > 0 && hazards && Array.isArray(hazards)) {
     const linkedHazards = hazards.filter(h => uca.hazardIds!.includes(h.id));
     const contextKeywords = uca.context.toLowerCase().split(/\s+/);
     
@@ -325,13 +358,41 @@ export const validateUCCALogic = (
  */
 export const validateUCA = (
   uca: Partial<UnsafeControlAction>,
-  _controllers: Controller[],
+  controllers: Controller[],
   controlActions: ControlAction[],
   hazards: Hazard[],
   authorities?: ControllerActionAuthority[]
 ): ValidationResult => {
   const allErrors: ValidationError[] = [];
   const allWarnings: ValidationWarning[] = [];
+
+  // Validate required parameters
+  if (!controllers || !Array.isArray(controllers)) {
+    allErrors.push({
+      code: 'SYS-001',
+      message: 'Controllers data is required for validation',
+      severity: 'critical'
+    });
+    return { valid: false, errors: allErrors, warnings: allWarnings, confidence: 0 };
+  }
+
+  if (!controlActions || !Array.isArray(controlActions)) {
+    allErrors.push({
+      code: 'SYS-002',
+      message: 'Control actions data is required for validation',
+      severity: 'critical'
+    });
+    return { valid: false, errors: allErrors, warnings: allWarnings, confidence: 0 };
+  }
+
+  if (!hazards || !Array.isArray(hazards)) {
+    allErrors.push({
+      code: 'SYS-003',
+      message: 'Hazards data is required for validation',
+      severity: 'critical'
+    });
+    return { valid: false, errors: allErrors, warnings: allWarnings, confidence: 0 };
+  }
 
   // Run all validation checks
   const validationChecks = [
@@ -370,7 +431,7 @@ export const validateUCA = (
  */
 export const generateComplianceReport = (
   ucas: UnsafeControlAction[],
-  _uccas: UCCA[],
+  uccas: UCCA[],
   controllers: Controller[],
   controlActions: ControlAction[],
   hazards: Hazard[]
@@ -425,8 +486,15 @@ export const generateComplianceReport = (
 
 // Validation error codes for reference
 export const VALIDATION_CODES = {
+  // System/Data Errors
+  'SYS-001': 'Controllers data is required for validation',
+  'SYS-002': 'Control actions data is required for validation',
+  'SYS-003': 'Hazards data is required for validation',
+  
   // Controller Authority
   'CA-001': 'Control action not found',
+  'CA-002': 'Controller ID and Action ID are required',
+  'CA-003': 'Control actions array is required',
   'AUTH-001': 'Controller not authorized for action',
   'AUTH-002': 'Authority rules prohibit action',
   'AUTH-003': 'Controller has restrictions',
@@ -435,6 +503,7 @@ export const VALIDATION_CODES = {
   'HAZ-001': 'UCA must link to at least one hazard',
   'HAZ-002': 'Invalid hazard IDs',
   'HAZ-003': 'Context may not be relevant to hazards',
+  'HAZ-004': 'Hazards array is required for traceability validation',
   
   // Context Specificity
   'CTX-001': 'Context is required',

@@ -535,23 +535,26 @@ const CleanEnterpriseLayout: React.FC = () => {
                                           <AnimatedCollapsible isOpen={isStructureStep && isCurrent && isSelected} className="ml-3">
                                             <SidebarMenuSub
                                               showProgress={true}
-                                              totalSteps={5}
+                                              totalSteps={6}
                                               completedSteps={activeWorkspaceSection === 'components' ? 1 :
                                                             activeWorkspaceSection === 'controllers' ? 2 :
                                                             activeWorkspaceSection === 'control-paths' ? 3 :
                                                             activeWorkspaceSection === 'feedback-paths' ? 4 :
-                                                            activeWorkspaceSection === 'communication' ? 5 : 0}
+                                                            activeWorkspaceSection === 'failure-paths' ? 5 :
+                                                            activeWorkspaceSection === 'communication' ? 6 : 0}
                                               currentStep={activeWorkspaceSection === 'components' ? 0 :
                                                           activeWorkspaceSection === 'controllers' ? 1 :
                                                           activeWorkspaceSection === 'control-paths' ? 2 :
                                                           activeWorkspaceSection === 'feedback-paths' ? 3 :
-                                                          activeWorkspaceSection === 'communication' ? 4 : -1}
+                                                          activeWorkspaceSection === 'failure-paths' ? 4 :
+                                                          activeWorkspaceSection === 'communication' ? 5 : -1}
                                             >
                                               {[
                                                 { id: 'components', title: 'Components' },
                                                 { id: 'controllers', title: 'Controllers' },
                                                 { id: 'control-paths', title: 'Control Paths' },
                                                 { id: 'feedback-paths', title: 'Feedback Paths' },
+                                                { id: 'failure-paths', title: 'Failure Paths' },
                                                 { id: 'communication', title: 'Communication' }
                                               ].map((section) => (
                                                 <AnimatedCollapsibleItem key={section.id}>

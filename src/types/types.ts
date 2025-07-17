@@ -446,3 +446,19 @@ export interface ReportMetadata {
   generationTime: number; // in milliseconds
   version: string;
 }
+
+export enum FailureInfluenceType {
+  PhysicalDamage = 'Physical Impact / Damage',
+  ElectricalSurge = 'Electrical Surge / Interference',
+  ThermalStress = 'Thermal Stress',
+  DataCorruption = 'Data Corruption',
+  ResourceDepletion = 'Resource Depletion / Contention',
+  ChemicalContamination = 'Chemical Contamination',
+}
+
+export interface FailurePath extends Identifiable {
+  sourceComponentId: string;
+  targetComponentId: string;
+  influenceType: FailureInfluenceType;
+  description: string;
+}
