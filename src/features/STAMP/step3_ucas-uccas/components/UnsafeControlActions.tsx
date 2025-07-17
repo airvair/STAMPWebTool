@@ -7,9 +7,11 @@ import UCANavigator from './UCANavigator';
 import UCAWorkspace from './UCAWorkspace';
 import UCAEditor from './UCAEditor';
 import UCCAWorkspace from './UCCAWorkspace';
+import { UCCAEditor } from './UCCAEditor';
+import { UCCAAlgorithmDialog } from './UCCAAlgorithmDialog';
 
 const UnsafeControlActions: React.FC = () => {
-  const { controllers, controlActions, ucas, uccas } = useAnalysisContext();
+  const { controllers, controlActions, ucas, uccas, addUCCA, updateUCCA } = useAnalysisContext();
   
   // UI State
   const [selectedController, setSelectedController] = useState<string | null>(null);
@@ -18,6 +20,8 @@ const UnsafeControlActions: React.FC = () => {
   const [selectedUCCA, setSelectedUCCA] = useState<UCCA | null>(null);
   const [selectedUCAType, setSelectedUCAType] = useState<UCAType | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isUCCAEditorOpen, setIsUCCAEditorOpen] = useState(false);
+  const [isAlgorithmDialogOpen, setIsAlgorithmDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'ucas' | 'uccas'>('ucas');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -72,12 +76,27 @@ const UnsafeControlActions: React.FC = () => {
 
   const handleCreateUCCA = () => {
     setSelectedUCCA(null);
-    setIsEditorOpen(true);
+    setIsUCCAEditorOpen(true);
   };
 
   const handleEditUCCA = (ucca: UCCA) => {
     setSelectedUCCA(ucca);
-    setIsEditorOpen(true);
+    setIsUCCAEditorOpen(true);
+  };
+
+  const handleSaveUCCA = (uccaData: Omit<UCCA, 'id' | 'code'>) => {
+    if (selectedUCCA) {
+      updateUCCA(selectedUCCA.id, uccaData);
+    } else {
+      addUCCA(uccaData);
+    }
+    setIsUCCAEditorOpen(false);
+    setSelectedUCCA(null);
+  };
+
+  const handleImportUCCAs = (uccas: Omit<UCCA, 'id' | 'code'>[]) => {
+    uccas.forEach(ucca => addUCCA(ucca));
+    setIsAlgorithmDialogOpen(false);
   };
 
   const handleCloseEditor = () => {
@@ -144,6 +163,7 @@ const UnsafeControlActions: React.FC = () => {
               selectedController={selectedController}
               onCreateUCCA={handleCreateUCCA}
               onEditUCCA={handleEditUCCA}
+              onOpenAlgorithm={() => setIsAlgorithmDialogOpen(true)}
             />
           </TabsContent>
         </Tabs>
@@ -163,14 +183,20 @@ const UnsafeControlActions: React.FC = () => {
         />
       )}
 
-      {activeTab === 'uccas' && isEditorOpen && (
-        <div className="w-96 border-l bg-white dark:bg-gray-950">
-          {/* UCCA Editor will be implemented */}
-          <div className="p-6">
-            <h3 className="text-lg font-semibold mb-4">UCCA Editor</h3>
-            <p className="text-gray-500">Editor for unsafe combinations of control actions coming soon...</p>
-          </div>
-        </div>
+      {activeTab === 'uccas' && (
+        <>
+          <UCCAEditor
+            isOpen={isUCCAEditorOpen}
+            onClose={() => setIsUCCAEditorOpen(false)}
+            onSave={handleSaveUCCA}
+            ucca={selectedUCCA}
+          />
+          <UCCAAlgorithmDialog
+            isOpen={isAlgorithmDialogOpen}
+            onClose={() => setIsAlgorithmDialogOpen(false)}
+            onImport={handleImportUCCAs}
+          />
+        </>
       )}
     </div>
   );

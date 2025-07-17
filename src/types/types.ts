@@ -230,26 +230,32 @@ export interface UCCA extends Identifiable {
 
 // Causal Scenario types for Step 5
 export interface CausalScenario extends Identifiable {
-  code: string;
-  ucaId: string;
-  title: string;
+  code?: string;
+  ucaId?: string;
+  uccaId?: string; // For UCCA-based scenarios
+  name?: string;
+  title?: string;
   description: string;
   causalFactors: CausalFactor[];
-  context: string;
-  hazardIds: string[];
-  scenarioType: 'Design Flaws' | 'Component Failure' | 'Human Error' | 'Process Model Flaw' | 'Communication Failure';
+  context?: string;
+  hazardIds?: string[];
+  scenarioType?: 'Design Flaws' | 'Component Failure' | 'Human Error' | 'Process Model Flaw' | 'Communication Failure';
   likelihood?: 'Low' | 'Medium' | 'High';
   severity?: 'Low' | 'Medium' | 'High' | 'Critical';
+  riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
   mitigationStrategy?: string;
   assumptions?: string[];
+  factorInteractions?: string[]; // How factors combine
+  safetyConstraints?: SafetyConstraint[]; // Prevention measures
 }
 
 export interface CausalFactor {
   id: string;
-  type: 'Physical' | 'Human' | 'Software' | 'Environmental' | 'Organizational';
+  type?: 'Physical' | 'Human' | 'Software' | 'Environmental' | 'Organizational';
   description: string;
   category: string;
   relatedComponentId?: string;
+  details?: string; // Additional details about the factor
   relatedControllerId?: string;
 }
 
@@ -461,4 +467,72 @@ export interface FailurePath extends Identifiable {
   targetComponentId: string;
   influenceType: FailureInfluenceType;
   description: string;
+}
+
+// UCCA Refinement and Abstraction Types
+export interface AuthorityRelationship {
+  controllerId: string;
+  controlActionId: string;
+  hasAuthority: boolean;
+  constraints?: string[]; // Conditions under which authority is granted/denied
+  delegatedFrom?: string; // ID of controller who delegated this authority
+}
+
+export interface InterchangeableControllerGroup {
+  id: string;
+  name: string;
+  description: string;
+  controllerIds: string[];
+  interchangeabilityType: 'Full' | 'Partial' | 'Conditional';
+  conditions?: string[]; // Conditions under which controllers are interchangeable
+  constraints?: string[]; // Constraints on interchangeability
+}
+
+export interface SpecialInteraction {
+  id: string;
+  type: 'Mandatory' | 'Prohibited' | 'Conditional' | 'Priority';
+  description: string;
+  involvedControllerIds?: string[];
+  involvedControlActionIds?: string[];
+  conditions?: string[];
+  priority?: number; // For priority-type interactions
+  appliesTo: 'Type1-2' | 'Type3-4' | 'Both';
+}
+
+export interface UCCARefinementConfig {
+  authorityRelationships: AuthorityRelationship[];
+  interchangeableGroups: InterchangeableControllerGroup[];
+  specialInteractions: SpecialInteraction[];
+  pruneEquivalent: boolean;
+  includePartialAuthority: boolean;
+  maxRefinementDepth?: number;
+}
+
+export interface AbstractUCCA extends UCCA {
+  abstractionLevel: '2a' | '2b'; // Team-level or Controller-specific
+  isAbstract: boolean;
+  abstractPattern?: string; // e.g., "¬A ∧ any of {B, C}"
+  relevantActions?: string[]; // Specific actions in abstract set that are relevant
+  refinedUCCAIds?: string[]; // IDs of refined UCCAs derived from this
+}
+
+export interface RefinedUCCA extends UCCA {
+  parentAbstractUCCAId: string; // Reference to abstract UCCA
+  specificControllerAssignments: {
+    controllerId: string;
+    controlActionId: string;
+    performed: boolean; // true = provided, false = not provided
+  }[];
+  isPruned?: boolean; // Whether this was pruned as duplicate
+  pruneReason?: string; // Why it was pruned
+  priority: 'High' | 'Medium' | 'Low';
+  priorityScore?: number; // Numeric score for sorting
+}
+
+export interface UCCAHierarchy {
+  abstractUCCA: AbstractUCCA;
+  refinedUCCAs: RefinedUCCA[];
+  totalRefined: number;
+  prunedCount: number;
+  highPriorityCount: number;
 }

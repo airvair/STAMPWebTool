@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { UCCA, Controller, ControlAction, UCCAType } from '@/types/types';
+import { UCCA, Controller, ControlAction, UCCAType, UCCAHierarchy, CausalScenario } from '@/types/types';
 import { useAnalysisContext } from '@/context/AnalysisContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,10 +19,16 @@ import {
   Building,
   Shuffle,
   Plus,
-  AlertTriangle
+  AlertTriangle,
+  Brain,
+  Layers,
+  Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { UCCAHierarchyView } from './UCCAHierarchyView';
+import { UCCACausalScenarioWizard } from './UCCACausalScenarioWizard';
 
 interface UCCAWorkspaceProps {
   uccas: UCCA[];
@@ -31,6 +37,7 @@ interface UCCAWorkspaceProps {
   selectedController: string | null;
   onCreateUCCA: () => void;
   onEditUCCA: (ucca: UCCA) => void;
+  onOpenAlgorithm?: () => void;
 }
 
 const UCCA_TYPE_CONFIG: Record<UCCAType, { label: string; icon: React.ReactNode; color: string }> = {
@@ -67,9 +74,14 @@ const UCCAWorkspace: React.FC<UCCAWorkspaceProps> = ({
   controlActions,
   selectedController,
   onCreateUCCA,
-  onEditUCCA
+  onEditUCCA,
+  onOpenAlgorithm
 }) => {
-  const { hazards } = useAnalysisContext();
+  const { hazards, addScenario } = useAnalysisContext();
+  const [viewMode, setViewMode] = useState<'list' | 'hierarchy'>('list');
+  const [hierarchies, setHierarchies] = useState<UCCAHierarchy[]>([]);
+  const [selectedUCCAForAnalysis, setSelectedUCCAForAnalysis] = useState<UCCA | null>(null);
+  const [isCausalWizardOpen, setIsCausalWizardOpen] = useState(false);
   
   // Get names for display
   const getControllerNames = (controllerIds: string[]) => {
@@ -113,10 +125,18 @@ const UCCAWorkspace: React.FC<UCCAWorkspaceProps> = ({
             UCCAs identify unsafe interactions between multiple controllers or control actions. 
             These unsafe combinations of control actions can create hazards even when individual actions are safe.
           </p>
-          <Button onClick={onCreateUCCA}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create First UCCA
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={onCreateUCCA}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create First UCCA
+            </Button>
+            {onOpenAlgorithm && (
+              <Button variant="outline" onClick={onOpenAlgorithm}>
+                <Brain className="h-4 w-4 mr-2" />
+                Use Algorithm
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -133,11 +153,32 @@ const UCCAWorkspace: React.FC<UCCAWorkspaceProps> = ({
               Analyzing interactions between multiple controllers
             </p>
           </div>
-          <Button onClick={onCreateUCCA}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add UCCA
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={onCreateUCCA}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add UCCA
+            </Button>
+            {onOpenAlgorithm && (
+              <Button variant="outline" onClick={onOpenAlgorithm}>
+                <Brain className="h-4 w-4 mr-2" />
+                Use Algorithm
+              </Button>
+            )}
+          </div>
         </div>
+        
+        {/* View Mode Tabs */}
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'hierarchy')}>
+          <TabsList>
+            <TabsTrigger value="list">
+              List View
+            </TabsTrigger>
+            <TabsTrigger value="hierarchy">
+              <Layers className="h-4 w-4 mr-2" />
+              Hierarchy View
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* Type Overview */}
         <div className="grid grid-cols-5 gap-3">
@@ -161,10 +202,12 @@ const UCCAWorkspace: React.FC<UCCAWorkspaceProps> = ({
         </div>
       </div>
 
-      {/* UCCA List */}
-      <ScrollArea className="flex-1">
-        <div className="p-6">
-          <Table>
+      {/* Content based on view mode */}
+      {viewMode === 'list' ? (
+        /* List View */
+        <ScrollArea className="flex-1">
+          <div className="p-6">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-24">Code</TableHead>
@@ -173,6 +216,7 @@ const UCCAWorkspace: React.FC<UCCAWorkspaceProps> = ({
                 <TableHead>Description</TableHead>
                 <TableHead>Context</TableHead>
                 <TableHead className="w-32">Hazards</TableHead>
+                <TableHead className="w-24">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -222,6 +266,22 @@ const UCCAWorkspace: React.FC<UCCAWorkspaceProps> = ({
                         ))}
                       </div>
                     </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedUCCAForAnalysis(ucca);
+                            setIsCausalWizardOpen(true);
+                          }}
+                          title="Analyze Causal Scenarios"
+                        >
+                          <Target className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -229,6 +289,51 @@ const UCCAWorkspace: React.FC<UCCAWorkspaceProps> = ({
           </Table>
         </div>
       </ScrollArea>
+      ) : (
+        /* Hierarchy View */
+        <div className="flex-1 p-6">
+          <UCCAHierarchyView 
+            hierarchies={hierarchies}
+            onSelectRefinedUCCA={(ucca) => {
+              // Convert refined UCCA to regular UCCA for editing
+              const regularUCCA: UCCA = {
+                id: ucca.id,
+                code: ucca.code,
+                description: ucca.description,
+                context: ucca.context,
+                hazardIds: ucca.hazardIds,
+                uccaType: ucca.uccaType,
+                involvedControllerIds: ucca.involvedControllerIds
+              };
+              onEditUCCA(regularUCCA);
+            }}
+            onAnalyzeScenario={(ucca) => {
+              setSelectedUCCAForAnalysis(ucca);
+              setIsCausalWizardOpen(true);
+            }}
+          />
+        </div>
+      )}
+      
+      {/* Causal Scenario Wizard */}
+      {selectedUCCAForAnalysis && (
+        <UCCACausalScenarioWizard
+          isOpen={isCausalWizardOpen}
+          onClose={() => {
+            setIsCausalWizardOpen(false);
+            setSelectedUCCAForAnalysis(null);
+          }}
+          ucca={selectedUCCAForAnalysis}
+          onSave={(scenarios) => {
+            // Save scenarios to context
+            scenarios.forEach(scenario => {
+              addScenario(scenario);
+            });
+            setIsCausalWizardOpen(false);
+            setSelectedUCCAForAnalysis(null);
+          }}
+        />
+      )}
     </div>
   );
 };
