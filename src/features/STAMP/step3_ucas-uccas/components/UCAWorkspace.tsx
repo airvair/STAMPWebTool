@@ -83,7 +83,6 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
 }) => {
   const { deleteUCA, addUCA, hazards } = useAnalysisContext();
   const [selectedUCAs, setSelectedUCAs] = useState<Set<string>>(new Set());
-  const [showUCAAnalysis, setShowUCAAnalysis] = useState(true);
 
   // Get controller and control action names
   const getControllerName = (id: string) => {
@@ -154,15 +153,6 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
           </div>
           
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowUCAAnalysis(!showUCAAnalysis)}
-              className={cn(showUCAAnalysis && "bg-blue-50 dark:bg-blue-950/30")}
-            >
-              <Grid3x3 className="h-4 w-4 mr-2" />
-              UCA Analysis
-            </Button>
-            
             {selectedUCAs.size > 0 && (
               <>
                 <Button
@@ -188,11 +178,6 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            
-            <Button onClick={onCreateUCA}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add UCA
-            </Button>
           </div>
         </div>
 
@@ -214,112 +199,15 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
         )}
       </div>
 
-      {/* UCA Analysis or Table View */}
-      {showUCAAnalysis ? (
-        <EnterpriseUCAMatrix
-          controllers={controllers}
-          controlActions={controlActions}
-          ucas={ucas}
-          selectedController={selectedController}
-          onSelectControlAction={onSelectControlAction}
-          onCreateUCA={onCreateUCA}
-        />
-      ) : (
-        <ScrollArea className="flex-1">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={selectedUCAs.size === ucas.length && ucas.length > 0}
-                    onCheckedChange={handleSelectAll}
-                  />
-                </TableHead>
-                <TableHead className="w-24">Code</TableHead>
-                <TableHead className="w-32">Type</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Context</TableHead>
-                <TableHead className="w-32">Hazards</TableHead>
-                <TableHead className="w-12"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ucas.map((uca) => (
-                <TableRow 
-                  key={uca.id}
-                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900"
-                  onClick={() => onEditUCA(uca)}
-                >
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={selectedUCAs.has(uca.id)}
-                      onCheckedChange={(checked) => handleSelectUCA(uca.id, checked as boolean)}
-                    />
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {uca.code}
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant="secondary"
-                      className={cn("text-xs", UCA_TYPE_COLORS[uca.ucaType])}
-                    >
-                      {UCA_TYPE_LABELS[uca.ucaType]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-xs">
-                    <div className="truncate">{uca.description}</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {getControllerName(uca.controllerId)} → {getControlActionName(uca.controlActionId)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-xs">
-                    <div className="truncate text-sm">{uca.context}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {getHazardCodes(uca.hazardIds).map((code, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {code}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEditUCA(uca)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          const { id, code, ...ucaData } = uca;
-                          addUCA(ucaData);
-                        }}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Duplicate
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => deleteUCA(uca.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      )}
+      {/* UCA Analysis Matrix */}
+      <EnterpriseUCAMatrix
+        controllers={controllers}
+        controlActions={controlActions}
+        ucas={ucas}
+        selectedController={selectedController}
+        onSelectControlAction={onSelectControlAction}
+        onCreateUCA={onCreateUCA}
+      />
     </div>
   );
 };

@@ -4,9 +4,15 @@ import {
   AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent,
   Controller, ControlAction, UnsafeControlAction, Requirement, EventDetail,
   ControlPath, FeedbackPath, UCCA, CommunicationPath, HardwareComponent, FailureMode, 
-  UnsafeInteraction, HardwareAnalysisSession, CausalScenario, FailurePath
+  UnsafeInteraction, HardwareAnalysisSession, CausalScenario, FailurePath, UCAType
 } from '@/types/types';
 import { useProjects } from './ProjectsContext';
+
+interface NotApplicableStatus {
+  controllerId: string;
+  controlActionId: string;
+  ucaType: UCAType;
+}
 
 interface AnalysisContextState {
   analysisSession: AnalysisSession | null;
@@ -32,6 +38,7 @@ interface AnalysisContextState {
   unsafeInteractions: UnsafeInteraction[];
   hardwareAnalysisSession: HardwareAnalysisSession | null;
   scenarios: CausalScenario[]; // Added scenarios property
+  notApplicableStatuses: NotApplicableStatus[];
 
   setAnalysisType: (type: AnalysisType) => void;
   updateAnalysisSession: (data: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt' | 'updatedAt'>>) => void;
@@ -116,6 +123,10 @@ interface AnalysisContextState {
   addScenario: (scenario: Omit<CausalScenario, 'id' | 'code'>) => void;
   updateScenario: (id: string, updates: Partial<CausalScenario>) => void;
   deleteScenario: (id: string) => void;
+
+  addNotApplicableStatus: (status: NotApplicableStatus) => void;
+  removeNotApplicableStatus: (status: NotApplicableStatus) => void;
+  getNotApplicableStatuses: () => NotApplicableStatus[];
 }
 
 const initialState: AnalysisContextState = {
@@ -125,7 +136,7 @@ const initialState: AnalysisContextState = {
   losses: [], hazards: [], systemConstraints: [], systemComponents: [], controllers: [],
   controlPaths: [], feedbackPaths: [], communicationPaths: [], failurePaths: [], controlActions: [], ucas: [], uccas: [], requirements: [], sequenceOfEvents: [],
   activeContexts: {},
-  hardwareComponents: [], failureModes: [], unsafeInteractions: [], hardwareAnalysisSession: null, scenarios: [],
+  hardwareComponents: [], failureModes: [], unsafeInteractions: [], hardwareAnalysisSession: null, scenarios: [], notApplicableStatuses: [],
   setAnalysisType: () => {}, updateAnalysisSession: () => {}, setCastStep2SubStep: () => {},
   addLoss: () => {}, updateLoss: () => {}, deleteLoss: () => {},
   addHazard: () => {}, updateHazard: () => {}, deleteHazard: () => {},
@@ -149,6 +160,7 @@ const initialState: AnalysisContextState = {
   addUnsafeInteraction: () => {}, updateUnsafeInteraction: () => {}, deleteUnsafeInteraction: () => {},
   updateHardwareAnalysisSession: () => {},
   addScenario: () => {}, updateScenario: () => {}, deleteScenario: () => {},
+  addNotApplicableStatus: () => {}, removeNotApplicableStatus: () => {}, getNotApplicableStatuses: () => [],
 };
 
 export const AnalysisContext = createContext<AnalysisContextState>(initialState);
@@ -265,6 +277,9 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const [scenarios, setScenarios] = useState<CausalScenario[]>(() => 
     isProjectsLoading ? loadFromStorage('scenarios', []) : []
   );
+  const [notApplicableStatuses, setNotApplicableStatuses] = useState<NotApplicableStatus[]>(() => 
+    isProjectsLoading ? loadFromStorage('notApplicableStatuses', []) : []
+  );
   
   // Track if we've done the initial load
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
@@ -304,6 +319,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
       setUnsafeInteractions(loadFromStorage('unsafeInteractions', []));
       setHardwareAnalysisSession(loadFromStorage('hardwareAnalysisSession', null));
       setScenarios(loadFromStorage('scenarios', []));
+      setNotApplicableStatuses(loadFromStorage('notApplicableStatuses', []));
     } else if (hasInitiallyLoaded) {
       // Only clear state when no analysis is selected AND we've already done initial loading
       // This prevents clearing data during the initial page load
@@ -470,6 +486,12 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     if (key) localStorage.setItem(key, JSON.stringify(scenarios));
   }, [scenarios, currentAnalysis?.id, hasInitiallyLoaded, isProjectsLoading]);
 
+  useEffect(() => {
+    if (!hasInitiallyLoaded || isProjectsLoading) return;
+    const key = getStorageKey('notApplicableStatuses');
+    if (key) localStorage.setItem(key, JSON.stringify(notApplicableStatuses));
+  }, [notApplicableStatuses, currentAnalysis?.id, hasInitiallyLoaded, isProjectsLoading]);
+
   const setCastStep2SubStep = useCallback((stepUpdater: number | ((prevStep: number) => number)) => {
     _setCastStep2SubStep(prevStep => {
       const newStep = typeof stepUpdater === 'function' ? stepUpdater(prevStep) : stepUpdater;
@@ -528,6 +550,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     setUnsafeInteractions([]);
     setHardwareAnalysisSession(null);
     setScenarios([]);
+    setNotApplicableStatuses([]);
     
     // Clear localStorage for current analysis
     if (currentAnalysis) {
@@ -536,7 +559,8 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         'systemConstraints', 'sequenceOfEvents', 'systemComponents', 'controllers',
         'controlPaths', 'feedbackPaths', 'communicationPaths', 'controlActions',
         'ucas', 'uccas', 'requirements', 'activeContexts',
-        'hardwareComponents', 'failureModes', 'unsafeInteractions', 'hardwareAnalysisSession', 'scenarios'
+        'hardwareComponents', 'failureModes', 'unsafeInteractions', 'hardwareAnalysisSession', 'scenarios',
+        'notApplicableStatuses'
       ];
       
       keysToRemove.forEach(key => {
@@ -639,11 +663,38 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     });
   }, []);
 
+  const addNotApplicableStatus = useCallback((status: NotApplicableStatus) => {
+    setNotApplicableStatuses(prev => {
+      // Check if status already exists
+      const exists = prev.some(
+        s => s.controllerId === status.controllerId && 
+             s.controlActionId === status.controlActionId && 
+             s.ucaType === status.ucaType
+      );
+      if (!exists) {
+        return [...prev, status];
+      }
+      return prev;
+    });
+  }, []);
+
+  const removeNotApplicableStatus = useCallback((status: NotApplicableStatus) => {
+    setNotApplicableStatuses(prev => prev.filter(
+      s => !(s.controllerId === status.controllerId && 
+             s.controlActionId === status.controlActionId && 
+             s.ucaType === status.ucaType)
+    ));
+  }, []);
+
+  const getNotApplicableStatuses = useCallback(() => {
+    return notApplicableStatuses;
+  }, [notApplicableStatuses]);
+
   return (
       <AnalysisContext.Provider value={{
         analysisSession, castStep2SubStep, castStep2MaxReachedSubStep, losses, hazards, systemConstraints, systemComponents, controllers, controlPaths, feedbackPaths,
         communicationPaths, failurePaths, controlActions, ucas, uccas, requirements, sequenceOfEvents, activeContexts,
-        hardwareComponents, failureModes, unsafeInteractions, hardwareAnalysisSession, scenarios,
+        hardwareComponents, failureModes, unsafeInteractions, hardwareAnalysisSession, scenarios, notApplicableStatuses,
         setAnalysisType, updateAnalysisSession, setCastStep2SubStep, setCurrentStep, resetAnalysis, setActiveContext,
         addLoss: lossOps.add, updateLoss: lossOps.update, deleteLoss: lossOps.delete,
         addHazard, updateHazard, deleteHazard,
@@ -674,6 +725,9 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         addScenario: scenarioOps.add as (scenario: Omit<CausalScenario, 'id' | 'code'>) => void,
         updateScenario: scenarioOps.update,
         deleteScenario: scenarioOps.delete,
+        addNotApplicableStatus,
+        removeNotApplicableStatus,
+        getNotApplicableStatuses,
       }}>
         {children}
       </AnalysisContext.Provider>
