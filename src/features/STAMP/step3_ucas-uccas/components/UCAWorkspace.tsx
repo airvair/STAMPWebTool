@@ -34,6 +34,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import UCAAnalysis from './UCAAnalysis';
+import EnterpriseUCAMatrix from './EnterpriseUCAMatrix';
 
 interface UCAWorkspaceProps {
   ucas: UnsafeControlAction[];
@@ -215,7 +216,7 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
 
       {/* UCA Analysis or Table View */}
       {showUCAAnalysis ? (
-        <UCAAnalysis
+        <EnterpriseUCAMatrix
           controllers={controllers}
           controlActions={controlActions}
           ucas={ucas}
