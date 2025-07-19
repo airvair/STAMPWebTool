@@ -24,6 +24,14 @@ const UnsafeControlActions: React.FC = () => {
   const [isAlgorithmDialogOpen, setIsAlgorithmDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'ucas' | 'uccas'>('ucas');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Store matrix-provided values separately to avoid changing navigation
+  const [editorController, setEditorController] = useState<string | null>(null);
+  const [editorControlAction, setEditorControlAction] = useState<string | null>(null);
+  
+  // Pre-selected data for UCCA creation
+  const [preSelectedControllerIds, setPreSelectedControllerIds] = useState<string[]>([]);
+  const [preSelectedUCCAType, setPreSelectedUCCAType] = useState<UCCAType | undefined>();
 
   // Filter control actions based on selected controller
   const filteredControlActions = useMemo(() => {
@@ -63,9 +71,12 @@ const UnsafeControlActions: React.FC = () => {
     );
   }, [uccas, selectedController]);
 
-  const handleCreateUCA = (ucaType?: UCAType) => {
+  const handleCreateUCA = (ucaType?: UCAType, controllerId?: string, controlActionId?: string) => {
     setSelectedUCA(null);
     setSelectedUCAType(ucaType || null);
+    // Store matrix-provided values separately without changing navigation selections
+    setEditorController(controllerId || null);
+    setEditorControlAction(controlActionId || null);
     setIsEditorOpen(true);
   };
 
@@ -76,11 +87,15 @@ const UnsafeControlActions: React.FC = () => {
 
   const handleCreateUCCA = () => {
     setSelectedUCCA(null);
+    setPreSelectedControllerIds([]);
+    setPreSelectedUCCAType(undefined);
     setIsUCCAEditorOpen(true);
   };
 
   const handleEditUCCA = (ucca: UCCA) => {
     setSelectedUCCA(ucca);
+    setPreSelectedControllerIds([]);
+    setPreSelectedUCCAType(undefined);
     setIsUCCAEditorOpen(true);
   };
 
@@ -99,11 +114,21 @@ const UnsafeControlActions: React.FC = () => {
     setIsAlgorithmDialogOpen(false);
   };
 
+  const handleSelectUCCAFromAlgorithm = (controllerIds: string[], uccaType: UCCAType, description?: string) => {
+    setSelectedUCCA(null);
+    setPreSelectedControllerIds(controllerIds);
+    setPreSelectedUCCAType(uccaType);
+    setIsAlgorithmDialogOpen(false);
+    setIsUCCAEditorOpen(true);
+  };
+
   const handleCloseEditor = () => {
     setIsEditorOpen(false);
     setSelectedUCA(null);
     setSelectedUCCA(null);
     setSelectedUCAType(null);
+    setEditorController(null);
+    setEditorControlAction(null);
   };
 
   return (
@@ -175,8 +200,8 @@ const UnsafeControlActions: React.FC = () => {
           isOpen={isEditorOpen}
           onClose={handleCloseEditor}
           uca={selectedUCA}
-          selectedController={selectedController}
-          selectedControlAction={selectedControlAction}
+          selectedController={editorController || selectedController}
+          selectedControlAction={editorControlAction || selectedControlAction}
           preselectedUCAType={selectedUCAType}
           controllers={controllers || []}
           controlActions={controlActions || []}
@@ -190,11 +215,14 @@ const UnsafeControlActions: React.FC = () => {
             onClose={() => setIsUCCAEditorOpen(false)}
             onSave={handleSaveUCCA}
             ucca={selectedUCCA}
+            preSelectedControllerIds={preSelectedControllerIds}
+            preSelectedUCCAType={preSelectedUCCAType}
           />
           <UCCAAlgorithmDialog
             isOpen={isAlgorithmDialogOpen}
             onClose={() => setIsAlgorithmDialogOpen(false)}
             onImport={handleImportUCCAs}
+            onSelectUCCA={handleSelectUCCAFromAlgorithm}
           />
         </>
       )}

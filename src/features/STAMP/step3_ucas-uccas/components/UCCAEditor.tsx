@@ -16,9 +16,20 @@ interface UCCAEditorProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (ucca: Omit<UCCA, 'id' | 'code'>) => void;
+  preSelectedControllerIds?: string[];
+  preSelectedControlActionIds?: string[];
+  preSelectedUCCAType?: UCCAType;
 }
 
-export const UCCAEditor: React.FC<UCCAEditorProps> = ({ ucca, isOpen, onClose, onSave }) => {
+export const UCCAEditor: React.FC<UCCAEditorProps> = ({ 
+  ucca, 
+  isOpen, 
+  onClose, 
+  onSave,
+  preSelectedControllerIds,
+  preSelectedControlActionIds,
+  preSelectedUCCAType
+}) => {
   const { controllers, hazards, controlActions } = useAnalysisContext();
   
   // Form state
@@ -40,18 +51,32 @@ export const UCCAEditor: React.FC<UCCAEditorProps> = ({ ucca, isOpen, onClose, o
   // Reset form when dialog opens/closes or ucca changes
   useEffect(() => {
     if (isOpen) {
-      setDescription(ucca?.description || '');
-      setContext(ucca?.context || '');
-      setUccaType(ucca?.uccaType || UCCAType.CrossController);
-      setInvolvedControllerIds(ucca?.involvedControllerIds || []);
-      setHazardIds(ucca?.hazardIds || []);
-      setTemporalRelationship(ucca?.temporalRelationship);
-      setSpecificCause(ucca?.specificCause || '');
-      setTimingConstraints(ucca?.timingConstraints || '');
-      setIsSystematic(ucca?.isSystematic || false);
+      // If editing existing UCCA, use its values
+      if (ucca) {
+        setDescription(ucca.description);
+        setContext(ucca.context);
+        setUccaType(ucca.uccaType);
+        setInvolvedControllerIds(ucca.involvedControllerIds);
+        setHazardIds(ucca.hazardIds);
+        setTemporalRelationship(ucca.temporalRelationship);
+        setSpecificCause(ucca.specificCause || '');
+        setTimingConstraints(ucca.timingConstraints || '');
+        setIsSystematic(ucca.isSystematic || false);
+      } else {
+        // Creating new UCCA - use pre-selected values or defaults
+        setDescription('');
+        setContext('');
+        setUccaType(preSelectedUCCAType || UCCAType.CrossController);
+        setInvolvedControllerIds(preSelectedControllerIds || []);
+        setHazardIds([]);
+        setTemporalRelationship(undefined);
+        setSpecificCause('');
+        setTimingConstraints('');
+        setIsSystematic(false);
+      }
       setErrors({});
     }
-  }, [isOpen, ucca]);
+  }, [isOpen, ucca, preSelectedControllerIds, preSelectedUCCAType]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};

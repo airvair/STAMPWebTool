@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
 import { 
   Command,
   CommandEmpty,
@@ -22,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Plus, X, AlertCircle, Lightbulb, Check } from 'lucide-react';
+import { Plus, X, AlertCircle, Lightbulb, Check, ArrowRight, Clock, Ban, Shuffle, Timer, Gauge, ListOrdered } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateUCACode } from '@/utils/codeGenerator';
 import { validateUCA } from '@/utils/ucaValidation';
@@ -46,41 +47,48 @@ interface ContextCondition {
   value: string;
 }
 
-const UCA_TYPES: { value: UCAType; label: string; description: string }[] = [
+const UCA_TYPES: { value: UCAType; label: string; description: string; icon: React.ElementType }[] = [
   { 
     value: UCAType.NotProvided, 
     label: 'Not Provided',
-    description: 'Control action is not given when it should be'
+    description: 'Control action is not given when it should be',
+    icon: Ban
   },
   { 
     value: UCAType.ProvidedUnsafe, 
     label: 'Provided',
-    description: 'Control action is given when it should not be'
+    description: 'Control action is given when it should not be',
+    icon: AlertCircle
   },
   { 
     value: UCAType.TooEarly, 
     label: 'Too Early',
-    description: 'Control action is given before it should be'
+    description: 'Control action is given before it should be',
+    icon: Clock
   },
   { 
     value: UCAType.TooLate, 
     label: 'Too Late',
-    description: 'Control action is given after it should be'
+    description: 'Control action is given after it should be',
+    icon: Timer
   },
   { 
     value: UCAType.WrongOrder, 
     label: 'Wrong Order',
-    description: 'Control action is given out of sequence'
+    description: 'Control action is given out of sequence',
+    icon: Shuffle
   },
   { 
     value: UCAType.TooLong, 
     label: 'Too Long',
-    description: 'Control action is applied for too long'
+    description: 'Control action is applied for too long',
+    icon: Gauge
   },
   { 
     value: UCAType.TooShort, 
     label: 'Too Short',
-    description: 'Control action is not applied long enough'
+    description: 'Control action is not applied long enough',
+    icon: ListOrdered
   }
 ];
 
@@ -336,68 +344,56 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
 
         <ScrollArea className="flex-1 max-h-[calc(90vh-200px)] mt-6">
           <div className="space-y-6 pr-4">
-            {/* Controller Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="controller">Controller</Label>
-              <Select value={controllerId} onValueChange={setControllerId}>
-                <SelectTrigger id="controller">
-                  <SelectValue placeholder="Select a controller" />
-                </SelectTrigger>
-                <SelectContent>
-                  {controllers.map(controller => (
-                    <SelectItem key={controller.id} value={controller.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{controller.name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {controller.ctrlType}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Control Action Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="action">Control Action</Label>
-              <Select 
-                value={controlActionId} 
-                onValueChange={setControlActionId}
-                disabled={!controllerId}
-              >
-                <SelectTrigger id="action">
-                  <SelectValue placeholder="Select a control action" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableControlActions.map(action => (
-                    <SelectItem key={action.id} value={action.id}>
-                      {action.verb} {action.object}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* UCA Type Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="type">UCA Type</Label>
-              <Select value={ucaType} onValueChange={(value) => setUcaType(value as UCAType)}>
-                <SelectTrigger id="type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {UCA_TYPES.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
-                      <div>
-                        <div className="font-medium">{type.label}</div>
-                        <div className="text-xs text-gray-500">{type.description}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Context Information Card */}
+            <Card className="p-4 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Creating UCA for:</h3>
+                
+                {/* Controller */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[80px]">Controller:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{getControllerName(controllerId)}</span>
+                    <Badge variant="secondary" className="text-xs">
+                      {controllers.find(c => c.id === controllerId)?.ctrlType || ''}
+                    </Badge>
+                  </div>
+                </div>
+                
+                {/* Control Action */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[80px]">Action:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{getControlActionName(controlActionId)}</span>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                </div>
+                
+                {/* UCA Type */}
+                <div className="flex items-start gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[80px] pt-1">Type:</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const ucaTypeInfo = UCA_TYPES.find(t => t.value === ucaType);
+                        const Icon = ucaTypeInfo?.icon || AlertCircle;
+                        return (
+                          <>
+                            <Icon className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                            <Badge variant="default" className="text-xs">
+                              {ucaTypeInfo?.label || ucaType}
+                            </Badge>
+                          </>
+                        );
+                      })()}
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 ml-6">
+                      {UCA_TYPES.find(t => t.value === ucaType)?.description || ''}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Card>
 
             {/* Description */}
             <div className="space-y-2">

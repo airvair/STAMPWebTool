@@ -14,7 +14,7 @@ interface UCAAnalysisProps {
   ucas: UnsafeControlAction[];
   selectedController: string | null;
   onSelectControlAction: (id: string) => void;
-  onCreateUCA: (ucaType?: UCAType) => void;
+  onCreateUCA: (ucaType?: UCAType, controllerId?: string, controlActionId?: string) => void;
 }
 
 const UCA_TYPES: { value: UCAType; label: string; shortLabel: string }[] = [
@@ -129,9 +129,9 @@ const UCAAnalysis: React.FC<UCAAnalysisProps> = ({
   };
 
   const handleCellClick = (cell: UCAAnalysisCell) => {
-    onSelectControlAction(cell.controlActionId);
-    // Pass the UCA type from the cell to pre-fill in the editor
-    onCreateUCA(cell.ucaType);
+    // Pass the controller, control action, and UCA type from the cell to pre-fill in the editor
+    // Don't change the selected control action to keep the view stable
+    onCreateUCA(cell.ucaType, cell.controllerId, cell.controlActionId);
   };
 
   return (

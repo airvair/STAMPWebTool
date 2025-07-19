@@ -34,12 +34,14 @@ interface UCCAAlgorithmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (uccas: Omit<UCCA, 'id' | 'code'>[]) => void;
+  onSelectUCCA?: (controllerIds: string[], uccaType: UCCAType, description?: string) => void;
 }
 
 export const UCCAAlgorithmDialog: React.FC<UCCAAlgorithmDialogProps> = ({ 
   isOpen, 
   onClose, 
-  onImport 
+  onImport,
+  onSelectUCCA 
 }) => {
   const { controllers, controlActions, ucas, uccas, hazards } = useAnalysisContext();
   
@@ -232,7 +234,7 @@ export const UCCAAlgorithmDialog: React.FC<UCCAAlgorithmDialogProps> = ({
     }
   };
 
-  const canGenerate = controllers.length >= 2 && controlActions.length > 0;
+  const canGenerate = controllers.length >= 2 && ucas.length > 0;
 
   return (
     <>
@@ -257,7 +259,7 @@ export const UCCAAlgorithmDialog: React.FC<UCCAAlgorithmDialogProps> = ({
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="generation" className="flex-1 flex gap-6 min-h-0 mt-4">
+            <TabsContent value="generation" className="flex-1 flex gap-6 min-h-0 mt-4" forceMount hidden={activeTab !== 'generation'}>
           {/* Left Panel - Configuration */}
           <div className="w-80 space-y-6">
             <Card className="p-4 space-y-4">
@@ -370,7 +372,7 @@ export const UCCAAlgorithmDialog: React.FC<UCCAAlgorithmDialogProps> = ({
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    Need at least 2 controllers and some control actions to generate UCCAs.
+                    Need at least 2 controllers and some unsafe control actions (UCAs) to generate UCCAs.
                   </AlertDescription>
                 </Alert>
               )}
@@ -378,7 +380,7 @@ export const UCCAAlgorithmDialog: React.FC<UCCAAlgorithmDialogProps> = ({
           </div>
 
           {/* Right Panel - Results */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0" style={{ minWidth: '500px' }}>
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <AlertTriangle className="h-4 w-4" />
@@ -403,11 +405,11 @@ export const UCCAAlgorithmDialog: React.FC<UCCAAlgorithmDialogProps> = ({
                   </div>
                 </div>
 
-                <ScrollArea className="flex-1 border rounded-lg">
+                <ScrollArea className="flex-1 border rounded-lg" style={{ minHeight: '400px' }}>
                   <div className="p-4 space-y-3">
-                    {generatedUCCAs.map((ucca) => (
+                    {generatedUCCAs.map((ucca, index) => (
                       <Card 
-                        key={ucca.id} 
+                        key={`${ucca.id}-${index}`} 
                         className={`p-4 cursor-pointer transition-colors ${
                           selectedUCCAs.has(ucca.id) 
                             ? 'border-primary bg-primary/5' 
@@ -443,6 +445,31 @@ export const UCCAAlgorithmDialog: React.FC<UCCAAlgorithmDialogProps> = ({
                               ).join(', ')}
                             </div>
                           </div>
+                          {onSelectUCCA && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Determine UCCA type based on combination type
+                                let uccaType: UCCAType;
+                                switch (ucca.combinationType) {
+                                  case 'hierarchical':
+                                    uccaType = UCCAType.Organizational;
+                                    break;
+                                  case 'temporal':
+                                    uccaType = UCCAType.Temporal;
+                                    break;
+                                  default:
+                                    uccaType = UCCAType.CrossController;
+                                }
+                                onSelectUCCA(ucca.controllerIds, uccaType, ucca.description);
+                                onClose();
+                              }}
+                            >
+                              Analyze
+                            </Button>
+                          )}
                         </div>
                       </Card>
                     ))}
@@ -462,7 +489,7 @@ export const UCCAAlgorithmDialog: React.FC<UCCAAlgorithmDialogProps> = ({
           </div>
             </TabsContent>
             
-            <TabsContent value="refinement" className="flex-1 flex flex-col gap-4 mt-4">
+            <TabsContent value="refinement" className="flex-1 flex flex-col gap-4 mt-4" forceMount hidden={activeTab !== 'refinement'}>
               <Card className="p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold">Refinement Configuration</h3>
