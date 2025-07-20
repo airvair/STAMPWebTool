@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Controller, ControlAction, UnsafeControlAction, UCAType } from '@/types/types';
 import { useAnalysisContext } from '@/context/AnalysisContext';
 import { Card } from '@/components/ui/card';
@@ -37,7 +37,6 @@ import {
   TrendingUp,
   Shield,
   Clock,
-  FileSpreadsheet,
   HelpCircle,
   Layers,
   Eye,
@@ -263,13 +262,14 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
           );
 
           totalCells++;
-          if (matchingUCAs.length > 0) {
+          
+          const isNA = isMarkedAsNA(controller.id, action.id, ucaType.value);
+          
+          if (matchingUCAs.length > 0 || isNA) {
             analyzedCells++;
             totalUCAs += matchingUCAs.length;
             maxCount = Math.max(maxCount, matchingUCAs.length);
           }
-
-          const isNA = isMarkedAsNA(controller.id, action.id, ucaType.value);
           
           return {
             controllerId: controller.id,
@@ -328,23 +328,12 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
   };
 
   const handleCellClick = (cell: UCAMatrixCell) => {
-    if (cell.status === 'analyzed' && cell.ucas.length > 0) {
-      // Toggle expanded state for analyzed cells
-      const rowKey = `${cell.controllerId}-${cell.controlActionId}`;
-      const newExpanded = new Set(expandedRows);
-      if (newExpanded.has(rowKey)) {
-        newExpanded.delete(rowKey);
-      } else {
-        newExpanded.add(rowKey);
-      }
-      setExpandedRows(newExpanded);
-    } else if (cell.status === 'not-applicable') {
+    if (cell.status === 'not-applicable') {
       // Do nothing for N/A cells - the Remove N/A button handles its own click
       return;
-    } else {
-      // Create new UCA for not-analyzed cells
-      onCreateUCA(cell.ucaType, cell.controllerId, cell.controlActionId);
     }
+    // Always create new UCA when clicking on a cell (whether it has existing UCAs or not)
+    onCreateUCA(cell.ucaType, cell.controllerId, cell.controlActionId);
   };
 
   const handleMarkAsNA = (cell: UCAMatrixCell) => {
@@ -551,11 +540,6 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
     );
   };
 
-  // Export functionality
-  const handleExport = useCallback(() => {
-    // TODO: Implement export functionality
-    console.log('Exporting UCA Matrix data...');
-  }, []);
 
   return (
     <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-50/50 via-gray-50/30 to-zinc-50/20 dark:from-slate-950/50 dark:via-gray-950/30 dark:to-zinc-950/20">
@@ -666,12 +650,6 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                 </div>
               </PopoverContent>
             </Popover>
-            
-            {/* Export button */}
-            <Button variant="outline" size="sm" className="gap-2 font-medium" onClick={handleExport}>
-              <FileSpreadsheet className="h-4 w-4" />
-              Export
-            </Button>
             
             {/* Legend toggle */}
             <Button
@@ -828,7 +806,9 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                 </Badge>
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <span>Click cells to add/view UCAs</span>
+                <span>Click cells to add new UCAs</span>
+                <span className="text-gray-300 dark:text-gray-600">•</span>
+                <span>Use chevron to view existing UCAs</span>
                 <span className="text-gray-300 dark:text-gray-600">•</span>
                 <span>Hover for details</span>
               </div>
@@ -992,7 +972,8 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                                         </div>
                                         <div className="text-xs text-gray-400 space-y-1">
                                           <p>Type: {UCA_TYPES[cellIdx].label}</p>
-                                          <p>Click to {isExpanded ? 'hide' : 'view'} details</p>
+                                          <p>Click to add another {UCA_TYPES[cellIdx].label} UCA</p>
+                                          <p>Use chevron to {isExpanded ? 'hide' : 'view'} existing UCAs</p>
                                         </div>
                                       </div>
                                     ) : cell.status === 'not-applicable' ? (
@@ -1248,7 +1229,11 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                       <ul className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
                         <li className="flex items-start gap-1">
                           <span className="text-gray-400">•</span>
-                          <span>Click any cell to add or view UCAs</span>
+                          <span>Click any cell to add new UCAs</span>
+                        </li>
+                        <li className="flex items-start gap-1">
+                          <span className="text-gray-400">•</span>
+                          <span>Use chevron (▶) to view existing UCAs</span>
                         </li>
                         <li className="flex items-start gap-1">
                           <span className="text-gray-400">•</span>

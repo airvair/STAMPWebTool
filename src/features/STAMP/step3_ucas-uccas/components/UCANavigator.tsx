@@ -8,6 +8,12 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
+interface NotApplicableStatus {
+  controllerId: string;
+  controlActionId: string;
+  ucaType: UCAType;
+}
+
 interface UCANavigatorProps {
   controllers: Controller[];
   controlActions: ControlAction[];
@@ -17,6 +23,7 @@ interface UCANavigatorProps {
   onSelectControlAction: (id: string | null) => void;
   ucaCoverage: UnsafeControlAction[];
   uccaCoverage: UCCA[];
+  notApplicableStatuses: NotApplicableStatus[];
 }
 
 interface ControllerCoverage {
@@ -45,7 +52,8 @@ const UCANavigator: React.FC<UCANavigatorProps> = ({
   onSelectController,
   onSelectControlAction,
   ucaCoverage,
-  uccaCoverage
+  uccaCoverage,
+  notApplicableStatuses
 }) => {
   const [expandedControllers, setExpandedControllers] = React.useState<Set<string>>(new Set());
 
@@ -61,17 +69,29 @@ const UCANavigator: React.FC<UCANavigatorProps> = ({
       ctrlActions.forEach(action => {
         const actionUCAs = ctrlUCAs.filter(uca => uca.controlActionId === action.id);
         const coveredTypes = new Set(actionUCAs.map(uca => uca.ucaType));
-        const missing = UCA_TYPES.filter(type => !coveredTypes.has(type));
+        
+        // Check N/A statuses for this action
+        const naTypes = new Set(
+          notApplicableStatuses
+            .filter(na => na.controllerId === controller.id && na.controlActionId === action.id)
+            .map(na => na.ucaType)
+        );
+        
+        // Consider both UCAs and N/A statuses as covered
+        const allCoveredTypes = new Set([...coveredTypes, ...naTypes]);
+        const missing = UCA_TYPES.filter(type => !allCoveredTypes.has(type));
         
         if (missing.length > 0) {
           missingTypes.set(action.id, missing);
         }
       });
 
-      // Calculate coverage percentage
+      // Calculate coverage percentage including N/A statuses
+      const naCount = notApplicableStatuses.filter(na => na.controllerId === controller.id).length;
+      const totalCovered = ctrlUCAs.length + naCount;
       const totalPossible = ctrlActions.length * UCA_TYPES.length;
       const coveragePercentage = totalPossible > 0 
-        ? Math.round((ctrlUCAs.length / totalPossible) * 100)
+        ? Math.round((totalCovered / totalPossible) * 100)
         : 0;
 
       return {
@@ -82,15 +102,17 @@ const UCANavigator: React.FC<UCANavigatorProps> = ({
         missingTypes
       };
     });
-  }, [controllers, controlActions, ucaCoverage]);
+  }, [controllers, controlActions, ucaCoverage, notApplicableStatuses]);
 
   // Calculate overall statistics
   const overallStats = useMemo(() => {
     const totalUCAs = ucaCoverage.length;
     const totalUCCAs = uccaCoverage.length;
+    const totalNAs = notApplicableStatuses.length;
     const totalPossible = controlActions.length * UCA_TYPES.length;
+    const totalCovered = totalUCAs + totalNAs;
     const overallCoverage = totalPossible > 0 
-      ? Math.round((totalUCAs / totalPossible) * 100)
+      ? Math.round((totalCovered / totalPossible) * 100)
       : 0;
 
     return {
@@ -98,7 +120,7 @@ const UCANavigator: React.FC<UCANavigatorProps> = ({
       totalUCCAs,
       overallCoverage
     };
-  }, [ucaCoverage, uccaCoverage, controlActions]);
+  }, [ucaCoverage, uccaCoverage, controlActions, notApplicableStatuses]);
 
   const toggleController = (controllerId: string) => {
     const newExpanded = new Set(expandedControllers);

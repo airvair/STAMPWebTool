@@ -11,7 +11,7 @@ import { UCCAEditor } from './UCCAEditor';
 import { UCCAAlgorithmDialog } from './UCCAAlgorithmDialog';
 
 const UnsafeControlActions: React.FC = () => {
-  const { controllers, controlActions, ucas, uccas, addUCCA, updateUCCA } = useAnalysisContext();
+  const { controllers, controlActions, ucas, uccas, addUCCA, updateUCCA, notApplicableStatuses } = useAnalysisContext();
   
   // UI State
   const [selectedController, setSelectedController] = useState<string | null>(null);
@@ -144,6 +144,7 @@ const UnsafeControlActions: React.FC = () => {
           onSelectControlAction={setSelectedControlAction}
           ucaCoverage={ucas}
           uccaCoverage={uccas}
+          notApplicableStatuses={notApplicableStatuses}
         />
       </div>
 
