@@ -5,7 +5,6 @@
 
 import { 
   UnsafeControlAction, 
-  UCCA, 
   Hazard,
   Loss,
   Requirement
@@ -526,11 +525,9 @@ export const ReactOptimizations = {
  */
 export class STPAOptimizer {
   private ucaIndex: IndexedDataStore<UnsafeControlAction>;
-  private uccaIndex: IndexedDataStore<UCCA>;
   
   constructor() {
     this.ucaIndex = new IndexedDataStore(['controllerId', 'controlActionId']);
-    this.uccaIndex = new IndexedDataStore(['context', 'uccaType']);
   }
   
   /**
@@ -604,7 +601,6 @@ export class STPAOptimizer {
    */
   clearCaches() {
     this.ucaIndex.clear();
-    this.uccaIndex.clear();
   }
 }
 

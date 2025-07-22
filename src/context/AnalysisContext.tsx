@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   AnalysisSession, AnalysisType, Loss, Hazard, SystemConstraint, SystemComponent,
   Controller, ControlAction, UnsafeControlAction, Requirement, EventDetail,
-  ControlPath, FeedbackPath, UCCA, CommunicationPath, HardwareComponent, FailureMode, 
+  ControlPath, FeedbackPath, CommunicationPath, HardwareComponent, FailureMode, 
   UnsafeInteraction, HardwareAnalysisSession, CausalScenario, FailurePath, UCAType
 } from '@/types/types';
 import { useProjects } from './ProjectsContext';
@@ -29,7 +29,6 @@ interface AnalysisContextState {
   failurePaths: FailurePath[];
   controlActions: ControlAction[];
   ucas: UnsafeControlAction[];
-  uccas: UCCA[];
   requirements: Requirement[];
   sequenceOfEvents: EventDetail[];
   activeContexts: { [key: string]: string };
@@ -93,11 +92,6 @@ interface AnalysisContextState {
   updateUCA: (id: string, updates: Partial<UnsafeControlAction>) => void;
   deleteUCA: (id: string) => void;
 
-  addUCCA: (ucca: Omit<UCCA, 'id' | 'code'>) => void;
-  updateUCCA: (id: string, updates: Partial<UCCA>) => void;
-  deleteUCCA: (id: string) => void;
-
-
   addRequirement: (req: Omit<Requirement, 'id'>) => void;
   updateRequirement: (id: string, updates: Partial<Requirement>) => void;
   deleteRequirement: (id: string) => void;
@@ -134,7 +128,7 @@ const initialState: AnalysisContextState = {
   castStep2SubStep: 0,
   castStep2MaxReachedSubStep: 0,
   losses: [], hazards: [], systemConstraints: [], systemComponents: [], controllers: [],
-  controlPaths: [], feedbackPaths: [], communicationPaths: [], failurePaths: [], controlActions: [], ucas: [], uccas: [], requirements: [], sequenceOfEvents: [],
+  controlPaths: [], feedbackPaths: [], communicationPaths: [], failurePaths: [], controlActions: [], ucas: [], requirements: [], sequenceOfEvents: [],
   activeContexts: {},
   hardwareComponents: [], failureModes: [], unsafeInteractions: [], hardwareAnalysisSession: null, scenarios: [], notApplicableStatuses: [],
   setAnalysisType: () => {}, updateAnalysisSession: () => {}, setCastStep2SubStep: () => {},
@@ -150,7 +144,6 @@ const initialState: AnalysisContextState = {
   addFailurePath: () => {}, updateFailurePath: () => {}, deleteFailurePath: () => {},
   addControlAction: () => {}, updateControlAction: () => {}, deleteControlAction: () => {},
   addUCA: () => {}, updateUCA: () => {}, deleteUCA: () => {},
-  addUCCA: () => {}, updateUCCA: () => {}, deleteUCCA: () => {},
   addRequirement: () => {}, updateRequirement: () => {}, deleteRequirement: () => {},
   setCurrentStep: () => {},
   setActiveContext: () => {},
@@ -253,9 +246,6 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const [ucas, setUcas] = useState<UnsafeControlAction[]>(() => 
     isProjectsLoading ? loadFromStorage('ucas', []) : []
   );
-  const [uccas, setUccas] = useState<UCCA[]>(() => 
-    isProjectsLoading ? loadFromStorage('uccas', []) : []
-  );
   const [requirements, setRequirements] = useState<Requirement[]>(() => 
     isProjectsLoading ? loadFromStorage('requirements', []) : []
   );
@@ -311,7 +301,6 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
       setFailurePaths(loadFromStorage('failurePaths', []));
       setControlActions(loadFromStorage('controlActions', []));
       setUcas(loadFromStorage('ucas', []));
-      setUccas(loadFromStorage('uccas', []));
       setRequirements(loadFromStorage('requirements', []));
       setActiveContexts(loadFromStorage('activeContexts', {}));
       setHardwareComponents(loadFromStorage('hardwareComponents', []));
@@ -337,7 +326,6 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
       setFailurePaths([]);
       setControlActions([]);
       setUcas([]);
-      setUccas([]);
       setRequirements([]);
       setActiveContexts({});
       setHardwareComponents([]);
@@ -434,13 +422,6 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     const key = getStorageKey('ucas');
     if (key) localStorage.setItem(key, JSON.stringify(ucas));
   }, [ucas, currentAnalysis?.id, hasInitiallyLoaded, isProjectsLoading]);
-  
-  useEffect(() => {
-    if (!hasInitiallyLoaded || isProjectsLoading) return;
-    const key = getStorageKey('uccas');
-    if (key) localStorage.setItem(key, JSON.stringify(uccas));
-  }, [uccas, currentAnalysis?.id, hasInitiallyLoaded, isProjectsLoading]);
-  
   
   useEffect(() => {
     if (!hasInitiallyLoaded || isProjectsLoading) return;
@@ -542,7 +523,6 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
     setFailurePaths([]);
     setControlActions([]);
     setUcas([]);
-    setUccas([]);
     setRequirements([]);
     setActiveContexts({});
     setHardwareComponents([]);
@@ -558,7 +538,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         'castStep2SubStep', 'castStep2MaxReachedSubStep', 'losses', 'hazards',
         'systemConstraints', 'sequenceOfEvents', 'systemComponents', 'controllers',
         'controlPaths', 'feedbackPaths', 'communicationPaths', 'controlActions',
-        'ucas', 'uccas', 'requirements', 'activeContexts',
+        'ucas', 'requirements', 'activeContexts',
         'hardwareComponents', 'failureModes', 'unsafeInteractions', 'hardwareAnalysisSession', 'scenarios',
         'notApplicableStatuses'
       ];
@@ -625,7 +605,6 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   const lossOps = createCrudOperations(setLosses, losses, 'L');
   const constraintOps = createCrudOperations(setSystemConstraints, systemConstraints, 'SC');
   const ucaOps = createCrudOperations(setUcas, ucas, 'UCA');
-  const uccaOps = createCrudOperations(setUccas, uccas, 'UCCA');
 
   const componentOps = createCrudOperations(setSystemComponents, systemComponents);
   const controllerOps = createCrudOperations(setControllers, controllers);
@@ -693,7 +672,7 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
   return (
       <AnalysisContext.Provider value={{
         analysisSession, castStep2SubStep, castStep2MaxReachedSubStep, losses, hazards, systemConstraints, systemComponents, controllers, controlPaths, feedbackPaths,
-        communicationPaths, failurePaths, controlActions, ucas, uccas, requirements, sequenceOfEvents, activeContexts,
+        communicationPaths, failurePaths, controlActions, ucas, requirements, sequenceOfEvents, activeContexts,
         hardwareComponents, failureModes, unsafeInteractions, hardwareAnalysisSession, scenarios, notApplicableStatuses,
         setAnalysisType, updateAnalysisSession, setCastStep2SubStep, setCurrentStep, resetAnalysis, setActiveContext,
         addLoss: lossOps.add, updateLoss: lossOps.update, deleteLoss: lossOps.delete,
@@ -714,9 +693,6 @@ export const AnalysisProvider: React.FC<{children: ReactNode}> = ({ children }) 
         addUCA: ucaOps.add as (uca: Omit<UnsafeControlAction, 'id' | 'code'>) => void,
         updateUCA: ucaOps.update,
         deleteUCA: ucaOps.delete,
-        addUCCA: uccaOps.add as (ucca: Omit<UCCA, 'id' | 'code'>) => void,
-        updateUCCA: uccaOps.update,
-        deleteUCCA: uccaOps.delete,
         addRequirement: requirementOps.add, updateRequirement: requirementOps.update, deleteRequirement: requirementOps.delete,
         addHardwareComponent: hardwareComponentOps.add, updateHardwareComponent: hardwareComponentOps.update, deleteHardwareComponent: hardwareComponentOps.delete,
         addFailureMode: failureModeOps.add, updateFailureMode: failureModeOps.update, deleteFailureMode: failureModeOps.delete,

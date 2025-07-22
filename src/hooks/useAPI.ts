@@ -74,7 +74,6 @@ export function useAPI(
         controllers: analysisData.controllers || [],
         controlActions: analysisData.controlActions || [],
         ucas: analysisData.ucas || [],
-        uccas: analysisData.uccas || [],
         causalScenarios: analysisData.scenarios || [],
         requirements: analysisData.requirements || [],
         feedbackPaths: analysisData.feedbackPaths || [],

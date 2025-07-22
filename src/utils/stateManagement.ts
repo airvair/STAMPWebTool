@@ -1,8 +1,8 @@
-import { UnsafeControlAction, UCCA, Controller, ControlAction, Hazard, Loss, Requirement } from '@/types/types';
+import { UnsafeControlAction, Controller, ControlAction, Hazard, Loss, Requirement } from '@/types/types';
 import { ValidationResult } from './ucaValidation';
 import { ErrorHandler, SafetyAnalysisError, createErrorContext } from './errorHandling';
 
-// Enhanced state management for UCA/UCCA analysis with robust error handling and bidirectional links
+// Enhanced state management for UCA analysis with robust error handling and bidirectional links
 
 // Bidirectional link interfaces
 export interface TraceableEntity {
@@ -13,9 +13,9 @@ export interface TraceableEntity {
 
 export interface TraceabilityLink {
   sourceId: string;
-  sourceType: 'loss' | 'hazard' | 'uca' | 'ucca' | 'scenario' | 'requirement';
+  sourceType: 'loss' | 'hazard' | 'uca' | 'scenario' | 'requirement';
   targetId: string;
-  targetType: 'loss' | 'hazard' | 'uca' | 'ucca' | 'scenario' | 'requirement';
+  targetType: 'loss' | 'hazard' | 'uca' | 'scenario' | 'requirement';
   strength: number; // 0-1, relationship strength
 }
 
@@ -26,7 +26,7 @@ export interface TraceabilityGraph {
 
 export interface TraceabilityNode {
   id: string;
-  type: 'loss' | 'hazard' | 'uca' | 'ucca' | 'scenario' | 'requirement';
+  type: 'loss' | 'hazard' | 'uca' | 'scenario' | 'requirement';
   label: string;
   data: any;
   analysisStatus: 'complete' | 'partial' | 'pending';
@@ -34,7 +34,6 @@ export interface TraceabilityNode {
 
 export interface AnalysisState {
   ucas: UnsafeControlAction[];
-  uccas: UCCA[];
   losses: Loss[];
   hazards: Hazard[];
   requirements: Requirement[];
@@ -49,7 +48,7 @@ export interface AnalysisState {
 export interface PendingChange {
   id: string;
   type: 'create' | 'update' | 'delete';
-  entityType: 'uca' | 'ucca';
+  entityType: 'uca';
   entityId: string;
   data: any;
   timestamp: Date;
@@ -79,7 +78,7 @@ export interface StateOperation {
 
 export interface OperationStep {
   action: 'create' | 'update' | 'delete';
-  entityType: 'uca' | 'ucca';
+  entityType: 'uca';
   entityId: string;
   data?: any;
   previousData?: any;
@@ -99,7 +98,6 @@ export class AnalysisStateManager {
   constructor(initialState?: Partial<AnalysisState>) {
     this.state = {
       ucas: [],
-      uccas: [],
       losses: [],
       hazards: [],
       requirements: [],
@@ -611,11 +609,11 @@ export class AnalysisStateManager {
     return `${actionCode}-${typeCode}-${sequence.toString().padStart(3, '0')}`;
   }
 
-  private findEntity(entityType: 'uca' | 'ucca', entityId: string): any {
+  private findEntity(entityType: 'uca', entityId: string): any {
     if (entityType === 'uca') {
       return this.state.ucas.find(u => u.id === entityId);
     } else {
-      return this.state.uccas.find(u => u.id === entityId);
+      return null;
     }
   }
 
@@ -800,10 +798,6 @@ export class AnalysisStateManager {
       if (node) nodes.set(uca.id, node);
     });
 
-    this.state.uccas.forEach(ucca => {
-      const node = this.createTraceabilityNode(ucca.id, 'ucca');
-      if (node) nodes.set(ucca.id, node);
-    });
 
 
     this.state.requirements.forEach(requirement => {
@@ -824,14 +818,12 @@ export class AnalysisStateManager {
     losses: any[],
     hazards: any[],
     ucas: any[],
-    uccas: any[],
     requirements: any[]
   ): TraceabilityGraph {
     // Update state with provided data
     this.state.losses = losses;
     this.state.hazards = hazards;
     this.state.ucas = ucas;
-    this.state.uccas = uccas;
     this.state.requirements = requirements;
     
     // Generate and return the graph
@@ -859,7 +851,7 @@ export class AnalysisStateManager {
       }
     });
 
-    // Check hazards have upstream losses and downstream UCAs/UCCAs
+    // Check hazards have upstream losses and downstream UCAs
     this.state.hazards.forEach(hazard => {
       const hasUpstream = this.state.traceabilityLinks.some(
         link => link.targetId === hazard.id && link.sourceType === 'loss'
@@ -869,10 +861,10 @@ export class AnalysisStateManager {
       }
 
       const hasDownstream = this.state.traceabilityLinks.some(
-        link => link.sourceId === hazard.id && (link.targetType === 'uca' || link.targetType === 'ucca')
+        link => link.sourceId === hazard.id && link.targetType === 'uca'
       );
       if (!hasDownstream) {
-        missingLinks.push(`Hazard "${hazard.title}" has no linked UCAs or UCCAs`);
+        missingLinks.push(`Hazard "${hazard.title}" has no linked UCAs`);
       }
     });
 
@@ -959,10 +951,6 @@ export class AnalysisStateManager {
         entity = this.state.ucas.find(u => u.id === entityId);
         label = entity?.code || 'Unknown UCA';
         break;
-      case 'ucca':
-        entity = this.state.uccas.find(u => u.id === entityId);
-        label = entity?.code || 'Unknown UCCA';
-        break;
       case 'requirement':
         entity = this.state.requirements.find(r => r.id === entityId);
         label = entity?.code || 'Unknown Requirement';
@@ -987,7 +975,7 @@ export class AnalysisStateManager {
    */
   private findTraceabilityNode(entityId: string): TraceabilityNode | null {
     // Try each entity type
-    const types: TraceabilityLink['sourceType'][] = ['loss', 'hazard', 'uca', 'ucca', 'scenario', 'requirement'];
+    const types: TraceabilityLink['sourceType'][] = ['loss', 'hazard', 'uca', 'scenario', 'requirement'];
     
     for (const type of types) {
       const node = this.createTraceabilityNode(entityId, type);

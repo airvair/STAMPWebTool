@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { UnsafeControlAction, UCCA } from '@/types/types';
+import { UnsafeControlAction } from '@/types/types';
 import { 
   AnalysisState, 
   AnalysisStateManager, 
@@ -22,10 +22,6 @@ export interface RobustAnalysisActions {
   updateUCA: (ucaId: string, updates: Partial<UnsafeControlAction>) => Promise<boolean>;
   deleteUCA: (ucaId: string) => Promise<boolean>;
   
-  // Enhanced UCCA operations
-  addUCCA: (uccaData: Omit<UCCA, 'id' | 'code'>) => Promise<string | null>;
-  updateUCCA: (uccaId: string, updates: Partial<UCCA>) => Promise<boolean>;
-  deleteUCCA: (uccaId: string) => Promise<boolean>;
   
   // Batch operations
   executeBatchUCACreation: (ucaDataList: Omit<UnsafeControlAction, 'id' | 'code'>[]) => Promise<boolean>;
@@ -147,39 +143,6 @@ export const useRobustAnalysis = (): [RobustAnalysisState, RobustAnalysisActions
     }
   }, [showSuccess]);
 
-  // UCCA operations (similar pattern)
-  const addUCCA = useCallback(async (_uccaData: Omit<UCCA, 'id' | 'code'>): Promise<string | null> => {
-    setOperationInProgress(true);
-    try {
-      // Implementation similar to addUCA
-      showSuccess('UCCA added successfully');
-      return 'mock-ucca-id'; // Replace with actual implementation
-    } finally {
-      setOperationInProgress(false);
-    }
-  }, [showSuccess]);
-
-  const updateUCCA = useCallback(async (_uccaId: string, _updates: Partial<UCCA>): Promise<boolean> => {
-    setOperationInProgress(true);
-    try {
-      // Implementation similar to updateUCA
-      showSuccess('UCCA updated successfully');
-      return true; // Replace with actual implementation
-    } finally {
-      setOperationInProgress(false);
-    }
-  }, [showSuccess]);
-
-  const deleteUCCA = useCallback(async (_uccaId: string): Promise<boolean> => {
-    setOperationInProgress(true);
-    try {
-      // Implementation similar to deleteUCA
-      showSuccess('UCCA deleted successfully');
-      return true; // Replace with actual implementation
-    } finally {
-      setOperationInProgress(false);
-    }
-  }, [showSuccess]);
 
   // Batch operations
   const executeBatchUCACreation = useCallback(async (ucaDataList: Omit<UnsafeControlAction, 'id' | 'code'>[]): Promise<boolean> => {
@@ -275,7 +238,6 @@ export const useRobustAnalysis = (): [RobustAnalysisState, RobustAnalysisActions
     try {
       const exportData = {
         ucas: state.ucas,
-        uccas: state.uccas,
         timestamp: new Date().toISOString(),
         version: '1.0'
       };
@@ -287,7 +249,7 @@ export const useRobustAnalysis = (): [RobustAnalysisState, RobustAnalysisActions
       console.error('Export failed:', error);
       throw error;
     }
-  }, [state.ucas, state.uccas, showSuccess]);
+  }, [state.ucas, showSuccess]);
 
   const importState = useCallback(async (stateData: string): Promise<boolean> => {
     try {
@@ -324,9 +286,6 @@ export const useRobustAnalysis = (): [RobustAnalysisState, RobustAnalysisActions
     addUCA,
     updateUCA,
     deleteUCA,
-    addUCCA,
-    updateUCCA,
-    deleteUCCA,
     executeBatchUCACreation,
     retryFailedOperations,
     clearError,

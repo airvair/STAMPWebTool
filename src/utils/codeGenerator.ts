@@ -19,21 +19,3 @@ export function generateUCACode(ucaType: UCAType, controlActionId: string): stri
   
   return `${prefix}-${timestamp}`;
 }
-
-/**
- * Generates a unique code for a UCCA
- */
-export function generateUCCACode(uccaType: string): string {
-  const typePrefix = {
-    'Team-based': 'T',
-    'Role-based': 'R',
-    'Organizational': 'O',
-    'Cross-Controller': 'CC',
-    'Temporal': 'TM'
-  };
-  
-  const prefix = typePrefix[uccaType] || 'UCCA';
-  const timestamp = Date.now().toString().slice(-6);
-  
-  return `UCCA-${prefix}-${timestamp}`;
-}

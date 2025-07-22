@@ -9,7 +9,6 @@ import {
   Controller,
   ControlAction,
   UnsafeControlAction,
-  UCCA,
   Requirement
 } from '@/types/types';
 import { STAPAnalysisData } from './importExport';
@@ -348,38 +347,6 @@ export class APIClient {
 
   async deleteUCA(id: string): Promise<APIResponse<void>> {
     return this.request<void>(`/api/ucas/${id}`, {
-      method: 'DELETE'
-    });
-  }
-
-  /**
-   * UCCA endpoints
-   */
-  async getUCCAs(params?: QueryParams): Promise<APIResponse<PaginatedResponse<UCCA>>> {
-    const queryString = this.buildQueryString(params);
-    return this.request<PaginatedResponse<UCCA>>(`/api/uccas${queryString}`);
-  }
-
-  async getUCCA(id: string): Promise<APIResponse<UCCA>> {
-    return this.request<UCCA>(`/api/uccas/${id}`);
-  }
-
-  async createUCCA(ucca: Omit<UCCA, 'id'>): Promise<APIResponse<UCCA>> {
-    return this.request<UCCA>('/api/uccas', {
-      method: 'POST',
-      body: JSON.stringify(ucca)
-    });
-  }
-
-  async updateUCCA(id: string, ucca: Partial<UCCA>): Promise<APIResponse<UCCA>> {
-    return this.request<UCCA>(`/api/uccas/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(ucca)
-    });
-  }
-
-  async deleteUCCA(id: string): Promise<APIResponse<void>> {
-    return this.request<void>(`/api/uccas/${id}`, {
       method: 'DELETE'
     });
   }

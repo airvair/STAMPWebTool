@@ -309,16 +309,6 @@ export function createUCASearchEngine(ucas: any[]): SmartSearchEngine<any> {
   return new SmartSearchEngine(searchableUCAs);
 }
 
-export function createUCCASearchEngine(uccas: any[]): SmartSearchEngine<any> {
-  const searchableUCCAs = uccas.map(ucca => ({
-    ...ucca,
-    searchableText: `${ucca.code} ${ucca.description} ${ucca.context} ${ucca.uccaType}`,
-    category: ucca.uccaType,
-    priority: ucca.isSystematic ? 10 : 5
-  }));
-  
-  return new SmartSearchEngine(searchableUCCAs);
-}
 
 export function createHardwareSearchEngine(components: any[]): SmartSearchEngine<any> {
   const searchableComponents = components.map(component => ({

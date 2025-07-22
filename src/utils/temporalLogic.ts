@@ -1,9 +1,9 @@
 /**
- * Temporal Logic Formulations for Type 3-4 UCCAs
+ * Temporal Logic Formulations for Type 3-4 UCAs
  * Implements Linear Temporal Logic (LTL) for analyzing timing-related unsafe control actions
  */
 
-import { ControlAction, Controller, UCCA } from '@/types/types';
+import { ControlAction, Controller } from '@/types/types';
 
 export enum TemporalOperator {
   // Basic LTL operators
@@ -46,10 +46,6 @@ export interface TimeConstraint {
   reference?: 'absolute' | 'relative';
 }
 
-export interface TemporalUCCA extends UCCA {
-  temporalFormula: TemporalFormula;
-  violationScenarios: ViolationScenario[];
-}
 
 export interface ViolationScenario {
   id: string;
@@ -67,11 +63,11 @@ export interface TimedEvent {
 }
 
 /**
- * Temporal Logic Engine for Type 3-4 UCCA Analysis
+ * Temporal Logic Engine for Type 3-4 UCA Analysis
  */
 export class TemporalLogicEngine {
   /**
-   * Generate temporal formulas for Type 3-4 UCCAs
+   * Generate temporal formulas for Type 3-4 UCAs
    */
   generateTemporalFormulas(
     controllers: Controller[],

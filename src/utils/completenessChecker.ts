@@ -7,7 +7,6 @@ import {
   Controller, 
   ControlAction, 
   UnsafeControlAction, 
-  UCCA, 
   Hazard, 
   Loss,
   Requirement,
@@ -33,7 +32,6 @@ export enum CheckCategory {
   CONTROL_STRUCTURE = 'Control Structure',
   CONTROL_ACTIONS = 'Control Actions',
   UCA_COVERAGE = 'UCA Coverage',
-  UCCA_COVERAGE = 'UCCA Coverage',
   REQUIREMENTS = 'Requirements',
   TRACEABILITY = 'Traceability'
 }
@@ -99,7 +97,6 @@ export class CompletenessChecker {
     controllers: Controller[];
     controlActions: ControlAction[];
     ucas: UnsafeControlAction[];
-    uccas: UCCA[];
     requirements: Requirement[];
   }): CompletenessReport {
     const checks: CompletenessCheck[] = [];
@@ -113,15 +110,9 @@ export class CompletenessChecker {
       analysisData.controlActions, 
       analysisData.hazards
     ));
-    checks.push(...this.checkUCCACoverage(
-      analysisData.uccas,
-      analysisData.controllers,
-      analysisData.hazards
-    ));
     checks.push(...this.checkRequirements(
       analysisData.requirements,
-      analysisData.ucas,
-      analysisData.uccas
+      analysisData.ucas
     ));
     checks.push(...this.checkTraceability(analysisData));
 
@@ -470,71 +461,6 @@ export class CompletenessChecker {
     return checks;
   }
 
-  /**
-   * Check UCCA coverage
-   */
-  private checkUCCACoverage(
-    uccas: UCCA[],
-    controllers: Controller[],
-    _hazards: Hazard[]
-  ): CompletenessCheck[] {
-    const checks: CompletenessCheck[] = [];
-
-    // Check 1: Multi-controller analysis
-    // Multi-controller analysis check removed - was unused
-    const expectedUCCAs = Math.max(0, (controllers.length * (controllers.length - 1)) / 4); // Rough estimate
-
-    checks.push({
-      id: 'ucca-multi-controller',
-      category: CheckCategory.UCCA_COVERAGE,
-      name: 'Multi-Controller Interaction Analysis',
-      description: 'Systems with multiple controllers should analyze UCCAs',
-      status: controllers.length <= 1 
-        ? CheckStatus.COMPLETE // N/A for single controller
-        : uccas.length >= expectedUCCAs
-        ? CheckStatus.COMPLETE
-        : uccas.length > 0
-        ? CheckStatus.PARTIAL
-        : CheckStatus.MISSING,
-      severity: controllers.length > 1 ? CheckSeverity.HIGH : CheckSeverity.INFO,
-      details: controllers.length > 1
-        ? [`${uccas.length} UCCAs identified for ${controllers.length} controllers`]
-        : ['Single controller system - UCCAs not applicable'],
-      recommendations: controllers.length > 1 && uccas.length < expectedUCCAs
-        ? ['Analyze potential unsafe interactions between controllers']
-        : [],
-      coverage: controllers.length <= 1 
-        ? 100 
-        : Math.min(100, (uccas.length / expectedUCCAs) * 100)
-    });
-
-    // Check 2: UCCA type diversity
-    const uccaTypes = new Set(uccas.map(u => u.uccaType));
-
-    checks.push({
-      id: 'ucca-type-diversity',
-      category: CheckCategory.UCCA_COVERAGE,
-      name: 'UCCA Type Diversity',
-      description: 'Consider different types of multi-controller interactions',
-      status: uccaTypes.size >= 3
-        ? CheckStatus.COMPLETE
-        : uccaTypes.size >= 2
-        ? CheckStatus.PARTIAL
-        : uccaTypes.size === 1
-        ? CheckStatus.WARNING
-        : CheckStatus.MISSING,
-      severity: CheckSeverity.MEDIUM,
-      details: [
-        `UCCA types analyzed: ${Array.from(uccaTypes).join(', ') || 'None'}`
-      ],
-      recommendations: uccaTypes.size < 3
-        ? ['Consider Team, Role, Cross-Controller, and Temporal UCCAs']
-        : [],
-      coverage: (uccaTypes.size / 4) * 100 // Assuming 4 main types
-    });
-
-    return checks;
-  }
 
 
   /**
@@ -542,8 +468,7 @@ export class CompletenessChecker {
    */
   private checkRequirements(
     requirements: Requirement[],
-    ucas: UnsafeControlAction[],
-    _uccas: UCCA[]
+    ucas: UnsafeControlAction[]
   ): CompletenessCheck[] {
     const checks: CompletenessCheck[] = [];
 

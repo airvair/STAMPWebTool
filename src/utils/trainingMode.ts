@@ -28,7 +28,6 @@ export enum TutorialCategory {
   LOSS_HAZARD = 'loss_hazard',
   CONTROL_STRUCTURE = 'control_structure',
   UCA_ANALYSIS = 'uca_analysis',
-  UCCA_ANALYSIS = 'ucca_analysis',
   CAUSAL_SCENARIOS = 'causal_scenarios',
   REQUIREMENTS = 'requirements',
   ADVANCED_FEATURES = 'advanced_features',

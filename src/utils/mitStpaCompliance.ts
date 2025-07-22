@@ -1,4 +1,4 @@
-import { Controller, ControlAction, UnsafeControlAction, UCCA, Hazard, UCAType } from '@/types/types';
+import { Controller, ControlAction, UnsafeControlAction, Hazard, UCAType } from '@/types/types';
 import { ValidationResult, ValidationError, ValidationWarning, generateComplianceReport } from './ucaValidation';
 
 // MIT STPA 4-Step Process Implementation
@@ -330,13 +330,12 @@ export const generateSystematicAnalysisReport = (
   controllers: Controller[],
   controlActions: ControlAction[],
   ucas: UnsafeControlAction[],
-  uccas: UCCA[],
   hazards: Hazard[]
 ) => {
   const compliance = validateMitStpaCompliance(hazards, controllers, controlActions, ucas);
   const completeness = performSystematicCompletenessCheck(controllers, controlActions, ucas, hazards);
   const recommendations = generateStpaRecommendations(compliance, completeness);
-  const detailedCompliance = generateComplianceReport(ucas, uccas, controllers, controlActions, hazards);
+  const detailedCompliance = generateComplianceReport(ucas, controllers, controlActions, hazards);
 
   return {
     timestamp: new Date().toISOString(),
@@ -349,7 +348,6 @@ export const generateSystematicAnalysisReport = (
       readyForNextPhase: compliance.overallCompliance >= 80 && completeness.completenessPercentage >= 80,
       criticalIssues: completeness.qualityIssues.filter(q => q.severity === 'high').length,
       totalUCAs: ucas.length,
-      totalUCCAs: uccas.length
     }
   };
 };

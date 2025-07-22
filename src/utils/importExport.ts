@@ -9,7 +9,6 @@ import {
   Controller, 
   ControlAction, 
   UnsafeControlAction, 
-  UCCA,
   Requirement,
   FeedbackPath,
   ControlPath,
@@ -49,7 +48,6 @@ export interface STAPAnalysisData {
   communicationPaths: CommunicationPath[];
   systemComponents: SystemComponent[];
   ucas: UnsafeControlAction[];
-  uccas: UCCA[];
   requirements: Requirement[];
   causalScenarios?: CausalScenario[]; // Added causal scenarios
 }
@@ -157,7 +155,6 @@ export class ImportExportManager {
     this.exportEntitiesToCSV(zip, 'controllers.csv', data.controllers, this.controllerToCSVRow);
     this.exportEntitiesToCSV(zip, 'control_actions.csv', data.controlActions, this.controlActionToCSVRow);
     this.exportEntitiesToCSV(zip, 'ucas.csv', data.ucas, this.ucaToCSVRow);
-    this.exportEntitiesToCSV(zip, 'uccas.csv', data.uccas, this.uccaToCSVRow);
     this.exportEntitiesToCSV(zip, 'requirements.csv', data.requirements, this.requirementToCSVRow);
 
     // Add metadata if requested
@@ -342,7 +339,6 @@ Tool: STAMP Web Tool v1.0`;
         communicationPaths: [],
         systemComponents: [],
         ucas: this.parseUCAsFromXML(xmlDoc),
-        uccas: this.parseUCCAsFromXML(xmlDoc),
         requirements: this.parseRequirementsFromXML(xmlDoc)
       };
 
@@ -400,7 +396,6 @@ Tool: STAMP Web Tool v1.0`;
       'controllers.csv': ['ID', 'Name', 'Type', 'Description'],
       'control_actions.csv': ['ID', 'Controller ID', 'Verb', 'Object', 'Description'],
       'ucas.csv': ['ID', 'Code', 'Controller ID', 'Control Action ID', 'Type', 'Description', 'Context', 'Hazard IDs'],
-      'uccas.csv': ['ID', 'Code', 'Type', 'Description', 'Context', 'Controller IDs', 'Hazard IDs'],
       'requirements.csv': ['ID', 'Code', 'Type', 'Description', 'UCA IDs']
     };
     
@@ -454,17 +449,6 @@ Tool: STAMP Web Tool v1.0`;
     ];
   }
 
-  private uccaToCSVRow(ucca: UCCA): string[] {
-    return [
-      ucca.id,
-      ucca.code || '',
-      ucca.uccaType,
-      ucca.description,
-      ucca.context || '',
-      ucca.involvedControllerIds.join(';'),
-      ucca.hazardIds.join(';')
-    ];
-  }
 
 
   private requirementToCSVRow(requirement: Requirement): string[] {
@@ -540,9 +524,6 @@ Tool: STAMP Web Tool v1.0`;
     return [];
   }
 
-  private parseUCCAsFromXML(_xmlDoc: Document): UCCA[] {
-    return [];
-  }
 
 
   private parseRequirementsFromXML(_xmlDoc: Document): Requirement[] {
@@ -572,7 +553,7 @@ Tool: STAMP Web Tool v1.0`;
     // Check required arrays
     const requiredArrays = [
       'losses', 'hazards', 'controllers', 'controlActions',
-      'ucas', 'uccas', 'requirements',
+      'ucas', 'requirements',
       'feedbackPaths', 'controlPaths', 'communicationPaths', 'systemComponents'
     ];
 
@@ -601,7 +582,6 @@ Tool: STAMP Web Tool v1.0`;
       data.communicationPaths.length +
       data.systemComponents.length +
       data.ucas.length +
-      data.uccas.length +
       data.requirements.length
     );
   }

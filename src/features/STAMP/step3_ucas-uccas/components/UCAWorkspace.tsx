@@ -54,7 +54,7 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
   return (
     <div className="flex-1 flex flex-col">
       {/* Toolbar */}
-      <div className="p-4 border-b space-y-4">
+      <div className="p-3 lg:p-4 border-b space-y-3 lg:space-y-4">
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />

@@ -1,16 +1,14 @@
 /**
- * Batch Operations for UCAs and UCCAs
+ * Batch Operations for UCAs
  * Enables efficient bulk creation, update, and deletion operations
  */
 
 import { 
   UnsafeControlAction, 
-  UCCA, 
   Controller, 
   ControlAction, 
   // Hazard,
-  UCAType,
-  UCCAType
+  UCAType
 } from '@/types/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -55,14 +53,6 @@ export interface UCAbatchCreateOptions {
   skipExisting?: boolean;
 }
 
-export interface UCCAbatchCreateOptions {
-  controllerPairs: Array<{ controller1Id: string; controller2Id: string }>;
-  uccaTypes: UCCAType[];
-  hazardIds?: string[];
-  contextTemplate?: string;
-  temporalRelationship?: 'Simultaneous' | 'Sequential' | 'Within-Timeframe';
-  autoGenerateCode?: boolean;
-}
 
 /**
  * Batch Operations Manager
@@ -157,92 +147,6 @@ export class BatchOperationsManager {
     }
   }
 
-  /**
-   * Batch create UCCAs for multi-controller interactions
-   */
-  async batchCreateUCCAs(
-    options: UCCAbatchCreateOptions,
-    existingUCCAs: UCCA[]
-  ): Promise<BatchResult<UCCA>> {
-    const results: BatchItemResult<UCCA>[] = [];
-    const errors: BatchError[] = [];
-    let processed = 0;
-    let failed = 0;
-
-    try {
-      const combinations = this.generateUCCACombinations(options);
-
-      for (let i = 0; i < combinations.length; i++) {
-        const combo = combinations[i];
-
-        try {
-          // Validate the UCCA
-          const validation = this.validateUCCA(combo);
-          if (!validation.isValid) {
-            throw new Error(validation.errors.join(', '));
-          }
-
-          // Check for duplicates
-          if (this.uccaExists(combo, existingUCCAs)) {
-            results.push({
-              item: combo as UCCA,
-              success: false,
-              error: 'UCCA already exists'
-            });
-            failed++;
-            continue;
-          }
-
-          // Create the UCCA
-          const newUCCA = {
-            ...combo,
-            id: uuidv4(),
-            code: options.autoGenerateCode ? this.generateUCCACode(combo, processed + 1) : combo.code || ''
-          } as UCCA;
-
-          results.push({
-            item: newUCCA,
-            success: true,
-            id: newUCCA.id
-          });
-          processed++;
-
-        } catch (error) {
-          errors.push({
-            itemIndex: i,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            item: combo
-          });
-          results.push({
-            item: combo as any,
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          });
-          failed++;
-        }
-      }
-
-      return {
-        success: failed === 0,
-        processed,
-        failed,
-        results,
-        errors
-      };
-
-    } catch (error) {
-      return {
-        success: false,
-        processed: 0,
-        failed: 0,
-        results: [],
-        errors: [{
-          itemIndex: -1,
-          error: error instanceof Error ? error.message : 'Batch operation failed'
-        }]
-      };
-    }
-  }
 
   /**
    * Batch update UCAs
@@ -366,35 +270,6 @@ export class BatchOperationsManager {
     return combinations;
   }
 
-  /**
-   * Generate UCCA combinations based on options
-   */
-  private generateUCCACombinations(options: UCCAbatchCreateOptions): Partial<UCCA>[] {
-    const combinations: Partial<UCCA>[] = [];
-
-    for (const pair of options.controllerPairs) {
-      for (const uccaType of options.uccaTypes) {
-        const context = this.generateUCCAContext(
-          options.contextTemplate,
-          pair,
-          uccaType,
-          options.temporalRelationship
-        );
-
-        combinations.push({
-          uccaType,
-          description: this.generateUCCADescription(pair, uccaType),
-          context,
-          hazardIds: options.hazardIds || [],
-          involvedControllerIds: [pair.controller1Id, pair.controller2Id],
-          temporalRelationship: options.temporalRelationship || 'Simultaneous',
-          isSystematic: true
-        });
-      }
-    }
-
-    return combinations;
-  }
 
   /**
    * Generate context from template
@@ -415,25 +290,6 @@ export class BatchOperationsManager {
       .replace('{ucaType}', ucaType);
   }
 
-  /**
-   * Generate UCCA context
-   */
-  private generateUCCAContext(
-    template: string | undefined,
-    pair: { controller1Id: string; controller2Id: string },
-    uccaType: UCCAType,
-    temporalRelationship?: string
-  ): string {
-    if (!template) {
-      return `When multiple controllers interact ${temporalRelationship?.toLowerCase() || 'simultaneously'}`;
-    }
-
-    return template
-      .replace('{controller1}', pair.controller1Id)
-      .replace('{controller2}', pair.controller2Id)
-      .replace('{uccaType}', uccaType)
-      .replace('{temporal}', temporalRelationship || 'simultaneously');
-  }
 
   /**
    * Generate UCA description
@@ -465,15 +321,6 @@ export class BatchOperationsManager {
     }
   }
 
-  /**
-   * Generate UCCA description
-   */
-  private generateUCCADescription(
-    _pair: { controller1Id: string; controller2Id: string },
-    uccaType: UCCAType
-  ): string {
-    return `${uccaType} interaction between controllers`;
-  }
 
   /**
    * Get default context for UCA type
@@ -510,21 +357,6 @@ export class BatchOperationsManager {
     return `${prefix}-${String(index).padStart(3, '0')}`;
   }
 
-  /**
-   * Generate UCCA code
-   */
-  private generateUCCACode(ucca: Partial<UCCA>, index: number): string {
-    const typePrefix = {
-      [UCCAType.Team]: 'TM',
-      [UCCAType.Role]: 'RL',
-      [UCCAType.CrossController]: 'CC',
-      [UCCAType.Organizational]: 'ORG',
-      [UCCAType.Temporal]: 'TMP'
-    };
-
-    const prefix = typePrefix[ucca.uccaType as UCCAType] || 'UCCA';
-    return `${prefix}-${String(index).padStart(3, '0')}`;
-  }
 
   /**
    * Check if UCA already exists
@@ -537,18 +369,6 @@ export class BatchOperationsManager {
     );
   }
 
-  /**
-   * Check if UCCA already exists
-   */
-  private uccaExists(ucca: Partial<UCCA>, existing: UCCA[]): boolean {
-    return existing.some(e => {
-      const sameControllers = 
-        e.involvedControllerIds.length === ucca.involvedControllerIds!.length &&
-        e.involvedControllerIds.every(id => ucca.involvedControllerIds!.includes(id));
-      
-      return sameControllers && e.uccaType === ucca.uccaType;
-    });
-  }
 
   /**
    * Validate UCA
@@ -572,28 +392,6 @@ export class BatchOperationsManager {
     };
   }
 
-  /**
-   * Validate UCCA
-   */
-  private validateUCCA(ucca: Partial<UCCA>): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
-
-    if (!ucca.involvedControllerIds || ucca.involvedControllerIds.length < 2) {
-      errors.push('At least 2 controllers must be involved');
-    }
-    if (!ucca.uccaType) errors.push('UCCA Type is required');
-    if (!ucca.description || ucca.description.length < 10) {
-      errors.push('Description must be at least 10 characters');
-    }
-    if (!ucca.context || ucca.context.length < 10) {
-      errors.push('Context must be at least 10 characters');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
 
   /**
    * Export batch results to CSV

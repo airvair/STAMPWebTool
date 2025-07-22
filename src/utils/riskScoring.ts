@@ -1,11 +1,10 @@
 /**
- * Risk Scoring Engine for UCAs and UCCAs
+ * Risk Scoring Engine for UCAs
  * Implements sophisticated risk assessment based on multiple factors
  */
 
 import { 
   UnsafeControlAction, 
-  UCCA, 
   Hazard, 
   Controller, 
   ControlAction,
@@ -21,7 +20,6 @@ export interface RiskFactors {
   actionCriticality: number;       // 0-1, based on action types
   temporalComplexity: number;      // 0-1, based on timing issues
   contextSpecificity: number;      // 0-1, based on context quality
-  interactionComplexity: number;   // 0-1, for UCCAs
   historicalIncidents: number;     // 0-1, based on similar past issues
   mitigationDifficulty: number;    // 0-1, how hard to mitigate
 }
@@ -48,7 +46,7 @@ interface RiskPattern {
   description: string;
   keywords: string[];
   baseRisk: number;
-  applicableTo: ('uca' | 'ucca')[];
+  applicableTo: ('uca')[];
 }
 
 const AVIATION_RISK_PATTERNS: RiskPattern[] = [
@@ -57,28 +55,28 @@ const AVIATION_RISK_PATTERNS: RiskPattern[] = [
     description: 'Delays in emergency actions have catastrophic consequences',
     keywords: ['emergency', 'abort', 'eject', 'brake', 'stop', 'alert'],
     baseRisk: 0.9,
-    applicableTo: ['uca', 'ucca']
+    applicableTo: ['uca']
   },
   {
     name: 'Mode Confusion',
     description: 'Incorrect mode assumptions lead to wrong control actions',
     keywords: ['mode', 'state', 'configuration', 'setting'],
     baseRisk: 0.8,
-    applicableTo: ['uca', 'ucca']
+    applicableTo: ['uca']
   },
   {
     name: 'Authority Conflict',
     description: 'Multiple controllers issuing conflicting commands',
     keywords: ['conflict', 'override', 'simultaneous', 'both', 'multiple'],
     baseRisk: 0.85,
-    applicableTo: ['ucca']
+    applicableTo: ['uca']
   },
   {
     name: 'Communication Failure',
     description: 'Loss of critical communication between controllers',
     keywords: ['transmit', 'receive', 'communicate', 'report', 'acknowledge'],
     baseRisk: 0.75,
-    applicableTo: ['uca', 'ucca']
+    applicableTo: ['uca']
   },
   {
     name: 'Sensor Degradation',
@@ -99,7 +97,6 @@ export class RiskScoringEngine {
     actionCriticality: 0.15,
     temporalComplexity: 0.15,
     contextSpecificity: 0.10,
-    interactionComplexity: 0.10,
     historicalIncidents: 0.03,
     mitigationDifficulty: 0.02
   };
@@ -129,29 +126,6 @@ export class RiskScoringEngine {
     };
   }
 
-  /**
-   * Calculate risk score for a UCCA
-   */
-  calculateUCCARisk(
-    ucca: UCCA,
-    hazards: Hazard[],
-    controllers: Controller[],
-    controlActions: ControlAction[]
-  ): RiskScore {
-    const factors = this.calculateUCCAFactors(ucca, hazards, controllers, controlActions);
-    const overall = this.calculateWeightedScore(factors);
-    const category = this.categorizeRisk(overall);
-    const confidence = this.calculateConfidence(ucca, factors);
-    const rationale = this.generateRationale(factors, 'ucca', ucca);
-
-    return {
-      overall,
-      factors,
-      category,
-      confidence,
-      rationale
-    };
-  }
 
   /**
    * Calculate UCA risk factors
@@ -195,65 +169,11 @@ export class RiskScoringEngine {
       actionCriticality,
       temporalComplexity,
       contextSpecificity,
-      interactionComplexity: 0, // Not applicable for single UCA
       historicalIncidents,
       mitigationDifficulty
     };
   }
 
-  /**
-   * Calculate UCCA risk factors
-   */
-  private calculateUCCAFactors(
-    ucca: UCCA,
-    hazards: Hazard[],
-    controllers: Controller[],
-    _controlActions: ControlAction[]
-  ): RiskFactors {
-    // Hazard severity
-    const linkedHazards = hazards.filter(h => ucca.hazardIds.includes(h.id));
-    const hazardSeverity = this.calculateHazardSeverity(linkedHazards);
-
-    // Average controller criticality
-    const involvedControllers = controllers.filter(c => 
-      ucca.involvedControllerIds.includes(c.id)
-    );
-    const controllerCriticality = involvedControllers.length > 0
-      ? involvedControllers.reduce((sum, c) => sum + this.calculateControllerCriticality(c), 0) / involvedControllers.length
-      : 0.5;
-
-    // Action criticality (for team/role UCCAs, use average)
-    const actionCriticality = 0.6; // Default for UCCAs
-
-    // Temporal complexity
-    const temporalComplexity = ucca.temporalRelationship === 'Simultaneous' ? 0.8 : 0.6;
-
-    // Context specificity
-    const contextSpecificity = this.calculateContextSpecificity(ucca.context || '');
-
-    // Interaction complexity - key factor for UCCAs
-    const interactionComplexity = this.calculateInteractionComplexity(
-      ucca, 
-      involvedControllers
-    );
-
-    // Historical incidents
-    const historicalIncidents = 0.3; // Default moderate risk
-
-    // Mitigation difficulty - harder for multi-controller issues
-    const mitigationDifficulty = 0.7 + (involvedControllers.length * 0.05);
-
-    return {
-      hazardSeverity,
-      controllerCriticality,
-      actionCriticality,
-      temporalComplexity,
-      contextSpecificity,
-      interactionComplexity,
-      historicalIncidents,
-      mitigationDifficulty: Math.min(1, mitigationDifficulty)
-    };
-  }
 
   /**
    * Calculate hazard severity score
@@ -361,31 +281,6 @@ export class RiskScoringEngine {
     return Math.max(0, Math.min(1, score));
   }
 
-  /**
-   * Calculate interaction complexity for UCCAs
-   */
-  private calculateInteractionComplexity(ucca: UCCA, controllers: Controller[]): number {
-    let complexity = 0.3; // Base complexity
-
-    // More controllers = more complex
-    complexity += controllers.length * 0.1;
-
-    // Different controller types = more complex
-    const uniqueTypes = new Set(controllers.map(c => c.ctrlType));
-    complexity += uniqueTypes.size * 0.1;
-
-    // Temporal relationships add complexity
-    if (ucca.temporalRelationship === 'Sequential') {
-      complexity += 0.2;
-    }
-
-    // Cross-level interactions are complex
-    if (ucca.uccaType === 'Cross-Controller') {
-      complexity += 0.15;
-    }
-
-    return Math.min(1, complexity);
-  }
 
   /**
    * Calculate historical risk (simulated)
@@ -465,7 +360,7 @@ export class RiskScoringEngine {
    * Calculate confidence in risk assessment
    */
   private calculateConfidence(
-    entity: UnsafeControlAction | UCCA,
+    entity: UnsafeControlAction,
     factors: RiskFactors
   ): number {
     let confidence = 0.7; // Base confidence
@@ -493,8 +388,8 @@ export class RiskScoringEngine {
    */
   private generateRationale(
     factors: RiskFactors,
-    type: 'uca' | 'ucca',
-    _entity: UnsafeControlAction | UCCA
+    type: 'uca',
+    _entity: UnsafeControlAction
   ): string[] {
     const rationale: string[] = [];
 
@@ -515,10 +410,6 @@ export class RiskScoringEngine {
       rationale.push('Complex timing requirements increase likelihood of errors');
     }
 
-    // Interaction complexity (UCCA specific)
-    if (type === 'ucca' && factors.interactionComplexity >= 0.7) {
-      rationale.push('Multiple controller interactions create coordination challenges');
-    }
 
     // Context quality
     if (factors.contextSpecificity >= 0.7) {
@@ -536,7 +427,7 @@ export class RiskScoringEngine {
   /**
    * Batch calculate risks for multiple entities
    */
-  batchCalculateRisks<T extends UnsafeControlAction | UCCA>(
+  batchCalculateRisks<T extends UnsafeControlAction>(
     entities: T[],
     hazards: Hazard[],
     controllers: Controller[],
@@ -554,15 +445,6 @@ export class RiskScoringEngine {
           const risk = this.calculateUCARisk(entity as UnsafeControlAction, hazards, controller, action);
           riskMap.set(entity.id, risk);
         }
-      } else {
-        // It's a UCCA
-        const risk = this.calculateUCCARisk(
-          entity as UCCA,
-          hazards,
-          controllers,
-          controlActions
-        );
-        riskMap.set(entity.id, risk);
       }
     });
 
@@ -572,7 +454,7 @@ export class RiskScoringEngine {
   /**
    * Get risk mitigation recommendations
    */
-  getMitigationRecommendations(riskScore: RiskScore, entityType: 'uca' | 'ucca'): string[] {
+  getMitigationRecommendations(riskScore: RiskScore, entityType: 'uca'): string[] {
     const recommendations: string[] = [];
 
     if (riskScore.factors.hazardSeverity >= 0.8) {
@@ -585,10 +467,6 @@ export class RiskScoringEngine {
       recommendations.push('Implement time-based interlocks');
     }
 
-    if (entityType === 'ucca' && riskScore.factors.interactionComplexity >= 0.7) {
-      recommendations.push('Establish clear coordination protocols');
-      recommendations.push('Implement conflict detection and resolution mechanisms');
-    }
 
     if (riskScore.factors.contextSpecificity >= 0.6) {
       recommendations.push('Refine and clarify triggering conditions');

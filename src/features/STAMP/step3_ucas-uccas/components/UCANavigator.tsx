@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Controller, ControlAction, UnsafeControlAction, UCCA, UCAType } from '@/types/types';
+import { Controller, ControlAction, UnsafeControlAction, UCAType } from '@/types/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -22,7 +22,6 @@ interface UCANavigatorProps {
   onSelectController: (id: string | null) => void;
   onSelectControlAction: (id: string | null) => void;
   ucaCoverage: UnsafeControlAction[];
-  uccaCoverage: UCCA[];
   notApplicableStatuses: NotApplicableStatus[];
 }
 
@@ -52,7 +51,6 @@ const UCANavigator: React.FC<UCANavigatorProps> = ({
   onSelectController,
   onSelectControlAction,
   ucaCoverage,
-  uccaCoverage,
   notApplicableStatuses
 }) => {
   const [expandedControllers, setExpandedControllers] = React.useState<Set<string>>(new Set());
@@ -107,7 +105,6 @@ const UCANavigator: React.FC<UCANavigatorProps> = ({
   // Calculate overall statistics
   const overallStats = useMemo(() => {
     const totalUCAs = ucaCoverage.length;
-    const totalUCCAs = uccaCoverage.length;
     const totalNAs = notApplicableStatuses.length;
     const totalPossible = controlActions.length * UCA_TYPES.length;
     const totalCovered = totalUCAs + totalNAs;
@@ -117,10 +114,9 @@ const UCANavigator: React.FC<UCANavigatorProps> = ({
 
     return {
       totalUCAs,
-      totalUCCAs,
       overallCoverage
     };
-  }, [ucaCoverage, uccaCoverage, controlActions, notApplicableStatuses]);
+  }, [ucaCoverage, controlActions, notApplicableStatuses]);
 
   const toggleController = (controllerId: string) => {
     const newExpanded = new Set(expandedControllers);
@@ -173,7 +169,6 @@ const UCANavigator: React.FC<UCANavigatorProps> = ({
           <Progress value={overallStats.overallCoverage} className="h-1.5" />
           <div className="flex justify-between text-xs text-gray-500">
             <span>{overallStats.totalUCAs} UCAs</span>
-            <span>{overallStats.totalUCCAs} UCCAs</span>
           </div>
         </Card>
       </div>

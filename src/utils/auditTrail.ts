@@ -180,69 +180,7 @@ export class AuditTrailService {
     });
   }
 
-  /**
-   * Record UCCA creation event
-   */
-  recordUCCACreation(ucca: any): void {
-    this.recordEvent({
-      eventType: 'ENTITY_CREATED',
-      entityType: 'UCCA',
-      entityId: ucca.id,
-      action: 'CREATE',
-      description: `Created UCCA: ${ucca.uccaType} involving ${ucca.involvedControllerIds.length} controllers`,
-      newValue: ucca,
-      metadata: {
-        changeSize: 'major',
-        automatedAction: ucca.isSystematic || false,
-        validationResults: [
-          {
-            validationType: 'completeness',
-            result: ucca.involvedControllerIds.length >= 2 ? 'pass' : 'fail',
-            message: ucca.involvedControllerIds.length >= 2 ? 'UCCA involves multiple controllers' : 'UCCA should involve at least 2 controllers',
-            severity: ucca.involvedControllerIds.length >= 2 ? 'low' : 'high'
-          }
-        ]
-      },
-      complianceContext: {
-        standard: 'ARP4761',
-        phase: 'Development',
-        criticality: 'DAL-C',
-        auditRequirement: true
-      }
-    });
-  }
 
-  /**
-   * Record systematic analysis event
-   */
-  recordSystematicAnalysis(results: any[]): void {
-    this.recordEvent({
-      eventType: 'SYSTEMATIC_ANALYSIS',
-      entityType: 'ANALYSIS_SESSION',
-      entityId: this.sessionId,
-      action: 'VALIDATE',
-      description: `Performed systematic UCCA analysis, found ${results.length} potential combinations`,
-      newValue: { resultsCount: results.length, results: results.slice(0, 5) },
-      metadata: {
-        changeSize: 'major',
-        automatedAction: true,
-        validationResults: [
-          {
-            validationType: 'systematic_completeness',
-            result: results.length > 0 ? 'pass' : 'warning',
-            message: results.length > 0 ? `Found ${results.length} potential UCCAs` : 'No potential UCCAs identified',
-            severity: results.length > 0 ? 'low' : 'medium'
-          }
-        ]
-      },
-      complianceContext: {
-        standard: 'ARP4761',
-        phase: 'Development',
-        criticality: 'DAL-C',
-        auditRequirement: true
-      }
-    });
-  }
 
   /**
    * Record hardware component analysis

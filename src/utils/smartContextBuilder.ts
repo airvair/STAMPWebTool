@@ -1,11 +1,10 @@
 /**
  * Smart Context Builder with ML-like suggestions
- * Provides intelligent context suggestions for UCAs and UCCAs based on patterns
+ * Provides intelligent context suggestions for UCAs based on patterns
  */
 
 import { 
   UnsafeControlAction, 
-  UCCA, 
   Controller, 
   ControlAction, 
   Hazard,
@@ -185,43 +184,6 @@ export class SmartContextBuilder {
     return this.deduplicateAndRank(suggestions);
   }
 
-  /**
-   * Generate context suggestions for a UCCA
-   */
-  generateUCCASuggestions(
-    ucca: Partial<UCCA>,
-    controllers: Controller[],
-    hazards: Hazard[]
-  ): ContextSuggestion[] {
-    const suggestions: ContextSuggestion[] = [];
-
-    // 1. Multi-controller coordination patterns
-    suggestions.push(...this.generateCoordinationSuggestions(controllers));
-
-    // 2. Temporal relationship patterns
-    if (ucca.temporalRelationship) {
-      suggestions.push(...this.generateTemporalRelationshipSuggestions(
-        ucca.temporalRelationship,
-        controllers
-      ));
-    }
-
-    // 3. UCCA type-specific patterns
-    if (ucca.uccaType) {
-      suggestions.push(...this.generateUCCATypeSpecificSuggestions(ucca.uccaType, controllers));
-    }
-
-    // 4. Hazard-based multi-controller suggestions
-    if (ucca.hazardIds && ucca.hazardIds.length > 0) {
-      const linkedHazards = hazards.filter(h => ucca.hazardIds!.includes(h.id));
-      suggestions.push(...this.generateMultiControllerHazardSuggestions(
-        linkedHazards,
-        controllers
-      ));
-    }
-
-    return this.deduplicateAndRank(suggestions);
-  }
 
   /**
    * Generate type-based suggestions
@@ -501,162 +463,9 @@ export class SmartContextBuilder {
     ];
   }
 
-  /**
-   * Generate coordination suggestions for UCCAs
-   */
-  private generateCoordinationSuggestions(controllers: Controller[]): ContextSuggestion[] {
-    const suggestions: ContextSuggestion[] = [];
-    const controllerNames = controllers.map(c => c.name).join(' and ');
 
-    suggestions.push({
-      id: 'coord-1',
-      text: `When ${controllerNames} have conflicting objectives or priorities`,
-      confidence: 0.8,
-      category: ContextCategory.COORDINATION,
-      source: SuggestionSource.PATTERN,
-      keywords: ['conflicting', 'objectives', 'priorities']
-    });
 
-    suggestions.push({
-      id: 'coord-2',
-      text: `During handoff or transition of control between ${controllerNames}`,
-      confidence: 0.75,
-      category: ContextCategory.COORDINATION,
-      source: SuggestionSource.PATTERN,
-      keywords: ['handoff', 'transition', 'transfer']
-    });
 
-    if (controllers.some(c => c.ctrlType === ControllerType.Human) && 
-        controllers.some(c => c.ctrlType === ControllerType.Software)) {
-      suggestions.push({
-        id: 'coord-3',
-        text: `When human-automation interaction creates mode confusion`,
-        confidence: 0.85,
-        category: ContextCategory.MODAL,
-        source: SuggestionSource.DOMAIN_KNOWLEDGE,
-        keywords: ['automation', 'mode', 'confusion', 'interaction']
-      });
-    }
-
-    return suggestions;
-  }
-
-  /**
-   * Generate temporal relationship suggestions
-   */
-  private generateTemporalRelationshipSuggestions(
-    relationship: string,
-    _controllers: Controller[]
-  ): ContextSuggestion[] {
-    const suggestions: ContextSuggestion[] = [];
-
-    switch (relationship) {
-      case 'Simultaneous':
-        suggestions.push({
-          id: 'temporal-sim-1',
-          text: `When controllers act simultaneously without coordination`,
-          confidence: 0.8,
-          category: ContextCategory.TEMPORAL,
-          source: SuggestionSource.TEMPORAL_LOGIC,
-          keywords: ['simultaneous', 'concurrent', 'parallel']
-        });
-        break;
-
-      case 'Sequential':
-        suggestions.push({
-          id: 'temporal-seq-1',
-          text: `When expected action sequence is disrupted or reversed`,
-          confidence: 0.75,
-          category: ContextCategory.TEMPORAL,
-          source: SuggestionSource.TEMPORAL_LOGIC,
-          keywords: ['sequence', 'order', 'disrupted']
-        });
-        break;
-
-      case 'Within-Timeframe':
-        suggestions.push({
-          id: 'temporal-time-1',
-          text: `When actions occur outside the required time window`,
-          confidence: 0.7,
-          category: ContextCategory.TEMPORAL,
-          source: SuggestionSource.TEMPORAL_LOGIC,
-          keywords: ['timeframe', 'window', 'timing']
-        });
-        break;
-    }
-
-    return suggestions;
-  }
-
-  /**
-   * Generate UCCA type-specific suggestions
-   */
-  private generateUCCATypeSpecificSuggestions(
-    uccaType: string,
-    _controllers: Controller[]
-  ): ContextSuggestion[] {
-    const suggestions: ContextSuggestion[] = [];
-
-    switch (uccaType) {
-      case 'Team':
-        suggestions.push({
-          id: 'ucca-team-1',
-          text: `When team members have different situational awareness`,
-          confidence: 0.8,
-          category: ContextCategory.COORDINATION,
-          source: SuggestionSource.DOMAIN_KNOWLEDGE,
-          keywords: ['team', 'awareness', 'situation']
-        });
-        break;
-
-      case 'Role':
-        suggestions.push({
-          id: 'ucca-role-1',
-          text: `When role boundaries are unclear or overlapping`,
-          confidence: 0.75,
-          category: ContextCategory.COORDINATION,
-          source: SuggestionSource.DOMAIN_KNOWLEDGE,
-          keywords: ['role', 'boundary', 'authority']
-        });
-        break;
-
-      case 'Cross-Controller':
-        suggestions.push({
-          id: 'ucca-cross-1',
-          text: `When cross-controller dependencies are not properly managed`,
-          confidence: 0.7,
-          category: ContextCategory.COORDINATION,
-          source: SuggestionSource.DOMAIN_KNOWLEDGE,
-          keywords: ['dependency', 'interface', 'coordination']
-        });
-        break;
-    }
-
-    return suggestions;
-  }
-
-  /**
-   * Generate multi-controller hazard suggestions
-   */
-  private generateMultiControllerHazardSuggestions(
-    hazards: Hazard[],
-    _controllers: Controller[]
-  ): ContextSuggestion[] {
-    const suggestions: ContextSuggestion[] = [];
-
-    hazards.forEach(hazard => {
-      suggestions.push({
-        id: `multi-hazard-${hazard.id}`,
-        text: `When unsafe combinations of control actions by multiple controllers contribute to ${hazard.title}`,
-        confidence: 0.8,
-        category: ContextCategory.COORDINATION,
-        source: SuggestionSource.HAZARD_BASED,
-        keywords: [...this.extractKeywords(hazard.title), 'unsafe combinations', 'multiple']
-      });
-    });
-
-    return suggestions;
-  }
 
   /**
    * Utility methods

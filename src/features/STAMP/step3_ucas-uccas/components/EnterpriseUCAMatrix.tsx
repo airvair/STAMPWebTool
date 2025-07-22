@@ -5,7 +5,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -385,7 +384,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
         <button
           onClick={() => handleCellClick(cell)}
           className={cn(
-            viewMode === 'compact' ? "w-16 h-12" : "w-24 h-20",
+            "w-14 h-11 lg:w-16 lg:h-12",
             "rounded-xl flex flex-col items-center justify-center transition-all duration-300",
             "border-2 backdrop-blur-sm relative overflow-hidden group",
             cell.status === 'analyzed' 
@@ -428,11 +427,11 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
           )}
 
           {/* Cell content */}
-          <div className="relative z-10 flex flex-col items-center justify-center gap-1">
+          <div className="relative z-10 flex flex-col items-center justify-center gap-0.5">
             {cell.status === 'analyzed' ? (
               <>
                 <div className={cn(
-                  viewMode === 'compact' ? "w-8 h-8" : "w-10 h-10",
+                  "w-7 h-7 lg:w-8 lg:h-8",
                   "rounded-full flex items-center justify-center",
                   "bg-white dark:bg-gray-900 shadow-md border",
                   riskLevel.level === 'high' && "border-red-300 dark:border-red-700",
@@ -441,14 +440,14 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                   riskLevel.level === 'none' && "border-emerald-300 dark:border-emerald-700"
                 )}>
                   {riskLevel.level === 'high' ? (
-                    <AlertCircle className={cn(viewMode === 'compact' ? "h-4 w-4" : "h-5 w-5", "text-red-600 dark:text-red-400")} />
+                    <AlertCircle className={cn("h-3.5 w-3.5 lg:h-4 lg:w-4", "text-red-600 dark:text-red-400")} />
                   ) : (
-                    <Check className={cn(viewMode === 'compact' ? "h-4 w-4" : "h-5 w-5", "text-emerald-600 dark:text-emerald-400")} />
+                    <Check className={cn("h-3.5 w-3.5 lg:h-4 lg:w-4", "text-emerald-600 dark:text-emerald-400")} />
                   )}
                 </div>
                 <span className={cn(
                   "font-bold",
-                  viewMode === 'compact' ? "text-xs" : "text-sm",
+                  "text-xs",
                   riskLevel.level === 'high' && "text-red-700 dark:text-red-300",
                   riskLevel.level === 'medium' && "text-amber-700 dark:text-amber-300",
                   riskLevel.level === 'low' && "text-yellow-700 dark:text-yellow-300",
@@ -458,8 +457,8 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                 </span>
               </>
             ) : cell.status === 'not-applicable' ? (
-              <div className="flex flex-col items-center gap-1">
-                <X className={cn(viewMode === 'compact' ? "h-4 w-4" : "h-5 w-5", "text-gray-400")} />
+              <div className="flex flex-col items-center gap-0.5">
+                <X className={cn("h-3.5 w-3.5 lg:h-4 lg:w-4", "text-gray-400")} />
                 {isHovered && (
                   <div
                     onClick={(e) => {
@@ -478,16 +477,16 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                 )}
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-1 opacity-60 group-hover:opacity-100 transition-all duration-300">
+              <div className="flex flex-col items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-all duration-300">
                 <div className={cn(
-                  viewMode === 'compact' ? "w-8 h-8" : "w-10 h-10",
+                  "w-7 h-7 lg:w-8 lg:h-8",
                   "rounded-full flex items-center justify-center",
                   "bg-white dark:bg-gray-900 border-2 border-dashed transition-all duration-300",
                   "group-hover:border-solid group-hover:scale-110 group-hover:shadow-md",
                   ucaTypeInfo.borderColorClass
                 )}>
                   <Plus className={cn(
-                    viewMode === 'compact' ? "h-4 w-4" : "h-5 w-5",
+                    "h-3.5 w-3.5 lg:h-4 lg:w-4",
                     ucaTypeInfo.iconColorClass,
                     "transition-transform duration-300 group-hover:rotate-90"
                   )} />
@@ -496,7 +495,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                   <div className="flex gap-2 items-center">
                     <span className={cn(
                       "text-gray-500 dark:text-gray-400 font-medium",
-                      viewMode === 'compact' ? "text-xs" : "text-sm",
+                      "text-xs",
                       "transition-opacity duration-300"
                     )}>
                       Add
@@ -544,14 +543,14 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
   return (
     <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-50/50 via-gray-50/30 to-zinc-50/20 dark:from-slate-950/50 dark:via-gray-950/30 dark:to-zinc-950/20">
       {/* Header with statistics */}
-      <div className="p-6 pb-0">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
-              <Layers className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+      <div className="p-3 lg:p-6 pb-0">
+        <div className="flex items-center justify-between mb-4 lg:mb-6">
+          <div className="flex items-center gap-3 lg:gap-4">
+            <div className="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
+              <Layers className="h-5 w-5 lg:h-6 lg:w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+              <h3 className="text-lg lg:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
                 UCA Risk Analysis Matrix
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 flex items-center gap-2">
@@ -664,10 +663,10 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
         </div>
         
         {/* Statistics Cards with enhanced styling */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3 mb-4 lg:mb-6">
           {/* Total Cells */}
           <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-4">
+            <div className="p-3 lg:p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 group-hover:scale-110 transition-transform">
                   <Grid3x3 className="h-4 w-4 text-gray-700 dark:text-gray-300" />
@@ -686,7 +685,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
 
           {/* Analyzed Cells */}
           <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-4">
+            <div className="p-3 lg:p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-800 dark:to-emerald-700 group-hover:scale-110 transition-transform">
                   <Check className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
@@ -705,7 +704,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
 
           {/* Total UCAs */}
           <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-4">
+            <div className="p-3 lg:p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-700 group-hover:scale-110 transition-transform">
                   <AlertCircle className="h-4 w-4 text-blue-700 dark:text-blue-300" />
@@ -724,7 +723,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
 
           {/* Risk Distribution */}
           <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-4">
+            <div className="p-3 lg:p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-800 dark:to-amber-700 group-hover:scale-110 transition-transform">
                   <TrendingUp className="h-4 w-4 text-amber-700 dark:text-amber-300" />
@@ -753,7 +752,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
 
           {/* Average per Cell */}
           <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-4">
+            <div className="p-3 lg:p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-700 group-hover:scale-110 transition-transform">
                   <Activity className="h-4 w-4 text-purple-700 dark:text-purple-300" />
@@ -772,7 +771,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
 
           {/* Completion Progress */}
           <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-4">
+            <div className="p-3 lg:p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-800 dark:to-indigo-700 group-hover:scale-110 transition-transform">
                   <BarChart3 className="h-4 w-4 text-indigo-700 dark:text-indigo-300" />
@@ -794,7 +793,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
       </div>
 
       {/* Matrix Container */}
-      <div className="flex-1 px-6 pb-6">
+      <div className="flex-1 px-3 lg:px-6 pb-3 lg:pb-6">
         <Card className="h-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-xl border-gray-200/80 dark:border-gray-800/80 overflow-hidden">
           {/* Matrix Header */}
           <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -815,20 +814,22 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
             </div>
           </div>
           
-          <ScrollArea className="h-[calc(100%-4rem)]">
-            <div className="p-6">
-              <table className="w-full border-separate border-spacing-1">
+          <div className="h-[calc(100%-4rem)] overflow-auto">
+            <div className="p-4 lg:p-6 min-w-fit">
+              <table className="w-full border-separate border-spacing-1 table-auto">
                 <thead className="sticky top-0 z-30 bg-white dark:bg-gray-900">
                   {/* Group headers row */}
                   <tr>
-                    <th rowSpan={2} className="sticky left-0 z-40 bg-white dark:bg-gray-900 p-4 rounded-tl-lg">
-                      <div className="flex flex-col items-start gap-1">
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                          <Shield className="h-4 w-4 text-gray-500" />
-                          Controller
+                    <th rowSpan={2} className="sticky left-0 z-40 bg-white dark:bg-gray-900 p-2 lg:p-4 rounded-tl-lg">
+                      <div className="flex flex-col items-start gap-0.5 lg:gap-1">
+                        <span className="text-xs lg:text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1 lg:gap-2">
+                          <Shield className="h-3 w-3 lg:h-4 lg:w-4 text-gray-500" />
+                          <span className="hidden sm:inline">Controller</span>
+                          <span className="sm:hidden">Ctrl</span>
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          Control Action
+                          <span className="hidden sm:inline">Control Action</span>
+                          <span className="sm:hidden">Action</span>
                         </span>
                       </div>
                     </th>
@@ -841,15 +842,16 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                           className="p-2"
                         >
                           <div className={cn(
-                            "mx-1 rounded-xl border-2 px-4 py-2.5 shadow-sm",
+                            "mx-0.5 lg:mx-1 rounded-lg lg:rounded-xl border-2 px-2 lg:px-4 py-1.5 lg:py-2.5 shadow-sm",
                             group.borderClass,
                             group.bgClass,
                             "backdrop-blur-sm"
                           )}>
-                            <div className="flex items-center justify-center gap-2">
-                              <GroupIcon className={cn("h-4 w-4", group.iconClass)} />
-                              <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                {group.label}
+                            <div className="flex items-center justify-center gap-1 lg:gap-2">
+                              <GroupIcon className={cn("h-3 w-3 lg:h-4 lg:w-4", group.iconClass)} />
+                              <span className="text-[10px] lg:text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                <span className="hidden lg:inline">{group.label}</span>
+                                <span className="lg:hidden">{group.label.split(' ')[0]}</span>
                               </span>
                             </div>
                           </div>
@@ -860,13 +862,13 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                   {/* Individual UCA type headers row */}
                   <tr>
                     {UCA_TYPES.map(type => (
-                      <th key={type.value} className="p-2 pb-4">
+                      <th key={type.value} className="p-1 lg:p-2 pb-2 lg:pb-4">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="flex flex-col items-center gap-1.5 cursor-help">
+                              <div className="flex flex-col items-center gap-1 lg:gap-1.5 cursor-help">
                                 <div className={cn(
-                                  "px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm border",
+                                  "px-2 lg:px-3 py-1 lg:py-1.5 rounded-md lg:rounded-lg text-[10px] lg:text-xs font-bold shadow-sm border",
                                   type.colorClass,
                                   type.borderColorClass,
                                   type.textColorClass,
@@ -874,7 +876,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                                 )}>
                                   {type.shortLabel}
                                 </div>
-                                <div className="h-px w-8 bg-gradient-to-r opacity-50" 
+                                <div className="h-px w-6 lg:w-8 bg-gradient-to-r opacity-50" 
                                   style={{
                                     background: `linear-gradient(to right, transparent, ${type.iconColorClass.replace('text-', 'rgb(var(--')})}, transparent)`
                                   }}
@@ -908,8 +910,8 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                           "transition-colors duration-200",
                           isExpanded && "bg-blue-50/30 dark:bg-blue-900/10"
                         )}>
-                          <td className="sticky left-0 z-20 bg-white dark:bg-gray-900 p-3 border-r border-gray-200 dark:border-gray-800">
-                            <div className="flex items-center gap-3">
+                          <td className="sticky left-0 z-20 bg-white dark:bg-gray-900 p-2 lg:p-3 border-r border-gray-200 dark:border-gray-800">
+                            <div className="flex items-center gap-2 lg:gap-3">
                               <button
                                 onClick={() => {
                                   if (hasAnalyzedCells) {
@@ -923,23 +925,23 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                                   }
                                 }}
                                 className={cn(
-                                  "p-1.5 rounded-lg transition-all duration-200",
+                                  "p-1 lg:p-1.5 rounded-lg transition-all duration-200",
                                   hasAnalyzedCells
                                     ? "hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-sm"
                                     : "opacity-30 cursor-default"
                                 )}
                               >
                                 <ChevronRight className={cn(
-                                  "h-4 w-4 text-gray-500 transition-transform duration-200",
+                                  "h-3 w-3 lg:h-4 lg:w-4 text-gray-500 transition-transform duration-200",
                                   isExpanded && "rotate-90"
                                 )} />
                               </button>
                               <div className="flex flex-col items-start min-w-0">
-                                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[200px]">
+                                <span className="text-xs lg:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[120px] lg:max-w-[200px]">
                                   {controllerName}
                                 </span>
-                                <span className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 truncate max-w-[200px]">
-                                  <ChevronRight className="h-3 w-3 flex-shrink-0" />
+                                <span className="text-[10px] lg:text-xs text-gray-600 dark:text-gray-400 flex items-center gap-0.5 lg:gap-1 truncate max-w-[120px] lg:max-w-[200px]">
+                                  <ChevronRight className="h-2.5 w-2.5 lg:h-3 lg:w-3 flex-shrink-0" />
                                   {actionName}
                                 </span>
                               </div>
@@ -951,7 +953,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                             </div>
                           </td>
                           {row.map((cell, cellIdx) => (
-                            <td key={cellIdx} className="p-1.5">
+                            <td key={cellIdx} className="p-0.5 lg:p-1">
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -1062,8 +1064,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
                 </tbody>
               </table>
             </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          </div>
         </Card>
       </div>
 
@@ -1071,7 +1072,7 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
       {showLegend && (
         <div className="px-6 pb-6">
           <Card className="bg-gradient-to-r from-gray-50/50 to-gray-100/30 dark:from-gray-900/50 dark:to-gray-800/30 border-gray-200/50 dark:border-gray-700/50">
-            <div className="p-4">
+            <div className="p-3 lg:p-4">
               <div className="flex items-center justify-between mb-4">
                 <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
                   <HelpCircle className="h-4 w-4" />

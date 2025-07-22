@@ -2,7 +2,7 @@
 import { useContext, useCallback } from 'react';
 import { AnalysisContext } from '@/context/AnalysisContext';
 import { auditTrail } from '@/utils/auditTrail';
-import { UnsafeControlAction, UCCA, HardwareComponent, FailureMode } from '@/types/types';
+import { UnsafeControlAction, HardwareComponent, FailureMode } from '@/types/types';
 
 /**
  * Enhanced analysis hook that automatically records audit events
@@ -62,80 +62,6 @@ export const useAuditedAnalysis = () => {
     return result;
   }, [context]);
 
-  // Audited UCCA operations
-  const auditedAddUCCA = useCallback((ucca: Omit<UCCA, 'id' | 'code'>) => {
-    const result = context.addUCCA(ucca);
-    // Find the newly created UCCA
-    const createdUCCA = context.uccas[context.uccas.length - 1];
-    if (createdUCCA) {
-      auditTrail.recordUCCACreation(createdUCCA);
-    }
-    return result;
-  }, [context]);
-
-  const auditedUpdateUCCA = useCallback((id: string, updates: Partial<UCCA>) => {
-    const oldUCCA = context.uccas.find(u => u.id === id);
-    const result = context.updateUCCA(id, updates);
-    const newUCCA = context.uccas.find(u => u.id === id);
-    
-    if (oldUCCA && newUCCA) {
-      auditTrail.recordEvent({
-        eventType: 'ENTITY_UPDATED',
-        entityType: 'UCCA',
-        entityId: id,
-        action: 'UPDATE',
-        description: `Modified UCCA: ${newUCCA.uccaType}`,
-        oldValue: oldUCCA,
-        newValue: newUCCA,
-        metadata: {
-          changeSize: 'major',
-          automatedAction: false,
-          validationResults: [
-            {
-              validationType: 'completeness',
-              result: newUCCA.involvedControllerIds.length >= 2 ? 'pass' : 'fail',
-              message: newUCCA.involvedControllerIds.length >= 2 ? 'UCCA involves multiple controllers' : 'UCCA should involve at least 2 controllers',
-              severity: newUCCA.involvedControllerIds.length >= 2 ? 'low' : 'high'
-            }
-          ]
-        },
-        complianceContext: {
-          standard: 'ARP4761',
-          phase: 'Development',
-          criticality: 'DAL-C',
-          auditRequirement: true
-        }
-      });
-    }
-    return result;
-  }, [context]);
-
-  const auditedDeleteUCCA = useCallback((id: string) => {
-    const deletedUCCA = context.uccas.find(u => u.id === id);
-    const result = context.deleteUCCA(id);
-    
-    if (deletedUCCA) {
-      auditTrail.recordEvent({
-        eventType: 'ENTITY_DELETED',
-        entityType: 'UCCA',
-        entityId: id,
-        action: 'DELETE',
-        description: `Deleted UCCA: ${deletedUCCA.uccaType}`,
-        oldValue: deletedUCCA,
-        metadata: {
-          changeSize: 'major',
-          automatedAction: false
-        },
-        complianceContext: {
-          standard: 'ARP4761',
-          phase: 'Development',
-          criticality: 'DAL-C',
-          auditRequirement: true
-        }
-      });
-    }
-    return result;
-  }, [context]);
 
   // Audited Hardware Component operations
   const auditedAddHardwareComponent = useCallback((component: Omit<HardwareComponent, 'id'>) => {
@@ -238,10 +164,6 @@ export const useAuditedAnalysis = () => {
     return result;
   }, [context]);
 
-  // Record systematic analysis operations
-  const recordSystematicAnalysis = useCallback((results: any[]) => {
-    auditTrail.recordSystematicAnalysis(results);
-  }, []);
 
   // Record validation operations
   const recordValidation = useCallback((entityType: string, entityId: string, validationType: string, results: any) => {
@@ -265,9 +187,6 @@ export const useAuditedAnalysis = () => {
     addUCA: auditedAddUCA,
     updateUCA: auditedUpdateUCA,
     deleteUCA: auditedDeleteUCA,
-    addUCCA: auditedAddUCCA,
-    updateUCCA: auditedUpdateUCCA,
-    deleteUCCA: auditedDeleteUCCA,
     addHardwareComponent: auditedAddHardwareComponent,
     updateHardwareComponent: auditedUpdateHardwareComponent,
     deleteHardwareComponent: auditedDeleteHardwareComponent,

@@ -31,7 +31,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -68,7 +67,7 @@ const stepIcons: Record<AnalysisStep, React.ComponentType<any>> = {
 const ANALYSIS_STEPS: { step: AnalysisStep; title: string; shortTitle: string }[] = [
   { step: 'scope', title: 'Scope, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses' },
   { step: 'control-structure', title: 'Control Structure & Actions', shortTitle: 'Structure & Actions' },
-  { step: 'uca', title: 'Unsafe Control Actions (UCAs & UCCAs)', shortTitle: 'UCAs/UCCAs' },
+  { step: 'uca', title: 'Unsafe Control Actions (UCAs)', shortTitle: 'UCAs/UCCAs' },
   { step: 'scenarios', title: 'Causal Scenarios', shortTitle: 'Scenarios' },
   { step: 'requirements', title: 'Requirements / Mitigations', shortTitle: 'Reqs/Mitigs' },
 ];
@@ -95,6 +94,7 @@ const CleanEnterpriseLayout: React.FC = () => {
   const [analysisToDelete, setAnalysisToDelete] = useState<{id: string, title: string} | null>(null);
   const [isReordering, setIsReordering] = useState(false);
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState('components');
+  const [activeUCASection, setActiveUCASection] = useState('ucas');
   const expandedAnalysesRef = useRef<Set<string>>(expandedAnalyses);
 
   // Keep ref in sync with state
@@ -116,10 +116,16 @@ const CleanEnterpriseLayout: React.FC = () => {
       setActiveWorkspaceSection(event.detail.section);
     };
 
+    const handleUCASectionChange = (event: CustomEvent) => {
+      setActiveUCASection(event.detail.section);
+    };
+
     window.addEventListener('workspace-section-change', handleWorkspaceSectionChange as EventListener);
+    window.addEventListener('uca-section-change', handleUCASectionChange as EventListener);
     
     return () => {
       window.removeEventListener('workspace-section-change', handleWorkspaceSectionChange as EventListener);
+      window.removeEventListener('uca-section-change', handleUCASectionChange as EventListener);
     };
   }, []);
 
@@ -259,27 +265,6 @@ const CleanEnterpriseLayout: React.FC = () => {
           <div className="flex h-screen relative w-full">
             {/* Modern Sidebar */}
             <Sidebar variant="inset">
-              <SidebarHeader>
-                <div className="mb-2">
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton size="lg" asChild>
-                        <a href="#">
-                          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                            <img src={webLogo} alt="Logo" className="h-5 w-5" />
-                          </div>
-                          <div className="grid flex-1 text-left text-sm leading-tight">
-                            <span className="truncate font-semibold">{APP_TITLE}</span>
-                            <span className="truncate text-xs">Created by MalmquistSafety</span>
-                          </div>
-                        </a>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </div>
-                <ProjectSwitcher />
-              </SidebarHeader>
-              
               <SidebarContent>
                 {/* Project Analyses */}
                 {currentProject && (
@@ -450,6 +435,7 @@ const CleanEnterpriseLayout: React.FC = () => {
                                       const isCompleted = currentStepIndex > index && isSelected;
                                       const isScopeStep = step.step === 'scope' && analysis.analysisType === AnalysisType.CAST;
                                       const isStructureStep = step.step === 'control-structure';
+                                      const isUCAStep = step.step === 'uca';
                                       
                                       return (
                                         <AnimatedCollapsibleItem key={step.step}>
@@ -536,6 +522,40 @@ const CleanEnterpriseLayout: React.FC = () => {
                                                         }));
                                                       }}
                                                       isActive={activeWorkspaceSection === section.id}
+                                                      size="sm"
+                                                    >
+                                                      {section.title}
+                                                    </SidebarMenuSubButton>
+                                                  </SidebarMenuSubItem>
+                                                </AnimatedCollapsibleItem>
+                                              ))}
+                                            </SidebarMenuSub>
+                                          </AnimatedCollapsible>
+                                          
+                                          {/* UCAs/UCCAs Sub-steps */}
+                                          <AnimatedCollapsible isOpen={isUCAStep && isCurrent && isSelected} className="ml-3">
+                                            <SidebarMenuSub
+                                              showProgress={true}
+                                              totalSteps={2}
+                                              completedSteps={activeUCASection === 'ucas' ? 1 :
+                                                            activeUCASection === 'uccas' ? 2 : 0}
+                                              currentStep={activeUCASection === 'ucas' ? 0 :
+                                                          activeUCASection === 'uccas' ? 1 : -1}
+                                            >
+                                              {[
+                                                { id: 'ucas', title: 'UCAs' },
+                                                { id: 'uccas', title: 'UCCAs' }
+                                              ].map((section) => (
+                                                <AnimatedCollapsibleItem key={section.id}>
+                                                  <SidebarMenuSubItem>
+                                                    <SidebarMenuSubButton
+                                                      onClick={() => {
+                                                        setActiveUCASection(section.id);
+                                                        window.dispatchEvent(new CustomEvent('uca-section-change', { 
+                                                          detail: { section: section.id } 
+                                                        }));
+                                                      }}
+                                                      isActive={activeUCASection === section.id}
                                                       size="sm"
                                                     >
                                                       {section.title}

@@ -1,4 +1,4 @@
-import { Controller, ControlAction, UnsafeControlAction, UCCA, Hazard, UCAType } from '@/types/types';
+import { Controller, ControlAction, UnsafeControlAction, Hazard, UCAType } from '@/types/types';
 
 // Enhanced validation framework for MIT STPA compliance
 export interface ValidationResult {
@@ -277,81 +277,6 @@ export const validateContextSpecificity = (
   };
 };
 
-/**
- * Validates UCCA logical consistency
- */
-export const validateUCCALogic = (
-  ucca: Partial<UCCA>,
-  controllers: Controller[],
-  controlActions: ControlAction[]
-): ValidationResult => {
-  const errors: ValidationError[] = [];
-  const warnings: ValidationWarning[] = [];
-
-  // Must involve at least 2 controllers
-  if (!ucca.involvedControllerIds || ucca.involvedControllerIds.length < 2) {
-    errors.push({
-      code: 'UCCA-001',
-      message: 'UCCA must involve at least 2 controllers',
-      field: 'involvedControllerIds',
-      severity: 'critical'
-    });
-  }
-
-  // Validate controller existence
-  if (ucca.involvedControllerIds) {
-    const invalidControllerIds = ucca.involvedControllerIds.filter(controllerId =>
-      !controllers.find(c => c.id === controllerId)
-    );
-
-    if (invalidControllerIds.length > 0) {
-      errors.push({
-        code: 'UCCA-002',
-        message: `Invalid controller IDs: ${invalidControllerIds.join(', ')}`,
-        field: 'involvedControllerIds',
-        severity: 'high'
-      });
-    }
-  }
-
-  // Validate temporal relationship consistency
-  if (ucca.temporalRelationship === 'Sequential' && 
-      ucca.involvedControllerIds && 
-      ucca.involvedControllerIds.length < 2) {
-    errors.push({
-      code: 'UCCA-003',
-      message: 'Sequential UCCAs require multiple controllers',
-      field: 'temporalRelationship',
-      severity: 'high'
-    });
-  }
-
-  // Check that controllers have relevant control actions
-  if (ucca.involvedControllerIds) {
-    const controllersWithoutActions = ucca.involvedControllerIds.filter(controllerId => {
-      const controllerActions = controlActions.filter(ca => 
-        ca.controllerId === controllerId && !ca.isOutOfScope
-      );
-      return controllerActions.length === 0;
-    });
-
-    if (controllersWithoutActions.length > 0) {
-      warnings.push({
-        code: 'UCCA-004',
-        message: `Controllers without in-scope actions: ${controllersWithoutActions.join(', ')}`,
-        field: 'involvedControllerIds',
-        recommendation: 'Ensure all involved controllers have relevant control actions'
-      });
-    }
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-    warnings,
-    confidence: errors.length === 0 ? (warnings.length === 0 ? 1.0 : 0.8) : 0
-  };
-};
 
 /**
  * Comprehensive UCA validation combining all checks
@@ -431,7 +356,6 @@ export const validateUCA = (
  */
 export const generateComplianceReport = (
   ucas: UnsafeControlAction[],
-  uccas: UCCA[],
   controllers: Controller[],
   controlActions: ControlAction[],
   hazards: Hazard[]
@@ -511,11 +435,6 @@ export const VALIDATION_CODES = {
   'CTX-003': 'Context contains vague language',
   'CTX-004': 'Context lacks specific conditions',
   
-  // UCCA Logic
-  'UCCA-001': 'Must involve at least 2 controllers',
-  'UCCA-002': 'Invalid controller IDs',
-  'UCCA-003': 'Sequential UCCAs need multiple controllers',
-  'UCCA-004': 'Controllers without relevant actions',
   
   // General UCA
   'UCA-001': 'Controller and control action required'

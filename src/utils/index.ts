@@ -26,14 +26,12 @@ export {
   type BatchItemResult,
   type BatchError,
   type UCAbatchCreateOptions,
-  type UCCAbatchCreateOptions,
   BatchOperationsManager,
   batchOperationsManager
 } from './batchOperations';
 
 export * from './completenessChecker';
 export * from './controlStructureHierarchy';
-export * from './enhancedUccaAlgorithms';
 export * from './errorHandling';
 export * from './hardwareUCAIntegration';
 export * from './importExport';
@@ -50,4 +48,3 @@ export * from './storageManager';
 export * from './temporalLogic';
 export * from './trainingMode';
 export * from './ucaValidation';
-export * from './uccaAlgorithms';
