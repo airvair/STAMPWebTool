@@ -54,32 +54,26 @@ const CURRENT_ANALYSIS_KEY = 'stamp-current-analysis';
 // Helper to get initial data from localStorage
 const getStoredProjects = (): Project[] => {
   try {
-    console.log('Loading projects from localStorage...');
     const result = storageManager.loadWithValidation<Project[]>(PROJECTS_STORAGE_KEY);
     
     if (!result.isValid || !result.data) {
-      console.log('StorageManager validation failed or no data found:', result.error);
       
       // Try fallback to direct localStorage read for backward compatibility
       const stored = localStorage.getItem(PROJECTS_STORAGE_KEY);
       if (!stored) {
-        console.log('No data in localStorage');
         return [];
       }
       
-      console.log('Found data in localStorage, attempting to parse...');
       // Parse the stored data
       let parsedData = JSON.parse(stored);
       
       // Check if it's wrapped data (has data, checksum, timestamp properties)
       if (parsedData.data && parsedData.checksum && parsedData.timestamp) {
-        console.log('Found wrapped data in fallback, extracting actual data');
         parsedData = parsedData.data;
       }
       
       // Ensure it's an array
       const projects = Array.isArray(parsedData) ? parsedData : [];
-      console.log(`Loaded ${projects.length} projects from fallback method`);
       
       // Migrate projects that don't have folders array
       return projects.map((project: any) => ({
@@ -88,14 +82,12 @@ const getStoredProjects = (): Project[] => {
       }));
     }
     
-    console.log(`Successfully loaded ${result.data.length} projects via storageManager`);
     // Migrate projects that don't have folders array
     return result.data.map((project: any) => ({
       ...project,
       folders: project.folders || []
     }));
   } catch (error) {
-    console.error('Error loading stored projects:', error);
     return [];
   }
 };
@@ -152,7 +144,7 @@ const migrateLegacyAnalysis = (): Project[] => {
           };
           localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(wrappedData));
         } catch (e) {
-          console.error('Failed to save migrated project', e);
+          // Failed to save migrated project
         }
       }
       
@@ -165,7 +157,7 @@ const migrateLegacyAnalysis = (): Project[] => {
       return [defaultProject];
     }
   } catch (error) {
-    console.error('Error migrating legacy analysis:', error);
+    // Error migrating legacy analysis
   }
   return [];
 };
@@ -191,7 +183,6 @@ const ensureDataConsistency = (projects: Project[]): Project[] => {
       }))
     }));
   } catch (error) {
-    console.error('Error ensuring data consistency:', error);
     return projects;
   }
 };
@@ -256,10 +247,8 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Persist to localStorage with validation
   useEffect(() => {
     if (projects.length > 0) {
-      console.log('Saving projects to localStorage:', projects.length, 'projects');
       const saveResult = storageManager.saveWithValidation(PROJECTS_STORAGE_KEY, projects);
       if (!saveResult.success) {
-        console.error('Failed to save projects via storageManager:', saveResult.error);
         // Fallback to direct save but maintain wrapped format for consistency
         try {
           // Calculate checksum manually since it's a private method
@@ -278,12 +267,9 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
             timestamp: Date.now()
           };
           localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(wrappedData));
-          console.log('Successfully saved via fallback method with wrapped format');
         } catch (e) {
-          console.error('Critical: Failed to save projects data', e);
+          // Critical: Failed to save projects data
         }
-      } else {
-        console.log('Successfully saved projects via storageManager');
       }
     }
   }, [projects]);
@@ -384,11 +370,6 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
   
   const updateAnalysis = useCallback((projectId: string, analysisId: string, updates: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt'>>) => {
     const now = new Date().toISOString();
-    
-    // Log scope updates specifically
-    if ('scope' in updates) {
-      console.log('Updating analysis scope:', { projectId, analysisId, newScope: updates.scope });
-    }
     
     setProjects(prev => prev.map(project => 
       project.id === projectId 

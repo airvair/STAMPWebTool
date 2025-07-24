@@ -216,11 +216,8 @@ export class ErrorHandler {
   }
 
   public static handleError(error: Error, context: ErrorContext): void {
-    console.error('[SafetyAnalysis Error]', {
-      error,
-      context,
-      timestamp: new Date().toISOString()
-    });
+    // Safety analysis error occurred
+    // Error details: error, context, timestamp
 
     let feedback: UserFeedback;
 

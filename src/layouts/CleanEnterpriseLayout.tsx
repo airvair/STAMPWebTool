@@ -42,6 +42,7 @@ import {
   SidebarInset,
   SidebarFooter,
   SidebarMenuAction,
+  SidebarHeader,
 } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
@@ -51,8 +52,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-
-import webLogo from '@/assets/weblogo.webp';
+import { MalmquistLogo } from '@/components/MalmquistLogo';
 
 // Icon mapping for steps
 const stepIcons: Record<AnalysisStep, React.ComponentType<any>> = {
@@ -265,6 +265,12 @@ const CleanEnterpriseLayout: React.FC = () => {
           <div className="flex h-screen relative w-full">
             {/* Modern Sidebar */}
             <Sidebar variant="inset">
+              <SidebarHeader>
+                <div className="px-2 py-1.5">
+                  <MalmquistLogo className="" showText={true} />
+                </div>
+                <ProjectSwitcher />
+              </SidebarHeader>
               <SidebarContent>
                 {/* Project Analyses */}
                 {currentProject && (

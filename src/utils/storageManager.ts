@@ -53,7 +53,7 @@ export class StorageManager {
         };
       }
     } catch (error) {
-      console.warn('Storage estimate API not available, falling back to localStorage size calculation');
+      // Storage estimate API not available, falling back to localStorage size calculation
     }
 
     // Fallback: Calculate localStorage size manually
@@ -291,7 +291,7 @@ export class StorageManager {
         });
       }
     } catch (error) {
-      console.error('Error calculating detailed sizes:', error);
+      // Error calculating detailed sizes
     }
 
     return { projectSizes, analysisSizes };

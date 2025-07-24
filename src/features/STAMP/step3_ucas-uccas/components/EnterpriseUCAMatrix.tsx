@@ -542,9 +542,9 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
 
   return (
     <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-50/50 via-gray-50/30 to-zinc-50/20 dark:from-slate-950/50 dark:via-gray-950/30 dark:to-zinc-950/20">
-      {/* Header with statistics */}
+      {/* Header */}
       <div className="p-3 lg:p-6 pb-0">
-        <div className="flex items-center justify-between mb-4 lg:mb-6">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 lg:gap-4">
             <div className="p-2 lg:p-3 rounded-xl lg:rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20">
               <Layers className="h-5 w-5 lg:h-6 lg:w-6 text-blue-600 dark:text-blue-400" />
@@ -662,134 +662,6 @@ const EnterpriseUCAMatrix: React.FC<EnterpriseUCAMatrixProps> = ({
           </div>
         </div>
         
-        {/* Statistics Cards with enhanced styling */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3 mb-4 lg:mb-6">
-          {/* Total Cells */}
-          <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-3 lg:p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 group-hover:scale-110 transition-transform">
-                  <Grid3x3 className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-                </div>
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Total</span>
-              </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {statistics.totalCells}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                Matrix Cells
-              </p>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-gray-400 to-gray-500" />
-          </Card>
-
-          {/* Analyzed Cells */}
-          <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-3 lg:p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-800 dark:to-emerald-700 group-hover:scale-110 transition-transform">
-                  <Check className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
-                </div>
-                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Analyzed</span>
-              </div>
-              <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
-                {statistics.analyzedCells}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                Completed
-              </p>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-500" />
-          </Card>
-
-          {/* Total UCAs */}
-          <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-3 lg:p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-700 group-hover:scale-110 transition-transform">
-                  <AlertCircle className="h-4 w-4 text-blue-700 dark:text-blue-300" />
-                </div>
-                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">UCAs</span>
-              </div>
-              <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                {statistics.totalUCAs}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                Identified
-              </p>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-400 to-blue-500" />
-          </Card>
-
-          {/* Risk Distribution */}
-          <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-3 lg:p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-800 dark:to-amber-700 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="h-4 w-4 text-amber-700 dark:text-amber-300" />
-                </div>
-                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Risk</span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <p className="text-lg font-bold text-red-600 dark:text-red-400">
-                  {riskMetrics.highRisk}
-                </p>
-                <span className="text-xs text-gray-500">/</span>
-                <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
-                  {riskMetrics.mediumRisk}
-                </p>
-                <span className="text-xs text-gray-500">/</span>
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  {riskMetrics.lowRisk}
-                </p>
-              </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                H / M / L
-              </p>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-red-400 via-amber-400 to-yellow-400" />
-          </Card>
-
-          {/* Average per Cell */}
-          <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-3 lg:p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-700 group-hover:scale-110 transition-transform">
-                  <Activity className="h-4 w-4 text-purple-700 dark:text-purple-300" />
-                </div>
-                <span className="text-xs font-medium text-purple-600 dark:text-purple-400">Average</span>
-              </div>
-              <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                {statistics.averageUCAsPerCell}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                Per Cell
-              </p>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-purple-400 to-purple-500" />
-          </Card>
-
-          {/* Completion Progress */}
-          <Card className="relative overflow-hidden bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-gray-200/70 dark:border-gray-800/70 shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="p-3 lg:p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-800 dark:to-indigo-700 group-hover:scale-110 transition-transform">
-                  <BarChart3 className="h-4 w-4 text-indigo-700 dark:text-indigo-300" />
-                </div>
-                <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
-                  {statistics.completionRate}%
-                </span>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Completion
-                </p>
-                <Progress value={statistics.completionRate} className="h-2" />
-              </div>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-indigo-400 to-indigo-500" />
-          </Card>
-        </div>
       </div>
 
       {/* Matrix Container */}

@@ -643,7 +643,7 @@ export class SmartContextBuilder {
     }
     
     // Store for future analysis
-    console.log(`Context suggestion ${suggestionId} was ${accepted ? 'accepted' : 'rejected'}`);
+    // Context suggestion feedback recorded
   }
 
   /**

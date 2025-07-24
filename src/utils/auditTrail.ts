@@ -413,14 +413,9 @@ export class AuditTrailService {
   }
 
   private notifyAuditEvent(event: AuditEvent): void {
-    // Log to console for development
-    console.log(`[AUDIT] ${event.eventType}: ${event.description}`, {
-      entity: `${event.entityType}:${event.entityId}`,
-      user: event.userName,
-      timestamp: event.timestamp.toISOString()
-    });
-
+    // Audit event notification
     // In production, this would send to logging service, database, etc.
+    // Event details: eventType, description, entity, user, timestamp
   }
 }
 

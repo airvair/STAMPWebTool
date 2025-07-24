@@ -1,7 +1,7 @@
 import React from 'react';
 import { ControllerType, UCAType, StepDefinition, FiveFactorArchetype, FiveFactorScores } from '@/types/types';
 
-export const APP_TITLE = "Safety Suite";
+export const APP_TITLE = "Malmquist Safety";
 export const APP_VERSION = "Alpha";
 
 export const CONTROLLER_TYPE_COLORS: Record<ControllerType, string> = {

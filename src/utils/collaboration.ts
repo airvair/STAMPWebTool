@@ -78,7 +78,7 @@ class CollaborationManager {
           const data = JSON.parse(event.data);
           this.handleMessage(data);
         } catch (error) {
-          console.error('Failed to parse collaboration message:', error);
+          // Failed to parse collaboration message
         }
       };
 
@@ -88,12 +88,12 @@ class CollaborationManager {
       };
 
       this.websocket.onerror = (error) => {
-        console.error('Collaboration WebSocket error:', error);
+        // Collaboration WebSocket error
         throw new Error('Failed to connect to collaboration server');
       };
 
     } catch (error) {
-      console.error('Collaboration connection error:', error);
+      // Collaboration connection error
       throw error;
     }
   }
@@ -252,14 +252,14 @@ class CollaborationManager {
             try {
               callback(data.presence);
             } catch (error) {
-              console.error('Error in presence callback:', error);
+              // Error in presence callback
             }
           });
         }
         break;
         
       default:
-        console.log('Unknown collaboration message type:', data.type);
+        // Unknown collaboration message type
     }
   }
 
@@ -269,7 +269,7 @@ class CollaborationManager {
       try {
         callback(event);
       } catch (error) {
-        console.error('Error in entity callback:', error);
+        // Error in entity callback
       }
     });
   }

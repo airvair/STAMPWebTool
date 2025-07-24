@@ -294,7 +294,7 @@ const UCAEditor: React.FC<UCAEditorProps> = ({
         return;
       }
     } catch (error) {
-      console.error('Validation error:', error);
+      // Validation error occurred
       setValidationErrors(['An error occurred during validation. Please try again.']);
       return;
     }

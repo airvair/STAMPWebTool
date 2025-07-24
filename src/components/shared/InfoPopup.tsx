@@ -1,8 +1,15 @@
 
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import React, { useState, ReactNode } from 'react';
-import Button from './Button';
-import Modal from './Modal';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface InfoPopupProps {
   title: string;
@@ -47,11 +54,6 @@ const InfoPopup: React.FC<InfoPopupProps> = ({ title, content, containerClassNam
     </div>
   );
 
-  const modalFooter = (
-    <div className="text-right">
-      <Button onClick={() => setIsOpen(false)}>Close</Button>
-    </div>
-  );
 
   return (
     <div className={`inline-block align-middle ${containerClassName}`}>
@@ -64,15 +66,17 @@ const InfoPopup: React.FC<InfoPopupProps> = ({ title, content, containerClassNam
         <QuestionMarkCircleIcon className="h-5 w-5" aria-hidden="true" />
       </button>
 
-      <Modal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        title={title}
-        size="2xl"
-        footer={modalFooter}
-      >
-        <StyledContent>{content}</StyledContent>
-      </Modal>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
+          <StyledContent>{content}</StyledContent>
+          <DialogFooter>
+            <Button onClick={() => setIsOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

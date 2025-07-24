@@ -48,7 +48,7 @@ export class AutoRecoveryManager {
 
     const attemptCount = this.recoveryAttempts.get(error.id) || 0;
     if (attemptCount >= this.config.maxRetryAttempts) {
-      console.warn(`Max recovery attempts reached for error ${error.id}`);
+      // Max recovery attempts reached for error
       return false;
     }
 
@@ -59,11 +59,11 @@ export class AutoRecoveryManager {
       // Find applicable recovery strategy
       const strategy = this.findBestStrategy(error);
       if (!strategy) {
-        console.warn(`No recovery strategy found for error type: ${error.type}`);
+        // No recovery strategy found for error type
         return false;
       }
 
-      console.log(`Attempting recovery with strategy: ${strategy.name}`);
+      // Attempting recovery with strategy
 
       // Add delay for exponential backoff
       if (attemptCount > 0) {
@@ -75,7 +75,7 @@ export class AutoRecoveryManager {
       const recovered = await strategy.recover(error, stateManager);
 
       if (recovered) {
-        console.log(`Successfully recovered from error ${error.id} using ${strategy.name}`);
+        // Successfully recovered from error using strategy
         this.recoveryAttempts.delete(error.id);
         
         ErrorHandler.showInfo(
@@ -87,7 +87,7 @@ export class AutoRecoveryManager {
       return recovered;
 
     } catch (recoveryError) {
-      console.error(`Recovery attempt failed for error ${error.id}:`, recoveryError);
+      // Recovery attempt failed for error
       
       ErrorHandler.handleError(
         recoveryError as Error,
@@ -314,10 +314,10 @@ export class AutoRecoveryManager {
       if (backupData) {
         const backup = JSON.parse(backupData);
         // Restore state from backup
-        console.log('Restored from backup:', backup);
+        // State restored from backup
       }
     } catch (error) {
-      console.error('Failed to reset to last good state:', error);
+      // Failed to reset to last good state
       throw error;
     }
   }

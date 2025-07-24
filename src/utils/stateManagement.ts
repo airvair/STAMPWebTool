@@ -636,7 +636,7 @@ export class AnalysisStateManager {
       try {
         listener(this.getState());
       } catch (error) {
-        console.error('Error in state listener:', error);
+        // Error in state listener - skip this listener
       }
     });
   }

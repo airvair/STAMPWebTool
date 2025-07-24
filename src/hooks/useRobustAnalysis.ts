@@ -187,7 +187,7 @@ export const useRobustAnalysis = (): [RobustAnalysisState, RobustAnalysisActions
       await (stateManagerRef.current as any).processPendingChanges();
       showSuccess(`Retried ${retryableErrors.length} operations`);
     } catch (error) {
-      console.error('Retry failed:', error);
+      // Retry failed - error handled by state manager
     } finally {
       setOperationInProgress(false);
     }
@@ -216,7 +216,7 @@ export const useRobustAnalysis = (): [RobustAnalysisState, RobustAnalysisActions
       showSuccess('All changes saved successfully');
       return true;
     } catch (error) {
-      console.error('Force save failed:', error);
+      // Force save failed - error handled by state manager
       return false;
     } finally {
       setOperationInProgress(false);
@@ -229,7 +229,7 @@ export const useRobustAnalysis = (): [RobustAnalysisState, RobustAnalysisActions
       showInfo('Unsaved changes discarded');
       return true;
     } catch (error) {
-      console.error('Discard changes failed:', error);
+      // Discard changes failed - error handled by UI feedback
       return false;
     }
   }, [showInfo]);
@@ -246,7 +246,7 @@ export const useRobustAnalysis = (): [RobustAnalysisState, RobustAnalysisActions
       showSuccess('State exported successfully');
       return jsonData;
     } catch (error) {
-      console.error('Export failed:', error);
+      // Export failed - error propagated to caller
       throw error;
     }
   }, [state.ucas, showSuccess]);
@@ -264,7 +264,7 @@ export const useRobustAnalysis = (): [RobustAnalysisState, RobustAnalysisActions
       showSuccess('State imported successfully');
       return true;
     } catch (error) {
-      console.error('Import failed:', error);
+      // Import failed - error handled by UI feedback
       return false;
     }
   }, [showSuccess]);

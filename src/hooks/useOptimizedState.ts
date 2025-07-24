@@ -298,7 +298,7 @@ export function usePerformance(componentName: string) {
       : 0;
     
     if (process.env.NODE_ENV === 'development') {
-      console.debug(`[${componentName}] Render #${renderCount.current} took ${renderTime.toFixed(2)}ms`);
+      // Render performance measurement: render count and time
     }
   });
   
@@ -312,7 +312,7 @@ export function usePerformance(componentName: string) {
       const duration = performance.now() - start;
       
       if (process.env.NODE_ENV === 'development') {
-        console.debug(`[${componentName}] ${operation} took ${duration.toFixed(2)}ms`);
+        // Operation performance measurement: operation name and duration
       }
     }
   };

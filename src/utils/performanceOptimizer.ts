@@ -243,7 +243,7 @@ export class WorkerManager {
   }
   
   private handleWorkerError(event: ErrorEvent) {
-    console.error('Worker error:', event);
+    // Worker error occurred
   }
   
   terminate() {

@@ -86,7 +86,7 @@ export const useWorkspaceState = () => {
       const saved = localStorage.getItem(STORAGE_KEY);
       return saved ? { ...defaultWorkspaceState, ...JSON.parse(saved) } : defaultWorkspaceState;
     } catch (error) {
-      console.warn('Failed to load workspace state from localStorage:', error);
+      // Failed to load workspace state from localStorage
       return defaultWorkspaceState;
     }
   });
@@ -143,7 +143,7 @@ export const useWorkspaceState = () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
       setWorkspaceState(stateToSave);
     } catch (error) {
-      console.error('Failed to save workspace state to localStorage:', error);
+      // Failed to save workspace state to localStorage
     }
   }, [workspaceState]);
 
@@ -155,7 +155,7 @@ export const useWorkspaceState = () => {
         setWorkspaceState(restoredState);
       }
     } catch (error) {
-      console.error('Failed to restore workspace state from localStorage:', error);
+      // Failed to restore workspace state from localStorage
     }
   }, []);
 
@@ -210,7 +210,7 @@ export const useWorkspaceState = () => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(workspaceState));
       } catch (error) {
-        console.warn('Auto-save failed:', error);
+        // Auto-save failed
       }
     }, 1000); // Save after 1 second of inactivity
 
