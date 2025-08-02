@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { UnsafeControlAction, Controller, ControlAction, UCAType } from '@/types/types';
 import { useAnalysisContext } from '@/context/AnalysisContext';
 import { Button } from '@/components/ui/button';
@@ -61,7 +61,11 @@ interface UCAWorkspaceProps {
   onSelectControlAction: (id: string | null) => void;
 }
 
-const UCA_TYPE_LABELS: Record<UCAType, string> = {
+// Type definitions for better type safety
+type UCATypeLabelMap = Record<UCAType, string>;
+type UCATypeColorMap = Record<UCAType, string>;
+
+const UCA_TYPE_LABELS: UCATypeLabelMap = {
   [UCAType.NotProvided]: 'Not Provided',
   [UCAType.ProvidedUnsafe]: 'Provided',
   [UCAType.TooEarly]: 'Too Early',
@@ -69,9 +73,9 @@ const UCA_TYPE_LABELS: Record<UCAType, string> = {
   [UCAType.WrongOrder]: 'Wrong Order',
   [UCAType.TooLong]: 'Too Long',
   [UCAType.TooShort]: 'Too Short'
-};
+} as const;
 
-const UCA_TYPE_COLORS: Record<UCAType, string> = {
+const UCA_TYPE_COLORS: UCATypeColorMap = {
   [UCAType.NotProvided]: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
   [UCAType.ProvidedUnsafe]: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
   [UCAType.TooEarly]: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
@@ -79,7 +83,7 @@ const UCA_TYPE_COLORS: Record<UCAType, string> = {
   [UCAType.WrongOrder]: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
   [UCAType.TooLong]: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
   [UCAType.TooShort]: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400'
-};
+} as const;
 
 
 const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
@@ -97,79 +101,56 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
   const { deleteUCA, addUCA, hazards } = useAnalysisContext();
   const [showTableView, setShowTableView] = useState(false);
 
-  // Get controller and control action names
-  const getControllerName = (id: string) => {
+  // Memoized helper functions for better performance
+  const getControllerName = useCallback((id: string) => {
     return controllers.find(c => c.id === id)?.name || 'Unknown';
-  };
+  }, [controllers]);
 
-  const getControlActionName = (id: string) => {
+  const getControlActionName = useCallback((id: string) => {
     const action = controlActions.find(ca => ca.id === id);
     return action ? `${action.verb} ${action.object}` : 'Unknown';
-  };
+  }, [controlActions]);
 
-  const getHazardCodes = (hazardIds: string[]) => {
+  const getHazardCodes = useCallback((hazardIds: string[]) => {
     return hazardIds.map(id => {
       const hazard = hazards.find(h => h.id === id);
       return hazard?.code || 'Unknown';
     });
-  };
+  }, [hazards]);
 
-  // Format UCA according to standard format
-  const formatUCA = (uca: UnsafeControlAction) => {
+  // Memoized UCA formatter with improved type safety
+  const formatUCA = useCallback((uca: UnsafeControlAction) => {
     const controller = getControllerName(uca.controllerId);
     const action = getControlActionName(uca.controlActionId);
     const hazardCodes = getHazardCodes(uca.hazardIds).join(', ');
     
-    // Format based on UCA type
-    let typePhrase = '';
-    switch (uca.ucaType) {
-      case UCAType.NotProvided:
-        typePhrase = 'does not provide';
-        break;
-      case UCAType.ProvidedUnsafe:
-        typePhrase = 'provides';
-        break;
-      case UCAType.TooEarly:
-        typePhrase = 'provides';
-        break;
-      case UCAType.TooLate:
-        typePhrase = 'provides';
-        break;
-      case UCAType.WrongOrder:
-        typePhrase = 'provides';
-        break;
-      case UCAType.TooLong:
-        typePhrase = 'provides';
-        break;
-      case UCAType.TooShort:
-        typePhrase = 'provides';
-        break;
-    }
+    // Define type phrases with better mapping
+    const TYPE_PHRASES: Record<UCAType, string> = {
+      [UCAType.NotProvided]: 'does not provide',
+      [UCAType.ProvidedUnsafe]: 'provides',
+      [UCAType.TooEarly]: 'provides',
+      [UCAType.TooLate]: 'provides',
+      [UCAType.WrongOrder]: 'provides',
+      [UCAType.TooLong]: 'provides',
+      [UCAType.TooShort]: 'provides'
+    };
     
-    // Add timing/duration modifiers for specific types
-    let timingModifier = '';
-    switch (uca.ucaType) {
-      case UCAType.TooEarly:
-        timingModifier = ' too early';
-        break;
-      case UCAType.TooLate:
-        timingModifier = ' too late';
-        break;
-      case UCAType.WrongOrder:
-        timingModifier = ' in wrong order';
-        break;
-      case UCAType.TooLong:
-        timingModifier = ' for too long';
-        break;
-      case UCAType.TooShort:
-        timingModifier = ' for too short';
-        break;
-    }
+    // Define timing modifiers
+    const TIMING_MODIFIERS: Partial<Record<UCAType, string>> = {
+      [UCAType.TooEarly]: ' too early',
+      [UCAType.TooLate]: ' too late',
+      [UCAType.WrongOrder]: ' in wrong order',
+      [UCAType.TooLong]: ' for too long',
+      [UCAType.TooShort]: ' for too short'
+    };
+    
+    const typePhrase = TYPE_PHRASES[uca.ucaType] || 'provides';
+    const timingModifier = TIMING_MODIFIERS[uca.ucaType] || '';
     
     return `${uca.code}: ${controller} ${typePhrase} ${action}${timingModifier} while ${uca.context} [${hazardCodes}]`;
-  };
+  }, [getControllerName, getControlActionName, getHazardCodes]);
 
-  // Data for the table
+  // Enhanced data type for the table
   interface UCATableData {
     id: string;
     uca: string;
@@ -181,6 +162,11 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
     hazards: string[];
     hazardString: string;
     originalData: UnsafeControlAction;
+  }
+
+  // Export types for selected UCAs
+  interface SelectedUCAs {
+    [key: string]: boolean;
   }
 
   const tableData = useMemo<UCATableData[]>(() => {
@@ -198,11 +184,11 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
     }));
   }, [ucas, controllers, controlActions, hazards]);
 
-  // Data table state
+  // Data table state with better typing
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState({});
+  const [rowSelection, setRowSelection] = useState<SelectedUCAs>({});
 
   // Column definitions for the data table
   const columns: ColumnDef<UCATableData>[] = [
@@ -446,21 +432,25 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
             </Button>
             
             {showTableView && table.getFilteredSelectedRowModel().rows.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const selectedRows = table.getFilteredSelectedRowModel().rows;
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const selectedRows = table.getFilteredSelectedRowModel().rows;
+                  const selectedCount = selectedRows.length;
+                  
+                  if (confirm(`Delete ${selectedCount} selected UCA${selectedCount > 1 ? 's' : ''}?`)) {
                     selectedRows.forEach(row => {
                       deleteUCA(row.original.id);
                     });
                     table.resetRowSelection();
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </>
+                  }
+                }}
+                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete ({table.getFilteredSelectedRowModel().rows.length})
+              </Button>
             )}
             
             
@@ -472,18 +462,29 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
 
         {/* Quick filters for selected controller/action */}
         {(selectedController || selectedControlAction) && (
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-500">Filtering by:</span>
-            {selectedController && (
-              <Badge variant="secondary">
-                Controller: {getControllerName(selectedController)}
-              </Badge>
-            )}
-            {selectedControlAction && (
-              <Badge variant="secondary">
-                Action: {getControlActionName(selectedControlAction)}
-              </Badge>
-            )}
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 dark:text-gray-400">Filtering by:</span>
+              {selectedController && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  Controller: {getControllerName(selectedController)}
+                  <button
+                    onClick={() => onSelectControlAction(null)}
+                    className="ml-1 hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedControlAction && (
+                <Badge variant="secondary">
+                  Action: {getControlActionName(selectedControlAction)}
+                </Badge>
+              )}
+            </div>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {tableData.length} UCA{tableData.length !== 1 ? 's' : ''} shown
+            </span>
           </div>
         )}
       </div>
@@ -523,7 +524,10 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && "selected"}
-                        className="cursor-pointer"
+                        className={cn(
+                          "cursor-pointer transition-colors",
+                          "hover:bg-gray-50 dark:hover:bg-gray-900/50"
+                        )}
                         onClick={() => onEditUCA(row.original.originalData)}
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -557,10 +561,16 @@ const UCAWorkspace: React.FC<UCAWorkspaceProps> = ({
           {/* Pagination */}
           <div className="flex items-center justify-between px-4 py-3 border-t">
             <div className="flex items-center space-x-2">
-              <p className="text-sm text-muted-foreground">
-                {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                {table.getFilteredRowModel().rows.length} row(s) selected.
-              </p>
+              <div className="flex items-center gap-4">
+                <p className="text-sm text-muted-foreground">
+                  {table.getFilteredSelectedRowModel().rows.length} of{" "}
+                  {table.getFilteredRowModel().rows.length} row(s) selected
+                </p>
+                <div className="text-sm text-muted-foreground">
+                  Page {table.getState().pagination.pageIndex + 1} of{" "}
+                  {table.getPageCount()}
+                </div>
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <Button

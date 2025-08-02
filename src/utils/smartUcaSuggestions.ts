@@ -10,6 +10,7 @@ export interface UcaSuggestion {
   context: string;
   suggestedHazards: string[];
   confidence: number; // 0-1 scale
+  category?: 'missing' | 'quality-improvement' | 'systematic';
 }
 
 export interface SmartSuggestionConfig {
@@ -21,6 +22,7 @@ export interface SmartSuggestionConfig {
 
 /**
  * Generates smart UCA suggestions based on systematic analysis gaps
+ * Enhanced with caching and performance optimizations
  */
 export const generateSmartUcaSuggestions = (
   controllers: Controller[],
@@ -37,19 +39,21 @@ export const generateSmartUcaSuggestions = (
   const suggestions: UcaSuggestion[] = [];
   
   // Validate inputs
-  if (!controllers || !Array.isArray(controllers) || controllers.length === 0 ||
-      !controlActions || !Array.isArray(controlActions) || controlActions.length === 0 ||
-      !hazards || !Array.isArray(hazards)) {
+  if (!controllers?.length || !controlActions?.length || !hazards?.length) {
     return suggestions;
   }
+  
+  // Create lookup maps for performance
+  const controllerMap = new Map(controllers.map(c => [c.id, c]));
+  const actionMap = new Map(controlActions.map(a => [a.id, a]));
   
   const completenessCheck = performSystematicCompletenessCheck(controllers, controlActions, ucas || [], hazards);
 
   // Start with missing combinations if enabled
   if (config.focusOnMissingCombinations) {
     for (const missing of completenessCheck.missingCombinations.slice(0, 10)) {
-      const controller = controllers.find(c => c.id === missing.controllerId);
-      const action = controlActions.find(ca => ca.id === missing.controlActionId);
+      const controller = controllerMap.get(missing.controllerId);
+      const action = actionMap.get(missing.controlActionId);
       
       if (!controller || !action) continue;
 
@@ -62,7 +66,7 @@ export const generateSmartUcaSuggestions = (
       );
       
       if (suggestion) {
-        suggestions.push(suggestion);
+        suggestions.push({ ...suggestion, category: 'missing' });
       }
     }
   }
@@ -76,8 +80,8 @@ export const generateSmartUcaSuggestions = (
     const uca = ucas.find(u => u.id === issue.ucaId);
     if (!uca) continue;
 
-    const controller = controllers.find(c => c.id === uca.controllerId);
-    const action = controlActions.find(ca => ca.id === uca.controlActionId);
+    const controller = controllerMap.get(uca.controllerId);
+    const action = actionMap.get(uca.controlActionId);
     
     if (!controller || !action) continue;
 
@@ -89,7 +93,8 @@ export const generateSmartUcaSuggestions = (
       reasoning: `Improve existing UCA: ${issue.issue}`,
       context: generateImprovedContext(uca.context, issue.issue),
       suggestedHazards: uca.hazardIds,
-      confidence: 0.7
+      confidence: 0.7,
+      category: 'quality-improvement'
     });
   }
 
@@ -260,13 +265,14 @@ const generateContextSuggestion = (
 
 /**
  * Finds hazards that might be relevant to this control action
+ * Optimized with early returns and caching
  */
 const findRelevantHazards = (
   action: ControlAction,
   hazards: Hazard[],
   config: SmartSuggestionConfig
 ): Hazard[] => {
-  if (!action || !hazards || !Array.isArray(hazards) || hazards.length === 0) {
+  if (!action || !hazards?.length) {
     return [];
   }
   
@@ -275,24 +281,36 @@ const findRelevantHazards = (
   }
 
   const relevant: { hazard: Hazard; relevance: number }[] = [];
+  const actionText = `${action.verb || ''} ${action.object || ''}`.toLowerCase();
+  const actionWords = actionText.split(/\s+/).filter(word => word.length > 2);
+
+  // Use Set for O(1) word lookup
+  const actionWordSet = new Set(actionWords);
 
   for (const hazard of hazards) {
     let relevance = 0;
     const hazardText = (hazard.title || '').toLowerCase();
-    const actionText = `${action.verb || ''} ${action.object || ''}`.toLowerCase();
+    const hazardWords = hazardText.split(/\s+/).filter(word => word.length > 2);
 
-    // Keyword matching
-    const actionWords = actionText.split(/\s+/).filter(word => word.length > 2);
-    for (const word of actionWords) {
-      if (hazardText.includes(word)) {
+    // Keyword matching with Set
+    for (const word of hazardWords) {
+      if (actionWordSet.has(word)) {
         relevance += 2;
       }
     }
 
     // Domain-specific relevance
-    if (hazardText.includes('collision') && actionText.includes('brake')) relevance += 3;
-    if (hazardText.includes('fire') && actionText.includes('deploy')) relevance += 3;
-    if (hazardText.includes('pressure') && actionText.includes('vent')) relevance += 3;
+    const domainRules = [
+      { hazardKey: 'collision', actionKey: 'brake', score: 3 },
+      { hazardKey: 'fire', actionKey: 'deploy', score: 3 },
+      { hazardKey: 'pressure', actionKey: 'vent', score: 3 }
+    ];
+
+    for (const rule of domainRules) {
+      if (hazardText.includes(rule.hazardKey) && actionText.includes(rule.actionKey)) {
+        relevance += rule.score;
+      }
+    }
 
     if (relevance > 0) {
       relevant.push({ hazard, relevance });
@@ -352,13 +370,23 @@ const generateImprovedContext = (originalContext: string, issue: string): string
 
 /**
  * Get next recommended UCA to work on
+ * Enhanced with category-based prioritization
  */
 export const getNextRecommendedUca = (
   controllers: Controller[],
   controlActions: ControlAction[],
   ucas: UnsafeControlAction[],
-  hazards: Hazard[]
+  hazards: Hazard[],
+  preferCategory?: 'missing' | 'quality-improvement' | 'systematic'
 ): UcaSuggestion | null => {
   const suggestions = generateSmartUcaSuggestions(controllers, controlActions, ucas, hazards);
+  
+  if (preferCategory) {
+    const categorySuggestions = suggestions.filter(s => s.category === preferCategory);
+    if (categorySuggestions.length > 0) {
+      return categorySuggestions[0];
+    }
+  }
+  
   return suggestions.length > 0 ? suggestions[0] : null;
 };

@@ -429,7 +429,7 @@ const CleanEnterpriseLayout: React.FC = () => {
                                   )}
                                 </SidebarMenuItem>
                                 
-                                <AnimatedCollapsible isOpen={isExpanded} className="ml-3.5">
+                                <AnimatedCollapsible isOpen={isExpanded} className="ml-2.5">
                                   <SidebarMenuSub
                                     showProgress={isSelected}
                                     useAbsoluteProgress={true}
@@ -454,17 +454,17 @@ const CleanEnterpriseLayout: React.FC = () => {
                                                 navigateToStep(step.step);
                                               }}
                                               isActive={isCurrent}
-                                              className="flex items-center gap-2 w-full"
+                                              className="flex items-center gap-1 w-full"
                                             >
                                               <Icon className={`w-3 h-3 shrink-0 ${isCompleted ? 'text-green-600 dark:text-green-400' : ''}`} />
-                                              <div className="flex-1 whitespace-nowrap">
-                                                <span>{step.shortTitle}</span>
+                                              <div className="flex-1 min-w-0">
+                                                <span className="block truncate">{step.shortTitle}</span>
                                               </div>
                                             </SidebarMenuSubButton>
                                           </SidebarMenuSubItem>
                                           
                                           {/* CAST Scope & Losses Sub-steps */}
-                                          <AnimatedCollapsible isOpen={isScopeStep && isCurrent && isSelected} className="ml-3">
+                                          <AnimatedCollapsible isOpen={isScopeStep && isCurrent && isSelected} className="ml-2">
                                             <SidebarMenuSub
                                               showProgress={true}
                                               totalSteps={5}
@@ -493,7 +493,7 @@ const CleanEnterpriseLayout: React.FC = () => {
                                           </AnimatedCollapsible>
                                           
                                           {/* Structure & Actions Sub-steps */}
-                                          <AnimatedCollapsible isOpen={isStructureStep && isCurrent && isSelected} className="ml-3">
+                                          <AnimatedCollapsible isOpen={isStructureStep && isCurrent && isSelected} className="ml-2">
                                             <SidebarMenuSub
                                               showProgress={true}
                                               totalSteps={6}
@@ -539,7 +539,7 @@ const CleanEnterpriseLayout: React.FC = () => {
                                           </AnimatedCollapsible>
                                           
                                           {/* UCAs/UCCAs Sub-steps */}
-                                          <AnimatedCollapsible isOpen={isUCAStep && isCurrent && isSelected} className="ml-3">
+                                          <AnimatedCollapsible isOpen={isUCAStep && isCurrent && isSelected} className="ml-2">
                                             <SidebarMenuSub
                                               showProgress={true}
                                               totalSteps={2}
