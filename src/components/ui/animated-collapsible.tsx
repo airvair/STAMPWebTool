@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { motion, AnimatePresence, Easing } from 'motion/react';
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 interface AnimatedCollapsibleProps {
@@ -22,8 +22,10 @@ export function AnimatedCollapsible({
   disableAnimation = false,
 }: AnimatedCollapsibleProps) {
   // Check for reduced motion preference and drag state
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isDragging = typeof window !== 'undefined' && document.body.classList.contains('sortable-dragging');
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isDragging =
+    typeof window !== 'undefined' && document.body.classList.contains('sortable-dragging');
   const shouldDisableAnimation = prefersReducedMotion || disableAnimation || isDragging;
   const animationDuration = shouldDisableAnimation ? 0.05 : duration;
 
@@ -91,15 +93,18 @@ export function AnimatedCollapsibleItem({
   children: React.ReactNode;
   className?: string;
 }) {
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isDragging = typeof window !== 'undefined' && document.body.classList.contains('sortable-dragging');
-  
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isDragging =
+    typeof window !== 'undefined' && document.body.classList.contains('sortable-dragging');
+
   // Disable motion for draggable items or during drag operations
-  const isDraggableItem = typeof window !== 'undefined' && 
+  const isDraggableItem =
+    typeof window !== 'undefined' &&
     (children as any)?.props?.className?.includes?.('analysis-item');
-  
+
   const shouldDisableMotion = isDraggableItem || isDragging;
-  
+
   if (shouldDisableMotion) {
     // Return plain div for draggable items to avoid motion conflicts
     return (
@@ -108,7 +113,7 @@ export function AnimatedCollapsibleItem({
       </div>
     );
   }
-  
+
   return (
     <motion.div
       variants={{
@@ -137,14 +142,15 @@ export function AnimatedCollapsibleItem({
 
 // Animated chevron component
 export function AnimatedChevron({ isOpen, className }: { isOpen: boolean; className?: string }) {
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   return (
     <motion.div
       animate={{ rotate: isOpen ? 90 : 0 }}
-      transition={{ 
-        duration: prefersReducedMotion ? 0.05 : 0.2, 
-        ease: [0.4, 0, 0.2, 1] // easeOut equivalent
+      transition={{
+        duration: prefersReducedMotion ? 0.05 : 0.2,
+        ease: [0.4, 0, 0.2, 1], // easeOut equivalent
       }}
       className={className}
     >

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
 import { useAnimate, AnimationScope, Easing } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UseCollapsibleAnimationOptions {
   isOpen: boolean;
@@ -10,7 +10,7 @@ interface UseCollapsibleAnimationOptions {
 export function useCollapsibleAnimation({
   isOpen,
   duration = 0.3,
-  ease = [0.4, 0, 0.2, 1] // easeOut equivalent
+  ease = [0.4, 0, 0.2, 1], // easeOut equivalent
 }: UseCollapsibleAnimationOptions): [AnimationScope<any>, boolean] {
   const [scope, animate] = useAnimate();
   const [isAnimating, setIsAnimating] = useState(false);
@@ -25,7 +25,7 @@ export function useCollapsibleAnimation({
 
     const runAnimation = async () => {
       setIsAnimating(true);
-      
+
       if (isOpen) {
         // Opening animation
         await animate(
@@ -43,7 +43,7 @@ export function useCollapsibleAnimation({
               height: 0,
               opacity: 0,
               scale: 0.95,
-            }
+            },
           }
         );
       } else {
@@ -61,7 +61,7 @@ export function useCollapsibleAnimation({
           }
         );
       }
-      
+
       setIsAnimating(false);
     };
 

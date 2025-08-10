@@ -13,6 +13,7 @@ STAMP is grounded in systems theory, treating safety as a control problem rather
 
 **Control Structures**
 At the heart of STAMP is the concept of hierarchical control structures where:
+
 - Higher levels impose constraints on lower levels
 - Each level has controllers that enforce safety constraints
 - Feedback mechanisms provide information about the controlled process state
@@ -20,6 +21,7 @@ At the heart of STAMP is the concept of hierarchical control structures where:
 
 **Safety as Dynamic Control**
 STAMP views safety not as the absence of failures but as the continuous enforcement of constraints on system behavior. This dynamic view acknowledges that systems evolve and that safety must be actively maintained through:
+
 - Appropriate control actions
 - Accurate process models
 - Timely and accurate feedback
@@ -50,20 +52,24 @@ STAMP views safety not as the absence of failures but as the continuous enforcem
 ### Differences from Traditional Models
 
 **Chain-of-Events Models (Swiss Cheese, Domino)**
+
 - Traditional: Linear sequence of failures
 - STAMP: Non-linear interactions and emergent behavior
 
 **Root Cause Analysis**
+
 - Traditional: Single root cause identification
 - STAMP: Multiple systemic factors and control inadequacies
 
 **Component Reliability Focus**
+
 - Traditional: Prevent component failures
 - STAMP: Ensure adequate control even with failures
 
 ### Implementation in the Web Tool
 
 The STAMP Web Tool implements these concepts through:
+
 - Visual control structure builders allowing hierarchical modeling
 - Control action and feedback path definitions
 - Constraint specification and tracking
@@ -95,12 +101,14 @@ CAST (Causal Analysis based on STAMP) is a systematic accident analysis techniqu
 ### Key Steps in CAST Analysis
 
 **Step 1: Assemble Basic Information**
+
 - Define the system boundaries
 - Identify the accident/incident timeline
 - Collect relevant documentation and data
 - Establish the analysis scope
 
 **Step 2: Model the Control Structure**
+
 - Identify all controllers at each hierarchical level
 - Map control actions and feedback channels
 - Document safety constraints and requirements
@@ -108,12 +116,14 @@ CAST (Causal Analysis based on STAMP) is a systematic accident analysis techniqu
 
 **Step 3: Analyze Each Component**
 For each controller in the structure:
+
 - Examine safety responsibilities and constraints
 - Analyze control actions (or lack thereof)
 - Evaluate process models and their accuracy
 - Identify control flaws and inadequacies
 
 **Step 4: Identify Control Structure Flaws**
+
 - Missing feedback loops
 - Inadequate control actions
 - Incorrect process models
@@ -121,6 +131,7 @@ For each controller in the structure:
 - Inadequate constraint enforcement
 
 **Step 5: Generate Recommendations**
+
 - Propose control structure improvements
 - Suggest new or modified constraints
 - Recommend process model updates
@@ -129,6 +140,7 @@ For each controller in the structure:
 ### Relationship to STAMP
 
 CAST operationalizes STAMP principles for accident investigation:
+
 - Uses STAMP's control structure concept as the analysis framework
 - Applies systems thinking to understand emergent accident properties
 - Focuses on control inadequacies rather than component failures
@@ -137,6 +149,7 @@ CAST operationalizes STAMP principles for accident investigation:
 ### Implementation in the Web Tool
 
 The CAST module in the STAMP Web Tool provides:
+
 - Structured workflow following CAST steps
 - Timeline and event sequence builders
 - Control structure modeling specific to accident analysis
@@ -169,12 +182,14 @@ STPA (System-Theoretic Process Analysis) is a proactive hazard analysis techniqu
 ### Four Main Steps of STPA
 
 **Step 1: Define Purpose of Analysis**
+
 - Identify system-level losses to prevent
 - Define system-level hazards
 - Establish system safety constraints
 - Determine analysis boundaries and scope
 
 **Step 2: Model the Control Structure**
+
 - Identify controllers and controlled processes
 - Define control actions and feedback
 - Document process models and control algorithms
@@ -182,6 +197,7 @@ STPA (System-Theoretic Process Analysis) is a proactive hazard analysis techniqu
 
 **Step 3: Identify Unsafe Control Actions (UCAs)**
 For each control action, identify cases where:
+
 1. **Not Provided** - Control action required but not given
 2. **Provided Unsafe** - Control action leads to hazard
 3. **Wrong Timing** - Too early, too late, wrong order
@@ -189,6 +205,7 @@ For each control action, identify cases where:
 
 **Step 4: Identify Loss Scenarios**
 For each UCA, determine how it could occur:
+
 - Unsafe controller behavior
 - Inadequate feedback and sensor operation
 - Inadequate control path operation
@@ -199,6 +216,7 @@ For each UCA, determine how it could occur:
 
 **Systematic UCA Analysis**
 The Web Tool implements a structured approach:
+
 1. List all control actions from the control structure
 2. For each control action and system state combination
 3. Evaluate four UCA types systematically
@@ -206,6 +224,7 @@ The Web Tool implements a structured approach:
 5. Link UCAs to hazards they could cause
 
 **UCA Context Factors**
+
 - System mode or state
 - Environmental conditions
 - Other concurrent control actions
@@ -216,6 +235,7 @@ The Web Tool implements a structured approach:
 
 **From UCAs to Requirements**
 Each identified UCA leads to safety requirements:
+
 - Prevent the UCA from occurring
 - Mitigate consequences if it occurs
 - Detect and respond to the condition
@@ -223,6 +243,7 @@ Each identified UCA leads to safety requirements:
 
 **From Scenarios to Requirements**
 Each causal scenario generates requirements addressing:
+
 - Controller algorithm improvements
 - Feedback and sensor enhancements
 - Control path reliability
@@ -234,23 +255,27 @@ Each causal scenario generates requirements addressing:
 The STPA module provides comprehensive support:
 
 **Structured Workflow**
+
 - Step-by-step STPA process guidance
 - Progress tracking and validation
 - Context-sensitive help and examples
 
 **UCA Management**
+
 - Matrix view for systematic UCA identification
 - UCA editor with guided analysis
 - Automatic hazard linking
 - Context and assumption tracking
 
 **Scenario Development**
+
 - Causal factor templates
 - Scenario builder interface
 - Requirements generation assistance
 - Traceability from scenarios to requirements
 
 **Integration Features**
+
 - Reuse control structures across analyses
 - Import/export for collaboration
 - Comprehensive reporting
@@ -259,6 +284,7 @@ The STPA module provides comprehensive support:
 ### Relationship to System Design
 
 STPA in the Web Tool supports iterative design:
+
 - Early hazard identification informs architecture
 - Requirements guide detailed design
 - Analysis updates as design evolves

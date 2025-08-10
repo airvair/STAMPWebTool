@@ -1,5 +1,5 @@
 // Projects components barrel export
 
-export { default as EmptyStateView } from './EmptyStateView';
-export { default as NewAnalysisButton } from './NewAnalysisButton';
-export { default as ProjectSwitcher } from './ProjectSwitcher';
+export { default as EmptyStateView } from './empty-state-view';
+export { default as NewAnalysisButton } from './new-analysis-button';
+export { default as ProjectSwitcher } from './project-switcher';

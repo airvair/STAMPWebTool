@@ -1,12 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { AnalysisType } from '@/types/types';
 
-export type AnalysisStep = 
-  | 'scope'
-  | 'control-structure'
-  | 'uca'
-  | 'scenarios'
-  | 'requirements';
+export type AnalysisStep = 'scope' | 'control-structure' | 'uca' | 'scenarios' | 'requirements';
 
 interface NavigationContextType {
   currentStep: AnalysisStep;
@@ -33,17 +28,20 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
   const [historyIndex, setHistoryIndex] = useState(0);
   const [analysisType, setAnalysisType] = useState<AnalysisType | null>(null);
 
-  const navigateToStep = useCallback((step: AnalysisStep) => {
-    setCurrentStep(step);
-    
-    // Add to history, removing any forward history
-    setStepHistory(prev => {
-      const newHistory = prev.slice(0, historyIndex + 1);
-      newHistory.push(step);
-      return newHistory;
-    });
-    setHistoryIndex(prev => prev + 1);
-  }, [historyIndex]);
+  const navigateToStep = useCallback(
+    (step: AnalysisStep) => {
+      setCurrentStep(step);
+
+      // Add to history, removing any forward history
+      setStepHistory(prev => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push(step);
+        return newHistory;
+      });
+      setHistoryIndex(prev => prev + 1);
+    },
+    [historyIndex]
+  );
 
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < stepHistory.length - 1;

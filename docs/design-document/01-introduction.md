@@ -23,11 +23,13 @@ This document bridges the gap between high-level requirements and low-level impl
 The STAMP Web Tool encompasses the following functionalities and features:
 
 **Core Analysis Capabilities:**
+
 - Complete implementation of CAST (Causal Analysis based on STAMP) methodology
 - Full support for STPA (System-Theoretic Process Analysis)
 - Hybrid analysis modes combining elements of both methodologies
 
 **Key Features:**
+
 - Multi-project and multi-analysis management system
 - Interactive control structure diagramming with visual editing
 - Comprehensive Unsafe Control Action (UCA) identification and management
@@ -36,6 +38,7 @@ The STAMP Web Tool encompasses the following functionalities and features:
 - Rich reporting and export capabilities (JSON, PDF, DOCX formats)
 
 **Technical Scope:**
+
 - Browser-based application requiring no installation
 - Local data persistence using browser localStorage
 - Responsive design supporting desktop and tablet viewports
@@ -59,16 +62,19 @@ The following elements are explicitly excluded from the current version:
 ### 1.3.1. Primary Users
 
 **Safety Engineers and Analysts**
+
 - Professionals conducting system safety analysis
 - Experts familiar with STAMP, CAST, and STPA methodologies
 - Users requiring structured hazard analysis workflows
 
 **System Engineers**
+
 - Engineers designing complex socio-technical systems
 - Professionals needing to document control structures
 - Teams performing risk assessment and mitigation planning
 
 **Academic Researchers**
+
 - Researchers studying system safety methodologies
 - Educators teaching STAMP-based analysis techniques
 - Students learning hazard analysis methods
@@ -76,11 +82,13 @@ The following elements are explicitly excluded from the current version:
 ### 1.3.2. Secondary Users
 
 **Project Managers**
+
 - Managers overseeing safety-critical projects
 - Stakeholders requiring safety analysis reports
 - Decision-makers needing risk assessment summaries
 
 **Quality Assurance Teams**
+
 - QA professionals validating safety requirements
 - Teams ensuring compliance with safety standards
 - Auditors reviewing safety analysis documentation
@@ -88,11 +96,13 @@ The following elements are explicitly excluded from the current version:
 ### 1.3.3. Technical Audience for this Document
 
 **Development Team**
+
 - Frontend developers implementing React components
 - Full-stack developers extending system capabilities
 - UI/UX designers creating user interfaces
 
 **Technical Leadership**
+
 - Software architects making design decisions
 - Technical leads reviewing implementation approaches
 - DevOps engineers planning deployment strategies

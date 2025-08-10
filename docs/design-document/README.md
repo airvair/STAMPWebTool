@@ -9,29 +9,35 @@ This directory contains the comprehensive Software Design Document (SDD) for the
 The design document is organized into the following chapters:
 
 ### [Main Document](./00-main.md)
+
 The main table of contents and document overview.
 
 ### Chapter 1: [Introduction](./01-introduction.md)
+
 - Purpose of the document
 - Application scope
 - Target audience
 - Source documents and references
 
 ### Chapter 2: Foundational Ideas & System Architecture
+
 - [2.1 Core Methodologies](./02-1-core-methodologies.md) - STAMP, CAST, and STPA explained
 - [2.2 Architectural Overview](./02-2-architectural-overview.md) - Technology stack and system architecture
 - [2.3 UI/UX Design Principles](./02-3-ui-ux-design.md) - Visual design and interaction patterns
 
 ### Chapter 3: System Requirements
+
 - [3.1 Functional Requirements](./03-1-functional-requirements.md) - Detailed requirements for all analysis steps
 - [3.2 Non-Functional Requirements](./03-2-non-functional-requirements.md) - Performance, usability, and quality requirements
 
 ### Chapter 4: Detailed Design & Pseudocode
+
 - [4.1 Data Structures](./04-1-data-structures.md) - Core data models and relationships
 - [4.2 State Management](./04-2-state-management.md) - Context providers and state logic
 - [4.3 Key Components](./04-3-key-components.md) - Pseudocode for critical components
 
 ### Chapter 5: [Appendices](./05-appendices.md)
+
 - Glossary of terms
 - Requirements traceability matrix
 

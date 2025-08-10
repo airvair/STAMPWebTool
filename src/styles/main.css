@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -173,11 +173,11 @@
   }
 
   .slot-machine-up .slot-machine-content {
-    animation: slotMachineUp var(--slot-duration, 600ms) cubic-bezier(0.4, 0.0, 0.2, 1);
+    animation: slotMachineUp var(--slot-duration, 600ms) cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .slot-machine-down .slot-machine-content {
-    animation: slotMachineDown var(--slot-duration, 600ms) cubic-bezier(0.4, 0.0, 0.2, 1);
+    animation: slotMachineDown var(--slot-duration, 600ms) cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -188,7 +188,7 @@
 }
 
 /* Hide expanded content in ghost when item is collapsed */
-.sortable-ghost[data-expanded="false"] [data-slot="sidebar-menu-sub"] {
+.sortable-ghost[data-expanded='false'] [data-slot='sidebar-menu-sub'] {
   display: none !important;
 }
 
@@ -224,30 +224,30 @@ body.sortable-dragging * {
 }
 
 /* Draggable elements - only the title area */
-.sortable-analysis-item [data-sidebar="menu-button"] {
+.sortable-analysis-item [data-sidebar='menu-button'] {
   cursor: grab;
 }
 
-.sortable-analysis-item [data-sidebar="menu-button"]:active {
+.sortable-analysis-item [data-sidebar='menu-button']:active {
   cursor: grabbing;
 }
 
 /* Ensure collapsible content doesn't show grab cursor */
-.sortable-analysis-item [data-slot="sidebar-menu-sub"] {
+.sortable-analysis-item [data-slot='sidebar-menu-sub'] {
   cursor: default !important;
 }
 
 /* Allow interactive elements in collapsible area to have their proper cursors */
-.sortable-analysis-item [data-slot="sidebar-menu-sub"] button,
-.sortable-analysis-item [data-slot="sidebar-menu-sub"] a,
-.sortable-analysis-item [data-slot="sidebar-menu-sub"] [data-sidebar="menu-sub-button"] {
+.sortable-analysis-item [data-slot='sidebar-menu-sub'] button,
+.sortable-analysis-item [data-slot='sidebar-menu-sub'] a,
+.sortable-analysis-item [data-slot='sidebar-menu-sub'] [data-sidebar='menu-sub-button'] {
   cursor: pointer !important;
 }
 
 /* Keep pointer cursor for interactive elements */
 .sortable-analysis-item .chevron-button,
 .sortable-analysis-item .dropdown-trigger,
-.sortable-analysis-item [data-sidebar="menu-action"] {
+.sortable-analysis-item [data-sidebar='menu-action'] {
   cursor: pointer !important;
 }
 

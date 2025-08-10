@@ -1,10 +1,10 @@
 // Barrel export for CAST step 2 partials
 
-export * from './CastInfo';
-export { default as CastStepLayout } from './CastStepLayout';
-export { default as HazardsBuilder } from './HazardsBuilder';
-export { default as LossesBuilder } from './LossesBuilder';
-export { default as ScopeBuilder } from './ScopeBuilder';
-export { default as SequenceOfEventsBuilder } from './SequenceOfEventsBuilder';
-export { default as SubStepperEnhanced } from './SubStepperEnhanced';
-export { default as SystemConstraintsBuilder } from './SystemConstraintsBuilder';
+export * from './cast-info';
+export { default as CastStepLayout } from './cast-step-layout';
+export { default as HazardsBuilder } from './hazards-builder';
+export { default as LossesBuilder } from './losses-builder';
+export { default as ScopeBuilder } from './scope-builder';
+export { default as SequenceOfEventsBuilder } from './sequence-of-events-builder';
+export { default as SubStepperEnhanced } from './sub-stepper-enhanced';
+export { default as SystemConstraintsBuilder } from './system-constraints-builder';

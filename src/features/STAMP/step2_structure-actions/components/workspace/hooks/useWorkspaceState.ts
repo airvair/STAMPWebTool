@@ -29,38 +29,38 @@ export const WORKSPACE_SECTIONS: WorkspaceSection[] = [
     id: 'components',
     title: 'Components',
     description: 'Define system components that need to be controlled',
-    dependencies: []
+    dependencies: [],
   },
   {
     id: 'controllers',
     title: 'Controllers',
     description: 'Define entities that control the system components',
-    dependencies: ['components']
+    dependencies: ['components'],
   },
   {
     id: 'control-paths',
     title: 'Control Paths',
     description: 'Define command relationships and control actions',
-    dependencies: ['controllers', 'components']
+    dependencies: ['controllers', 'components'],
   },
   {
     id: 'feedback-paths',
     title: 'Feedback Paths',
     description: 'Define information flow back to controllers',
-    dependencies: ['controllers']
+    dependencies: ['controllers'],
   },
   {
     id: 'communication',
     title: 'Communication',
     description: 'Define peer-to-peer controller communication',
-    dependencies: ['controllers']
+    dependencies: ['controllers'],
   },
   {
     id: 'failure-paths',
     title: 'Failure Paths',
     description: 'Define failure propagation between components',
-    dependencies: ['components']
-  }
+    dependencies: ['components'],
+  },
 ];
 
 const defaultWorkspaceState: WorkspaceState = {
@@ -72,10 +72,10 @@ const defaultWorkspaceState: WorkspaceState = {
     layout: 'sidebar',
     zoomLevel: 1,
     viewBox: { x: 0, y: 0, width: 800, height: 600 },
-    showFailurePaths: false
+    showFailurePaths: false,
   },
   unsavedChanges: {},
-  lastSaved: Date.now()
+  lastSaved: Date.now(),
 };
 
 const STORAGE_KEY = 'control-structure-workspace-state';
@@ -95,16 +95,15 @@ export const useWorkspaceState = () => {
     setWorkspaceState(prev => ({
       ...prev,
       activeSection: section,
-      sectionHistory: [
-        ...prev.sectionHistory.filter(s => s !== section).slice(-4),
-        section
-      ]
+      sectionHistory: [...prev.sectionHistory.filter(s => s !== section).slice(-4), section],
     }));
-    
+
     // Emit event to keep sidebar in sync
-    window.dispatchEvent(new CustomEvent('workspace-section-change', { 
-      detail: { section } 
-    }));
+    window.dispatchEvent(
+      new CustomEvent('workspace-section-change', {
+        detail: { section },
+      })
+    );
   }, []);
 
   const markSectionComplete = useCallback((_section: string, _isComplete: boolean = true) => {
@@ -117,8 +116,8 @@ export const useWorkspaceState = () => {
       ...prev,
       visualizationState: {
         ...prev.visualizationState,
-        ...newState
-      }
+        ...newState,
+      },
     }));
   }, []);
 
@@ -127,8 +126,8 @@ export const useWorkspaceState = () => {
       ...prev,
       unsavedChanges: {
         ...prev.unsavedChanges,
-        [section]: hasChanges
-      }
+        [section]: hasChanges,
+      },
     }));
   }, []);
 
@@ -136,9 +135,9 @@ export const useWorkspaceState = () => {
     const stateToSave = {
       ...workspaceState,
       lastSaved: Date.now(),
-      unsavedChanges: {} // Clear unsaved changes on save
+      unsavedChanges: {}, // Clear unsaved changes on save
     };
-    
+
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
       setWorkspaceState(stateToSave);
@@ -159,31 +158,34 @@ export const useWorkspaceState = () => {
     }
   }, []);
 
-  const getSectionStatus = useCallback((sectionId: string, data: any): 'empty' | 'in-progress' | 'completed' | 'blocked' => {
-    const section = WORKSPACE_SECTIONS.find(s => s.id === sectionId);
-    if (!section) return 'empty';
+  const getSectionStatus = useCallback(
+    (sectionId: string, data: any): 'empty' | 'in-progress' | 'completed' | 'blocked' => {
+      const section = WORKSPACE_SECTIONS.find(s => s.id === sectionId);
+      if (!section) return 'empty';
 
-    // Check dependencies recursively
-    const checkDependencies = (depId: string): boolean => {
-      const depSection = WORKSPACE_SECTIONS.find(s => s.id === depId);
-      if (!depSection) return true;
-      
-      const depDataCount = getSectionDataCount(depId, data);
-      return depDataCount > 0;
-    };
+      // Check dependencies recursively
+      const checkDependencies = (depId: string): boolean => {
+        const depSection = WORKSPACE_SECTIONS.find(s => s.id === depId);
+        if (!depSection) return true;
 
-    const hasDependencies = section.dependencies.every(checkDependencies);
-    
-    if (!hasDependencies) return 'blocked';
+        const depDataCount = getSectionDataCount(depId, data);
+        return depDataCount > 0;
+      };
 
-    // Check if section has data
-    const dataCount = getSectionDataCount(sectionId, data);
-    
-    if (dataCount === 0) return 'empty';
-    
-    // Section has data and dependencies are met
-    return 'completed';
-  }, []);
+      const hasDependencies = section.dependencies.every(checkDependencies);
+
+      if (!hasDependencies) return 'blocked';
+
+      // Check if section has data
+      const dataCount = getSectionDataCount(sectionId, data);
+
+      if (dataCount === 0) return 'empty';
+
+      // Section has data and dependencies are met
+      return 'completed';
+    },
+    []
+  );
 
   const getSectionDataCount = useCallback((sectionId: string, data: any) => {
     switch (sectionId) {
@@ -227,6 +229,6 @@ export const useWorkspaceState = () => {
     restoreWorkspaceState,
     getSectionStatus,
     getSectionDataCount,
-    sections: WORKSPACE_SECTIONS
+    sections: WORKSPACE_SECTIONS,
   };
 };

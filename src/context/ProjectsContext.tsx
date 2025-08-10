@@ -1,7 +1,14 @@
-import React, { createContext, useState, useCallback, ReactNode, useEffect, useContext } from 'react';
+import React, {
+  createContext,
+  useState,
+  useCallback,
+  ReactNode,
+  useEffect,
+  useContext,
+} from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { AnalysisSession, AnalysisType, AnalysisFolder } from '@/types/types';
-import { storageManager } from '@/utils/storageManager';
+import { storageManager } from '@/utils/storage-manager';
 
 export interface Project {
   id: string;
@@ -20,28 +27,39 @@ interface ProjectsContextState {
   currentProject: Project | null;
   currentAnalysis: AnalysisSession | null;
   isLoading: boolean;
-  
+
   // Project operations
   createProject: (name: string, description?: string) => Project;
-  updateProject: (projectId: string, updates: Partial<Omit<Project, 'id' | 'analyses' | 'createdAt'>>) => void;
+  updateProject: (
+    projectId: string,
+    updates: Partial<Omit<Project, 'id' | 'analyses' | 'createdAt'>>
+  ) => void;
   deleteProject: (projectId: string) => void;
   selectProject: (projectId: string | null) => void;
-  
+
   // Analysis operations
   createAnalysis: (projectId: string, type: AnalysisType, title?: string) => AnalysisSession;
-  updateAnalysis: (projectId: string, analysisId: string, updates: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt'>>) => void;
+  updateAnalysis: (
+    projectId: string,
+    analysisId: string,
+    updates: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt'>>
+  ) => void;
   deleteAnalysis: (projectId: string, analysisId: string) => void;
   selectAnalysis: (analysisId: string | null) => void;
-  
+
   // Import existing analysis
   importAnalysisToProject: (projectId: string, analysis: AnalysisSession) => void;
-  
+
   // Reorder analyses
   reorderAnalyses: (projectId: string, analysisIds: string[]) => void;
-  
+
   // Folder operations
   createFolder: (projectId: string, name: string, parentFolderId?: string) => AnalysisFolder;
-  updateFolder: (projectId: string, folderId: string, updates: Partial<Omit<AnalysisFolder, 'id' | 'createdAt'>>) => void;
+  updateFolder: (
+    projectId: string,
+    folderId: string,
+    updates: Partial<Omit<AnalysisFolder, 'id' | 'createdAt'>>
+  ) => void;
   deleteFolder: (projectId: string, folderId: string) => void;
   moveAnalysisToFolder: (projectId: string, analysisId: string, folderId?: string) => void;
   reorderFolders: (projectId: string, folderIds: string[]) => void;
@@ -55,37 +73,36 @@ const CURRENT_ANALYSIS_KEY = 'stamp-current-analysis';
 const getStoredProjects = (): Project[] => {
   try {
     const result = storageManager.loadWithValidation<Project[]>(PROJECTS_STORAGE_KEY);
-    
+
     if (!result.isValid || !result.data) {
-      
       // Try fallback to direct localStorage read for backward compatibility
       const stored = localStorage.getItem(PROJECTS_STORAGE_KEY);
       if (!stored) {
         return [];
       }
-      
+
       // Parse the stored data
       let parsedData = JSON.parse(stored);
-      
+
       // Check if it's wrapped data (has data, checksum, timestamp properties)
       if (parsedData.data && parsedData.checksum && parsedData.timestamp) {
         parsedData = parsedData.data;
       }
-      
+
       // Ensure it's an array
       const projects = Array.isArray(parsedData) ? parsedData : [];
-      
+
       // Migrate projects that don't have folders array
       return projects.map((project: any) => ({
         ...project,
-        folders: project.folders || []
+        folders: project.folders || [],
       }));
     }
-    
+
     // Migrate projects that don't have folders array
     return result.data.map((project: any) => ({
       ...project,
-      folders: project.folders || []
+      folders: project.folders || [],
     }));
   } catch (error) {
     return [];
@@ -96,7 +113,7 @@ const getStoredCurrentIds = (): { projectId: string | null; analysisId: string |
   try {
     return {
       projectId: localStorage.getItem(CURRENT_PROJECT_KEY),
-      analysisId: localStorage.getItem(CURRENT_ANALYSIS_KEY)
+      analysisId: localStorage.getItem(CURRENT_ANALYSIS_KEY),
     };
   } catch {
     return { projectId: null, analysisId: null };
@@ -110,7 +127,7 @@ const migrateLegacyAnalysis = (): Project[] => {
     if (legacyAnalysis) {
       const analysis: AnalysisSession = JSON.parse(legacyAnalysis);
       const now = new Date().toISOString();
-      
+
       // Create a default project for the legacy analysis
       const defaultProject: Project = {
         id: uuidv4(),
@@ -119,9 +136,9 @@ const migrateLegacyAnalysis = (): Project[] => {
         createdAt: analysis.createdAt || now,
         updatedAt: now,
         analyses: [analysis],
-        folders: []
+        folders: [],
       };
-      
+
       // Save the migrated project using storageManager to ensure consistency
       const saveResult = storageManager.saveWithValidation(PROJECTS_STORAGE_KEY, [defaultProject]);
       if (!saveResult.success) {
@@ -132,28 +149,28 @@ const migrateLegacyAnalysis = (): Project[] => {
           let hash = 0;
           for (let i = 0; i < dataStr.length; i++) {
             const char = dataStr.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
+            hash = (hash << 5) - hash + char;
             hash = hash & hash; // Convert to 32-bit integer
           }
           const checksum = Math.abs(hash).toString(36);
-          
+
           const wrappedData = {
             data: [defaultProject],
             checksum: checksum,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           };
           localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(wrappedData));
         } catch (e) {
           // Failed to save migrated project
         }
       }
-      
+
       localStorage.setItem(CURRENT_PROJECT_KEY, defaultProject.id);
       localStorage.setItem(CURRENT_ANALYSIS_KEY, analysis.id);
-      
+
       // Remove the legacy storage
       localStorage.removeItem('analysisSession');
-      
+
       return [defaultProject];
     }
   } catch (error) {
@@ -179,8 +196,8 @@ const ensureDataConsistency = (projects: Project[]): Project[] => {
         createdBy: analysis.createdBy || 'Unknown',
         createdAt: analysis.createdAt || new Date().toISOString(),
         updatedAt: analysis.updatedAt || new Date().toISOString(),
-        currentStep: analysis.currentStep || '/stpa/step2'
-      }))
+        currentStep: analysis.currentStep || '/stpa/step2',
+      })),
     }));
   } catch (error) {
     return projects;
@@ -194,21 +211,21 @@ const initialState: ProjectsContextState = {
   currentProject: null,
   currentAnalysis: null,
   isLoading: true,
-  createProject: () => ({} as Project),
+  createProject: () => ({}) as Project,
   updateProject: () => {},
   deleteProject: () => {},
   selectProject: () => {},
-  createAnalysis: () => ({} as AnalysisSession),
+  createAnalysis: () => ({}) as AnalysisSession,
   updateAnalysis: () => {},
   deleteAnalysis: () => {},
   selectAnalysis: () => {},
   importAnalysisToProject: () => {},
   reorderAnalyses: () => {},
-  createFolder: () => ({} as AnalysisFolder),
+  createFolder: () => ({}) as AnalysisFolder,
   updateFolder: () => {},
   deleteFolder: () => {},
   moveAnalysisToFolder: () => {},
-  reorderFolders: () => {}
+  reorderFolders: () => {},
 };
 
 export const ProjectsContext = createContext<ProjectsContextState>(initialState);
@@ -223,7 +240,7 @@ export const useProjects = () => {
 
 export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Initialize with migration check
   const [projects, setProjects] = useState<Project[]>(() => {
     const stored = getStoredProjects();
@@ -234,16 +251,16 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
     return ensureDataConsistency(stored);
   });
-  
+
   const { projectId: storedProjectId, analysisId: storedAnalysisId } = getStoredCurrentIds();
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(storedProjectId);
   const [currentAnalysisId, setCurrentAnalysisId] = useState<string | null>(storedAnalysisId);
-  
+
   // Mark loading as complete after initial state is set
   useEffect(() => {
     setIsLoading(false);
   }, []);
-  
+
   // Persist to localStorage with validation
   useEffect(() => {
     if (projects.length > 0) {
@@ -256,15 +273,15 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
           let hash = 0;
           for (let i = 0; i < dataStr.length; i++) {
             const char = dataStr.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
+            hash = (hash << 5) - hash + char;
             hash = hash & hash; // Convert to 32-bit integer
           }
           const checksum = Math.abs(hash).toString(36);
-          
+
           const wrappedData = {
             data: projects,
             checksum: checksum,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           };
           localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(wrappedData));
         } catch (e) {
@@ -273,7 +290,7 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
     }
   }, [projects]);
-  
+
   useEffect(() => {
     if (currentProjectId) {
       localStorage.setItem(CURRENT_PROJECT_KEY, currentProjectId);
@@ -281,7 +298,7 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
       localStorage.removeItem(CURRENT_PROJECT_KEY);
     }
   }, [currentProjectId]);
-  
+
   useEffect(() => {
     if (currentAnalysisId) {
       localStorage.setItem(CURRENT_ANALYSIS_KEY, currentAnalysisId);
@@ -289,11 +306,11 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
       localStorage.removeItem(CURRENT_ANALYSIS_KEY);
     }
   }, [currentAnalysisId]);
-  
+
   // Compute current project and analysis
   const currentProject = projects.find(p => p.id === currentProjectId) || null;
   const currentAnalysis = currentProject?.analyses.find(a => a.id === currentAnalysisId) || null;
-  
+
   // Project operations
   const createProject = useCallback((name: string, description?: string): Project => {
     const now = new Date().toISOString();
@@ -304,253 +321,304 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
       createdAt: now,
       updatedAt: now,
       analyses: [],
-      folders: []
+      folders: [],
     };
-    
+
     setProjects(prev => [...prev, newProject]);
     setCurrentProjectId(newProject.id);
     setCurrentAnalysisId(null);
-    
+
     return newProject;
   }, []);
-  
-  const updateProject = useCallback((projectId: string, updates: Partial<Omit<Project, 'id' | 'analyses' | 'createdAt'>>) => {
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? { ...project, ...updates, updatedAt: new Date().toISOString() }
-        : project
-    ));
-  }, []);
-  
-  const deleteProject = useCallback((projectId: string) => {
-    setProjects(prev => prev.filter(p => p.id !== projectId));
-    
-    // If deleting current project, clear selection
-    if (currentProjectId === projectId) {
-      setCurrentProjectId(null);
-      setCurrentAnalysisId(null);
-    }
-  }, [currentProjectId]);
-  
+
+  const updateProject = useCallback(
+    (projectId: string, updates: Partial<Omit<Project, 'id' | 'analyses' | 'createdAt'>>) => {
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? { ...project, ...updates, updatedAt: new Date().toISOString() }
+            : project
+        )
+      );
+    },
+    []
+  );
+
+  const deleteProject = useCallback(
+    (projectId: string) => {
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+
+      // If deleting current project, clear selection
+      if (currentProjectId === projectId) {
+        setCurrentProjectId(null);
+        setCurrentAnalysisId(null);
+      }
+    },
+    [currentProjectId]
+  );
+
   const selectProject = useCallback((projectId: string | null) => {
     setCurrentProjectId(projectId);
     // Clear analysis selection when switching projects
     setCurrentAnalysisId(null);
   }, []);
-  
+
   // Analysis operations
-  const createAnalysis = useCallback((projectId: string, type: AnalysisType, title?: string): AnalysisSession => {
-    const now = new Date().toISOString();
-    const newAnalysis: AnalysisSession = {
-      id: uuidv4(),
-      analysisType: type,
-      title: title || `${type} Analysis - ${new Date().toLocaleDateString()}`,
-      createdBy: 'Analyst',
-      createdAt: now,
-      updatedAt: now,
-      currentStep: type === AnalysisType.CAST ? '/cast/step2' : '/stpa/step2'
-    };
-    
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? { 
-            ...project, 
-            analyses: [...project.analyses, newAnalysis],
-            updatedAt: now 
-          }
-        : project
-    ));
-    
-    // Auto-select the new analysis
-    setCurrentProjectId(projectId);
-    setCurrentAnalysisId(newAnalysis.id);
-    
-    return newAnalysis;
-  }, []);
-  
-  const updateAnalysis = useCallback((projectId: string, analysisId: string, updates: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt'>>) => {
-    const now = new Date().toISOString();
-    
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? {
-            ...project,
-            analyses: project.analyses.map(analysis =>
-              analysis.id === analysisId
-                ? { ...analysis, ...updates, updatedAt: now }
-                : analysis
-            ),
-            updatedAt: now
-          }
-        : project
-    ));
-  }, []);
-  
-  const deleteAnalysis = useCallback((projectId: string, analysisId: string) => {
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? {
-            ...project,
-            analyses: project.analyses.filter(a => a.id !== analysisId),
-            updatedAt: new Date().toISOString()
-          }
-        : project
-    ));
-    
-    // If deleting current analysis, clear selection
-    if (currentAnalysisId === analysisId) {
-      setCurrentAnalysisId(null);
-    }
-  }, [currentAnalysisId]);
-  
-  const selectAnalysis = useCallback((analysisId: string | null) => {
-    setCurrentAnalysisId(analysisId);
-    
-    // If selecting an analysis, ensure its project is also selected
-    if (analysisId) {
-      const project = projects.find(p => p.analyses.some(a => a.id === analysisId));
-      if (project) {
-        setCurrentProjectId(project.id);
+  const createAnalysis = useCallback(
+    (projectId: string, type: AnalysisType, title?: string): AnalysisSession => {
+      const now = new Date().toISOString();
+      const newAnalysis: AnalysisSession = {
+        id: uuidv4(),
+        analysisType: type,
+        title: title || `${type} Analysis - ${new Date().toLocaleDateString()}`,
+        createdBy: 'Analyst',
+        createdAt: now,
+        updatedAt: now,
+        currentStep: type === AnalysisType.CAST ? '/cast/step2' : '/stpa/step2',
+      };
+
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? {
+                ...project,
+                analyses: [...project.analyses, newAnalysis],
+                updatedAt: now,
+              }
+            : project
+        )
+      );
+
+      // Auto-select the new analysis
+      setCurrentProjectId(projectId);
+      setCurrentAnalysisId(newAnalysis.id);
+
+      return newAnalysis;
+    },
+    []
+  );
+
+  const updateAnalysis = useCallback(
+    (
+      projectId: string,
+      analysisId: string,
+      updates: Partial<Omit<AnalysisSession, 'id' | 'analysisType' | 'createdAt'>>
+    ) => {
+      const now = new Date().toISOString();
+
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? {
+                ...project,
+                analyses: project.analyses.map(analysis =>
+                  analysis.id === analysisId
+                    ? { ...analysis, ...updates, updatedAt: now }
+                    : analysis
+                ),
+                updatedAt: now,
+              }
+            : project
+        )
+      );
+    },
+    []
+  );
+
+  const deleteAnalysis = useCallback(
+    (projectId: string, analysisId: string) => {
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? {
+                ...project,
+                analyses: project.analyses.filter(a => a.id !== analysisId),
+                updatedAt: new Date().toISOString(),
+              }
+            : project
+        )
+      );
+
+      // If deleting current analysis, clear selection
+      if (currentAnalysisId === analysisId) {
+        setCurrentAnalysisId(null);
       }
-    }
-  }, [projects]);
-  
+    },
+    [currentAnalysisId]
+  );
+
+  const selectAnalysis = useCallback(
+    (analysisId: string | null) => {
+      setCurrentAnalysisId(analysisId);
+
+      // If selecting an analysis, ensure its project is also selected
+      if (analysisId) {
+        const project = projects.find(p => p.analyses.some(a => a.id === analysisId));
+        if (project) {
+          setCurrentProjectId(project.id);
+        }
+      }
+    },
+    [projects]
+  );
+
   const importAnalysisToProject = useCallback((projectId: string, analysis: AnalysisSession) => {
     const now = new Date().toISOString();
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? {
-            ...project,
-            analyses: [...project.analyses, { ...analysis, id: uuidv4() }],
-            updatedAt: now
-          }
-        : project
-    ));
+    setProjects(prev =>
+      prev.map(project =>
+        project.id === projectId
+          ? {
+              ...project,
+              analyses: [...project.analyses, { ...analysis, id: uuidv4() }],
+              updatedAt: now,
+            }
+          : project
+      )
+    );
   }, []);
 
   const reorderAnalyses = useCallback((projectId: string, analysisIds: string[]) => {
-    setProjects(prev => prev.map(project => {
-      if (project.id !== projectId) return project;
-      
-      // Create a map of current analyses
-      const analysisMap = new Map(project.analyses.map(a => [a.id, a]));
-      
-      // Reorder based on the provided IDs
-      const reorderedAnalyses = analysisIds
-        .map(id => analysisMap.get(id))
-        .filter((a): a is AnalysisSession => a !== undefined);
-      
-      return {
-        ...project,
-        analyses: reorderedAnalyses,
-        updatedAt: new Date().toISOString()
-      };
-    }));
+    setProjects(prev =>
+      prev.map(project => {
+        if (project.id !== projectId) return project;
+
+        // Create a map of current analyses
+        const analysisMap = new Map(project.analyses.map(a => [a.id, a]));
+
+        // Reorder based on the provided IDs
+        const reorderedAnalyses = analysisIds
+          .map(id => analysisMap.get(id))
+          .filter((a): a is AnalysisSession => a !== undefined);
+
+        return {
+          ...project,
+          analyses: reorderedAnalyses,
+          updatedAt: new Date().toISOString(),
+        };
+      })
+    );
   }, []);
 
   // Folder operations
-  const createFolder = useCallback((projectId: string, name: string, parentFolderId?: string): AnalysisFolder => {
-    const now = new Date().toISOString();
-    const newFolder: AnalysisFolder = {
-      id: uuidv4(),
-      name,
-      createdAt: now,
-      updatedAt: now,
-      parentFolderId,
-      isExpanded: true
-    };
-    
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? { 
-            ...project, 
-            folders: [...project.folders, newFolder],
-            updatedAt: now
-          }
-        : project
-    ));
-    
-    return newFolder;
-  }, []);
+  const createFolder = useCallback(
+    (projectId: string, name: string, parentFolderId?: string): AnalysisFolder => {
+      const now = new Date().toISOString();
+      const newFolder: AnalysisFolder = {
+        id: uuidv4(),
+        name,
+        createdAt: now,
+        updatedAt: now,
+        parentFolderId,
+        isExpanded: true,
+      };
 
-  const updateFolder = useCallback((projectId: string, folderId: string, updates: Partial<Omit<AnalysisFolder, 'id' | 'createdAt'>>) => {
-    const now = new Date().toISOString();
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? {
-            ...project,
-            folders: project.folders.map(folder => 
-              folder.id === folderId 
-                ? { ...folder, ...updates, updatedAt: now }
-                : folder
-            ),
-            updatedAt: now
-          }
-        : project
-    ));
-  }, []);
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? {
+                ...project,
+                folders: [...project.folders, newFolder],
+                updatedAt: now,
+              }
+            : project
+        )
+      );
+
+      return newFolder;
+    },
+    []
+  );
+
+  const updateFolder = useCallback(
+    (
+      projectId: string,
+      folderId: string,
+      updates: Partial<Omit<AnalysisFolder, 'id' | 'createdAt'>>
+    ) => {
+      const now = new Date().toISOString();
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? {
+                ...project,
+                folders: project.folders.map(folder =>
+                  folder.id === folderId ? { ...folder, ...updates, updatedAt: now } : folder
+                ),
+                updatedAt: now,
+              }
+            : project
+        )
+      );
+    },
+    []
+  );
 
   const deleteFolder = useCallback((projectId: string, folderId: string) => {
-    setProjects(prev => prev.map(project => {
-      if (project.id !== projectId) return project;
+    setProjects(prev =>
+      prev.map(project => {
+        if (project.id !== projectId) return project;
 
-      // Remove the folder and move any analyses in it to no folder
-      const updatedAnalyses = project.analyses.map(analysis => 
-        analysis.folderId === folderId 
-          ? { ...analysis, folderId: undefined }
-          : analysis
-      );
+        // Remove the folder and move any analyses in it to no folder
+        const updatedAnalyses = project.analyses.map(analysis =>
+          analysis.folderId === folderId ? { ...analysis, folderId: undefined } : analysis
+        );
 
-      // Remove child folders as well
-      const updatedFolders = project.folders.filter(folder => 
-        folder.id !== folderId && folder.parentFolderId !== folderId
-      );
+        // Remove child folders as well
+        const updatedFolders = project.folders.filter(
+          folder => folder.id !== folderId && folder.parentFolderId !== folderId
+        );
 
-      return {
-        ...project,
-        analyses: updatedAnalyses,
-        folders: updatedFolders,
-        updatedAt: new Date().toISOString()
-      };
-    }));
+        return {
+          ...project,
+          analyses: updatedAnalyses,
+          folders: updatedFolders,
+          updatedAt: new Date().toISOString(),
+        };
+      })
+    );
   }, []);
 
-  const moveAnalysisToFolder = useCallback((projectId: string, analysisId: string, folderId?: string) => {
-    setProjects(prev => prev.map(project => 
-      project.id === projectId 
-        ? {
-            ...project,
-            analyses: project.analyses.map(analysis => 
-              analysis.id === analysisId 
-                ? { ...analysis, folderId }
-                : analysis
-            ),
-            updatedAt: new Date().toISOString()
-          }
-        : project
-    ));
-  }, []);
+  const moveAnalysisToFolder = useCallback(
+    (projectId: string, analysisId: string, folderId?: string) => {
+      setProjects(prev =>
+        prev.map(project =>
+          project.id === projectId
+            ? {
+                ...project,
+                analyses: project.analyses.map(analysis =>
+                  analysis.id === analysisId ? { ...analysis, folderId } : analysis
+                ),
+                updatedAt: new Date().toISOString(),
+              }
+            : project
+        )
+      );
+    },
+    []
+  );
 
   const reorderFolders = useCallback((projectId: string, folderIds: string[]) => {
-    setProjects(prev => prev.map(project => {
-      if (project.id !== projectId) return project;
-      
-      // Create a map of current folders
-      const folderMap = new Map(project.folders.map(f => [f.id, f]));
-      
-      // Reorder based on the provided IDs
-      const reorderedFolders = folderIds
-        .map(id => folderMap.get(id))
-        .filter((f): f is AnalysisFolder => f !== undefined);
-      
-      return {
-        ...project,
-        folders: reorderedFolders,
-        updatedAt: new Date().toISOString()
-      };
-    }));
+    setProjects(prev =>
+      prev.map(project => {
+        if (project.id !== projectId) return project;
+
+        // Create a map of current folders
+        const folderMap = new Map(project.folders.map(f => [f.id, f]));
+
+        // Reorder based on the provided IDs
+        const reorderedFolders = folderIds
+          .map(id => folderMap.get(id))
+          .filter((f): f is AnalysisFolder => f !== undefined);
+
+        return {
+          ...project,
+          folders: reorderedFolders,
+          updatedAt: new Date().toISOString(),
+        };
+      })
+    );
   }, []);
-  
+
   const value: ProjectsContextState = {
     projects,
     currentProjectId,
@@ -572,12 +640,8 @@ export const ProjectsProvider: React.FC<{ children: ReactNode }> = ({ children }
     updateFolder,
     deleteFolder,
     moveAnalysisToFolder,
-    reorderFolders
+    reorderFolders,
   };
-  
-  return (
-    <ProjectsContext.Provider value={value}>
-      {children}
-    </ProjectsContext.Provider>
-  );
+
+  return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>;
 };

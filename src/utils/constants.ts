@@ -1,14 +1,24 @@
 import React from 'react';
-import { ControllerType, UCAType, StepDefinition, FiveFactorArchetype, FiveFactorScores } from '@/types/types';
+import {
+  ControllerType,
+  UCAType,
+  StepDefinition,
+  FiveFactorArchetype,
+  FiveFactorScores,
+} from '@/types/types';
 
-export const APP_TITLE = "Malmquist Safety";
-export const APP_VERSION = "Alpha";
+export const APP_TITLE = 'Malmquist Safety';
+export const APP_VERSION = 'Alpha';
 
 export const CONTROLLER_TYPE_COLORS: Record<ControllerType, string> = {
-  [ControllerType.Software]: 'bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-900/50 dark:text-teal-200 dark:border-teal-500/30',
-  [ControllerType.Human]: 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-200 dark:border-yellow-500/30',
-  [ControllerType.Team]: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-500/30',
-  [ControllerType.Organisation]: 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/50 dark:text-purple-200 dark:border-purple-500/30',
+  [ControllerType.Software]:
+    'bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-900/50 dark:text-teal-200 dark:border-teal-500/30',
+  [ControllerType.Human]:
+    'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-200 dark:border-yellow-500/30',
+  [ControllerType.Team]:
+    'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-500/30',
+  [ControllerType.Organisation]:
+    'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/50 dark:text-purple-200 dark:border-purple-500/30',
 };
 
 // NEW: Style object for ReactFlow nodes to match the dark theme list items
@@ -69,75 +79,131 @@ export const FEEDBACK_LINE_COLOR = '#16a34a';
 export const MISSING_LINE_COLOR = 'red';
 
 export const STANDARD_LOSSES: { id: string; title: string; description: string }[] = [
-  { id: 'L-Std-Life', title: 'Loss of life', description: 'Fatalities or severe harm to individuals.' },
-  { id: 'L-Std-Property', title: 'Loss of property', description: 'Aircraft damage, other physical damage or loss.' },
-  { id: 'L-Std-Revenue', title: 'Loss of revenue', description: 'Financial impact or reduced market share from dissatisfied customers.' },
-  { id: 'L-Std-Security', title: 'Loss of security (software or physical)', description: 'Financial or reputational impact from a security breach.' },
-  { id: 'L-Std-Mission', title: 'Loss of mission', description: 'Inability to complete the primary objectives of the system.' },
-  { id: 'L-Std-Compliance', title: 'Loss of regulatory compliance', description: 'Legal action or fines resulting from noncompliance.' },
-  { id: 'L-Std-Reputation', title: 'Loss of brand or reputation', description: 'Damage to public image or trust.' },
-  { id: 'L-Std-CustomerSat', title: 'Loss of customer satisfaction', description: 'Negative impact on customer experience.' },
-  { id: 'L-Std-Environment', title: 'Loss of environmental integrity', description: 'Spill or contamination harming the environment.' },
+  {
+    id: 'L-Std-Life',
+    title: 'Loss of life',
+    description: 'Fatalities or severe harm to individuals.',
+  },
+  {
+    id: 'L-Std-Property',
+    title: 'Loss of property',
+    description: 'Aircraft damage, other physical damage or loss.',
+  },
+  {
+    id: 'L-Std-Revenue',
+    title: 'Loss of revenue',
+    description: 'Financial impact or reduced market share from dissatisfied customers.',
+  },
+  {
+    id: 'L-Std-Security',
+    title: 'Loss of security (software or physical)',
+    description: 'Financial or reputational impact from a security breach.',
+  },
+  {
+    id: 'L-Std-Mission',
+    title: 'Loss of mission',
+    description: 'Inability to complete the primary objectives of the system.',
+  },
+  {
+    id: 'L-Std-Compliance',
+    title: 'Loss of regulatory compliance',
+    description: 'Legal action or fines resulting from noncompliance.',
+  },
+  {
+    id: 'L-Std-Reputation',
+    title: 'Loss of brand or reputation',
+    description: 'Damage to public image or trust.',
+  },
+  {
+    id: 'L-Std-CustomerSat',
+    title: 'Loss of customer satisfaction',
+    description: 'Negative impact on customer experience.',
+  },
+  {
+    id: 'L-Std-Environment',
+    title: 'Loss of environmental integrity',
+    description: 'Spill or contamination harming the environment.',
+  },
 ];
 
 export const UCA_QUESTIONS_MAP: { type: UCAType; question: string }[] = [
-  { type: UCAType.NotProvided, question: 'Is a hazard caused if the control action is NOT PROVIDED when needed?' },
-  { type: UCAType.ProvidedUnsafe, question: 'Is a hazard caused if the control action is PROVIDED IN AN UNSAFE MANNER (e.g., incorrect, too much, not enough)?' },
-  { type: UCAType.TooEarly, question: 'Is a hazard caused if the control action is provided TOO EARLY (unsafe timing/order)?' },
-  { type: UCAType.TooLate, question: 'Is a hazard caused if the control action is provided TOO LATE (unsafe timing/order)?' },
-  { type: UCAType.WrongOrder, question: 'Is a hazard caused if the control action is provided in the WRONG ORDER relative to other actions?' },
-  { type: UCAType.TooLong, question: 'Is a hazard caused if a continuous control action is APPLIED TOO LONG (stopped too late)?' },
-  { type: UCAType.TooShort, question: 'Is a hazard caused if a continuous control action is APPLIED TOO SHORT (stopped too soon)?' },
+  {
+    type: UCAType.NotProvided,
+    question: 'Is a hazard caused if the control action is NOT PROVIDED when needed?',
+  },
+  {
+    type: UCAType.ProvidedUnsafe,
+    question:
+      'Is a hazard caused if the control action is PROVIDED IN AN UNSAFE MANNER (e.g., incorrect, too much, not enough)?',
+  },
+  {
+    type: UCAType.TooEarly,
+    question:
+      'Is a hazard caused if the control action is provided TOO EARLY (unsafe timing/order)?',
+  },
+  {
+    type: UCAType.TooLate,
+    question:
+      'Is a hazard caused if the control action is provided TOO LATE (unsafe timing/order)?',
+  },
+  {
+    type: UCAType.WrongOrder,
+    question:
+      'Is a hazard caused if the control action is provided in the WRONG ORDER relative to other actions?',
+  },
+  {
+    type: UCAType.TooLong,
+    question:
+      'Is a hazard caused if a continuous control action is APPLIED TOO LONG (stopped too late)?',
+  },
+  {
+    type: UCAType.TooShort,
+    question:
+      'Is a hazard caused if a continuous control action is APPLIED TOO SHORT (stopped too soon)?',
+  },
 ];
 
 export const SYSTEM_COMPONENT_EXAMPLES: string[] = [
-  "Aircraft", "Ship", "Spacecraft", "Satellite", "Powerplant", "Vehicle", "Patient", "Software system"
+  'Aircraft',
+  'Ship',
+  'Spacecraft',
+  'Satellite',
+  'Powerplant',
+  'Vehicle',
+  'Patient',
+  'Software system',
 ];
 
-export const SYSTEM_STATE_CONDITION_EXAMPLES: { category: string, examples: string[] }[] = [
+export const SYSTEM_STATE_CONDITION_EXAMPLES: { category: string; examples: string[] }[] = [
   {
-    category: "Inflight Conditions / States",
-    examples: [
-      "Inflight",
-    ]
+    category: 'Inflight Conditions / States',
+    examples: ['Inflight'],
   },
   {
-    category: "On Ground Conditions / States",
-    examples: [
-      "On the ground",
-    ]
+    category: 'On Ground Conditions / States',
+    examples: ['On the ground'],
   },
   {
-    category: "Speed Conditions",
-    examples: [
-      "Too high a speed",
-      "Too low speed",
-    ]
+    category: 'Speed Conditions',
+    examples: ['Too high a speed', 'Too low speed'],
   },
   {
-    category: "Proximity Conditions",
-    examples: [
-      "Too close to",
-    ]
+    category: 'Proximity Conditions',
+    examples: ['Too close to'],
   },
   {
-    category: "Material/Security States",
-    examples: [
-      "Releases dangerous materials",
-      "Security is breached",
-    ]
+    category: 'Material/Security States',
+    examples: ['Releases dangerous materials', 'Security is breached'],
   },
   {
-    category: "Mission/Operational States",
+    category: 'Mission/Operational States',
     examples: [
-      "Unable to complete mission",
-      "Exit doors not available",
-      "Regulations not followed when",
-    ]
-  }
+      'Unable to complete mission',
+      'Exit doors not available',
+      'Regulations not followed when',
+    ],
+  },
 ];
-
-
 
 export const STEPS_BASE: StepDefinition[] = [
   { path: 'step3', title: 'Control Structure & Actions', shortTitle: 'Structure & Actions' },
@@ -147,68 +213,108 @@ export const STEPS_BASE: StepDefinition[] = [
 ];
 
 export const CAST_STEPS: StepDefinition[] = [
-  { path: '/cast/step2', title: 'Scope, Events, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses' },
-  ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}`}))
+  {
+    path: '/cast/step2',
+    title: 'Scope, Events, Losses, Hazards & Constraints',
+    shortTitle: 'Scope & Losses',
+  },
+  ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}` })),
 ];
 
 export const STPA_STEPS: StepDefinition[] = [
-  { path: '/stpa/step2', title: 'Scope, Losses, Hazards & Constraints', shortTitle: 'Scope & Losses' },
-  ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}`}))
+  {
+    path: '/stpa/step2',
+    title: 'Scope, Losses, Hazards & Constraints',
+    shortTitle: 'Scope & Losses',
+  },
+  ...STEPS_BASE.map(s => ({ ...s, path: `/analysis/${s.path}` })),
 ];
 
-export const FIVE_FACTOR_ARCHETYPES: Record<FiveFactorArchetype, FiveFactorScores & { label: string }> = {
+export const FIVE_FACTOR_ARCHETYPES: Record<
+  FiveFactorArchetype,
+  FiveFactorScores & { label: string }
+> = {
   GeneralPopulation: {
-    label: "General Population (Average)",
-    neuroticism: 2.5, extraversion: 2.5, openness: 2.5, agreeableness: 2.5, conscientiousness: 2.5
+    label: 'General Population (Average)',
+    neuroticism: 2.5,
+    extraversion: 2.5,
+    openness: 2.5,
+    agreeableness: 2.5,
+    conscientiousness: 2.5,
   },
   CommercialPilot: {
-    label: "Commercial Pilot (Typical Profile from OCR)",
-    neuroticism: 1.5, extraversion: -2.0, openness: 2.0, agreeableness: 2.5, conscientiousness: 3.5
+    label: 'Commercial Pilot (Typical Profile from OCR)',
+    neuroticism: 1.5,
+    extraversion: -2.0,
+    openness: 2.0,
+    agreeableness: 2.5,
+    conscientiousness: 3.5,
   },
   MilitaryPilot: {
-    label: "Military Pilot (Typical Profile from OCR)",
-    neuroticism: 0.7, extraversion: 4.7, openness: 2.75, agreeableness: 1.1, conscientiousness: 3.5
+    label: 'Military Pilot (Typical Profile from OCR)',
+    neuroticism: 0.7,
+    extraversion: 4.7,
+    openness: 2.75,
+    agreeableness: 1.1,
+    conscientiousness: 3.5,
   },
   Custom: {
-    label: "Custom Input",
-    neuroticism: 2.5, extraversion: 2.5, openness: 2.5, agreeableness: 2.5, conscientiousness: 2.5
-  }
+    label: 'Custom Input',
+    neuroticism: 2.5,
+    extraversion: 2.5,
+    openness: 2.5,
+    agreeableness: 2.5,
+    conscientiousness: 2.5,
+  },
 };
 
-export const PERSONALITY_TRAIT_DESCRIPTIONS: Record<keyof FiveFactorScores, { high: string, low: string, average?:string }> = {
+export const PERSONALITY_TRAIT_DESCRIPTIONS: Record<
+  keyof FiveFactorScores,
+  { high: string; low: string; average?: string }
+> = {
   neuroticism: {
-    high: "Hyper-alert, concerned, potential distraction, overestimates threats. Less systematic scanning.",
-    low: "Likely calmer, less prone to worry-driven decisions.",
-    average: "Average emotional stability."
+    high: 'Hyper-alert, concerned, potential distraction, overestimates threats. Less systematic scanning.',
+    low: 'Likely calmer, less prone to worry-driven decisions.',
+    average: 'Average emotional stability.',
   },
   extraversion: {
-    high: "More reliant on socially reinforced cues, potentially less methodological evaluation.",
-    low: "More reserved, potentially more independent in evaluation."
+    high: 'More reliant on socially reinforced cues, potentially less methodological evaluation.',
+    low: 'More reserved, potentially more independent in evaluation.',
   },
   openness: {
-    high: "Broader information gathering, curious, considers alternatives, systematic analysis. More likely to change direction.",
-    low: "May miss novel cues, overlook new patterns, anchor on familiar. Closed to alternatives."
+    high: 'Broader information gathering, curious, considers alternatives, systematic analysis. More likely to change direction.',
+    low: 'May miss novel cues, overlook new patterns, anchor on familiar. Closed to alternatives.',
   },
   agreeableness: {
-    high: "Tends to follow group flow, conflict-avoidant, biases towards social cues or group consensus.",
-    low: "More independent, may challenge consensus, less swayed by group pressure."
+    high: 'Tends to follow group flow, conflict-avoidant, biases towards social cues or group consensus.',
+    low: 'More independent, may challenge consensus, less swayed by group pressure.',
   },
   conscientiousness: {
-    high: "Thorough, organized, habit-driven attention, diligent systematic monitoring and analysis. Adherence to procedures.",
-    low: "May neglect details, attentional bias, less reliable in decisions/adherence to procedures."
-  }
+    high: 'Thorough, organized, habit-driven attention, diligent systematic monitoring and analysis. Adherence to procedures.',
+    low: 'May neglect details, attentional bias, less reliable in decisions/adherence to procedures.',
+  },
 };
 
 export const GLOSSARY: Record<string, string> = {
-  'Accident': 'An undesired, unacceptable, and unplanned event that results in a loss. ',
-  'Hazard': 'A system state or set of conditions that, together with specific environmental conditions, can lead to an accident or loss. ',
-  'System': 'A set of interdependent parts sharing a common purpose. The performance of the whole is affected by each and every one of its parts. ',
-  'Safety Control Structure': 'The set of controls and controllers that enforce safety constraints on the system. It includes technical and social components, from physical interlocks to management policies and regulatory oversight. ',
-  'Controller': 'A component (human, software, organization, or team) that issues control actions to manage a process or another component. ',
-  'Control Action': 'An action taken by a controller to influence the state of a controlled process. ',
-  'Controlled Process': 'The physical system or process whose behavior is being managed by a controller. ',
-  'Feedback': 'Information about the state of the controlled process that is provided back to the controller. It is used to determine what control actions are necessary. ',
-  'Unsafe Control Action (UCA)': 'A control action that, within a particular context and worst-case environment, will lead to a hazard. ',
-  'Process Model': 'The model a controller (especially automated) uses to understand the state of the controlled process and make decisions. Accidents often result when this model is inconsistent with the actual state of the process. ',
-  'Mental Model': 'A human controller\'s internal understanding of how a system works and its current state. It is the human equivalent of a process model. ',
+  Accident: 'An undesired, unacceptable, and unplanned event that results in a loss. ',
+  Hazard:
+    'A system state or set of conditions that, together with specific environmental conditions, can lead to an accident or loss. ',
+  System:
+    'A set of interdependent parts sharing a common purpose. The performance of the whole is affected by each and every one of its parts. ',
+  'Safety Control Structure':
+    'The set of controls and controllers that enforce safety constraints on the system. It includes technical and social components, from physical interlocks to management policies and regulatory oversight. ',
+  Controller:
+    'A component (human, software, organization, or team) that issues control actions to manage a process or another component. ',
+  'Control Action':
+    'An action taken by a controller to influence the state of a controlled process. ',
+  'Controlled Process':
+    'The physical system or process whose behavior is being managed by a controller. ',
+  Feedback:
+    'Information about the state of the controlled process that is provided back to the controller. It is used to determine what control actions are necessary. ',
+  'Unsafe Control Action (UCA)':
+    'A control action that, within a particular context and worst-case environment, will lead to a hazard. ',
+  'Process Model':
+    'The model a controller (especially automated) uses to understand the state of the controlled process and make decisions. Accidents often result when this model is inconsistent with the actual state of the process. ',
+  'Mental Model':
+    "A human controller's internal understanding of how a system works and its current state. It is the human equivalent of a process model. ",
 };

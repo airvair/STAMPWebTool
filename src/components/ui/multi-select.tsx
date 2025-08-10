@@ -1,48 +1,54 @@
-import * as React from "react"
-import { X } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { X } from 'lucide-react';
+import * as React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 export interface Option {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
 interface MultiSelectProps {
-  options: Option[]
-  value: string[]
-  onChange: (value: string[]) => void
-  placeholder?: string
-  className?: string
-  disabled?: boolean
+  options: Option[];
+  value: string[];
+  onChange: (value: string[]) => void;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
 }
 
 export function MultiSelect({
   options,
   value,
   onChange,
-  placeholder = "Select items...",
+  placeholder = 'Select items...',
   className,
   disabled,
 }: MultiSelectProps) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
   const handleSelect = (optionValue: string) => {
     if (value.includes(optionValue)) {
-      onChange(value.filter((v) => v !== optionValue))
+      onChange(value.filter(v => v !== optionValue));
     } else {
-      onChange([...value, optionValue])
+      onChange([...value, optionValue]);
     }
-  }
+  };
 
   const handleRemove = (optionValue: string) => {
-    onChange(value.filter((v) => v !== optionValue))
-  }
+    onChange(value.filter(v => v !== optionValue));
+  };
 
-  const selectedOptions = options.filter((option) => value.includes(option.value))
+  const selectedOptions = options.filter(option => value.includes(option.value));
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -51,19 +57,19 @@ export function MultiSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("w-full justify-between", className)}
+          className={cn('w-full justify-between', className)}
           disabled={disabled}
         >
           <div className="flex flex-wrap gap-1">
             {selectedOptions.length > 0 ? (
-              selectedOptions.map((option) => (
+              selectedOptions.map(option => (
                 <Badge
                   variant="secondary"
                   key={option.value}
                   className="mr-1"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleRemove(option.value)
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleRemove(option.value);
                   }}
                 >
                   {option.label}
@@ -81,7 +87,7 @@ export function MultiSelect({
           <CommandInput placeholder="Search..." />
           <CommandEmpty>No item found.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
-            {options.map((option) => (
+            {options.map(option => (
               <CommandItem
                 key={option.value}
                 value={option.value}
@@ -89,10 +95,10 @@ export function MultiSelect({
               >
                 <div
                   className={cn(
-                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                    'border-primary mr-2 flex h-4 w-4 items-center justify-center rounded-sm border',
                     value.includes(option.value)
-                      ? "bg-primary text-primary-foreground"
-                      : "opacity-50 [&_svg]:invisible"
+                      ? 'bg-primary text-primary-foreground'
+                      : 'opacity-50 [&_svg]:invisible'
                   )}
                 >
                   <svg
@@ -112,5 +118,5 @@ export function MultiSelect({
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

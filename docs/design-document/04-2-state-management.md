@@ -1,7 +1,7 @@
 Loaded cached credentials.
 Of course. Here is Chapter 4.2 (State Management) for the STAMP Web Tool design document, based on the provided `AnalysisContext.tsx` file.
 
-***
+---
 
 # 4.2 State Management
 
@@ -178,8 +178,8 @@ A key responsibility of the `AnalysisContext` is the algorithmic generation of h
 The algorithm varies based on the entity's position in the hierarchy.
 
 1.  **Top-Level Entities (e.g., Losses, Hazards):** These use a simple prefix and a sequential number. The number is derived from the current length of the entity array.
-    *   `L-1`, `L-2`, ...
-    *   `H-1`, `H-2`, ...
+    - `L-1`, `L-2`, ...
+    - `H-1`, `H-2`, ...
 
 2.  **Hierarchical Entities (e.g., Unsafe Control Actions, Sub-System Constraints):** These entities derive their code from their parent. The code is a composite of the parent's code and a new sequential index within the scope of that parent.
 
@@ -221,8 +221,9 @@ function addUnsafeControlAction(controlActionId: string, newUCAData):
 #### **Uniqueness Guarantees**
 
 Uniqueness is guaranteed by the generation algorithm itself:
-*   **Internal IDs (`uuid`):** Universally unique.
-*   **Codes (`H-1`, `UCA-1.1`):** Uniqueness is scoped. `H-1` is unique among hazards. `UCA-1.1` is unique because it's tied to the unique parent `CA-1`. The combination of the parent's unique code and the sequential child index ensures the hierarchical code is also unique. The calculation is performed atomically at the time of creation, preventing race conditions in a single-user session.
+
+- **Internal IDs (`uuid`):** Universally unique.
+- **Codes (`H-1`, `UCA-1.1`):** Uniqueness is scoped. `H-1` is unique among hazards. `UCA-1.1` is unique because it's tied to the unique parent `CA-1`. The combination of the parent's unique code and the sequential child index ensures the hierarchical code is also unique. The calculation is performed atomically at the time of creation, preventing race conditions in a single-user session.
 
 #### **Parent-Child Relationships**
 

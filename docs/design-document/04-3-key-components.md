@@ -1,4 +1,3 @@
-
 # 4.3 Key Component Pseudocode
 
 This section provides detailed pseudocode for the core coI have created the `04-3-key-components.md` file with the content you requested. Let me know if you want me to do anything else.
@@ -30,9 +29,7 @@ function addEvent(description, timestamp) {
 // Function to update an existing event
 function updateEvent(id, updatedFields) {
   setEvents(prevEvents =>
-    prevEvents.map(event =>
-      event.id === id ? { ...event, ...updatedFields } : event
-    )
+    prevEvents.map(event => (event.id === id ? { ...event, ...updatedFields } : event))
   );
 }
 ```
@@ -283,10 +280,7 @@ const SCENARIO_TEMPLATES = {
     'Software bug in the control algorithm',
     'Communication link failure',
   ],
-  EXTERNAL_EVENT: [
-    'Unexpected environmental changes',
-    'Interference from another system',
-  ],
+  EXTERNAL_EVENT: ['Unexpected environmental changes', 'Interference from another system'],
 };
 ```
 

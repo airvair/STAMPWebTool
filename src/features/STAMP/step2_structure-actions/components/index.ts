@@ -1,8 +1,8 @@
 // Barrel export for control structure components
 
-export { default as ControlStructureBuilder } from './ControlStructureBuilder';
-export { default as ControlStructureDiagram } from './ControlStructureDiagram';
-export { default as ControlStructureGraph } from './ControlStructureGraph';
+export { default as ControlStructureBuilder } from './control-structure-builder';
+export { default as ControlStructureDiagram } from './control-structure-diagram';
+export { default as ControlStructureGraph } from './control-structure-graph';
 
 // Re-export sub-modules
 export * from './graph';

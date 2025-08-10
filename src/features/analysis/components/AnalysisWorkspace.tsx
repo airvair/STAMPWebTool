@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
-import { useAnalysis } from '@/hooks/useAnalysis';
 import { useNavigation } from '@/context/NavigationContext';
-import { useUrlSync } from '@/hooks/useUrlSync';
 import { CastStep2, StpaStep2 } from '@/features/STAMP/step1_scope-losses';
 import { ControlStructureBuilder } from '@/features/STAMP/step2_structure-actions';
 import { UnsafeControlActions } from '@/features/STAMP/step3_ucas-uccas';
 import { CausalScenarios } from '@/features/STAMP/step4_scenarios';
 import { RequirementsMitigations } from '@/features/STAMP/step5_mitigations';
+import { useAnalysis } from '@/hooks/useAnalysis';
+import { useUrlSync } from '@/hooks/useUrlSync';
 import { AnalysisType } from '@/types/types';
 
 interface AnalysisWorkspaceProps {
@@ -16,7 +16,7 @@ interface AnalysisWorkspaceProps {
 const AnalysisWorkspace: React.FC<AnalysisWorkspaceProps> = () => {
   const { analysisSession } = useAnalysis();
   const { currentStep, navigateToStep, setAnalysisType, analysisType } = useNavigation();
-  
+
   // Sync URL with project/analysis selection
   useUrlSync();
 
@@ -76,11 +76,7 @@ const AnalysisWorkspace: React.FC<AnalysisWorkspaceProps> = () => {
     }
   };
 
-  return (
-    <div className="h-full">
-      {renderStep()}
-    </div>
-  );
+  return <div className="h-full">{renderStep()}</div>;
 };
 
 export default AnalysisWorkspace;

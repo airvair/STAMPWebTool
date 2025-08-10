@@ -39,7 +39,6 @@ export enum UCAType {
   TooShort = 'Applied Too Short / Stopped Too Soon (wrong duration)',
 }
 
-
 export interface Identifiable {
   id: string;
 }
@@ -89,7 +88,7 @@ export interface Hazard extends Identifiable {
   parentHazardId?: string;
   subHazardDetails?: string;
   severity?: string;
-  systemCondition?: string; // Used in completenessChecker
+  systemCondition?: string;
 }
 
 export interface SystemConstraint extends Identifiable {
@@ -107,7 +106,11 @@ export interface SystemComponent extends Identifiable {
   y?: number;
 }
 
-export type FiveFactorArchetype = 'GeneralPopulation' | 'CommercialPilot' | 'MilitaryPilot' | 'Custom';
+export type FiveFactorArchetype =
+  | 'GeneralPopulation'
+  | 'CommercialPilot'
+  | 'MilitaryPilot'
+  | 'Custom';
 
 export interface FiveFactorScores {
   neuroticism: number;
@@ -148,7 +151,6 @@ export interface TeamDetails {
   contexts: OperationalContext[];
 }
 
-
 export interface Controller extends Identifiable {
   name: string;
   ctrlType: ControllerType;
@@ -166,7 +168,8 @@ export interface Controller extends Identifiable {
 export interface ControlPath extends Identifiable {
   sourceControllerId: string;
   targetId: string;
-  controls: string;
+  controls: string; // Legacy field for backward compatibility
+  controlActionIds?: string[]; // New field for multiple control actions
   higherAuthority?: boolean;
   actuatorLabel?: string;
 }
@@ -189,7 +192,7 @@ export interface ControlAction extends Identifiable {
   description: string;
   isOutOfScope: boolean;
   name?: string; // Alternative way to reference the action
-  feedbackIds?: string[]; // Referenced in completenessChecker
+  feedbackIds?: string[];
 }
 
 export interface UnsafeControlAction extends Identifiable {
@@ -215,7 +218,12 @@ export interface CausalScenario extends Identifiable {
   causalFactors: CausalFactor[];
   context?: string;
   hazardIds?: string[];
-  scenarioType?: 'Design Flaws' | 'Component Failure' | 'Human Error' | 'Process Model Flaw' | 'Communication Failure';
+  scenarioType?:
+    | 'Design Flaws'
+    | 'Component Failure'
+    | 'Human Error'
+    | 'Process Model Flaw'
+    | 'Communication Failure';
   likelihood?: 'Low' | 'Medium' | 'High';
   severity?: 'Low' | 'Medium' | 'High' | 'Critical';
   riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
@@ -234,7 +242,6 @@ export interface CausalFactor {
   details?: string; // Additional details about the factor
   relatedControllerId?: string;
 }
-
 
 export interface Requirement extends Identifiable {
   text: string;
@@ -310,7 +317,7 @@ export interface CompletenessReport {
   overallCompleteness: number;
   stepCompleteness: Record<string, number>;
   issues: any[];
-  // Additional properties from completenessChecker.ts implementation
+  // Additional properties
   overallScore?: number;
   checks?: any[];
   criticalIssues?: number;
